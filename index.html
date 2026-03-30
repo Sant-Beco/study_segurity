@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIPHER — Un Documental sobre Ciberseguridad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #050507;
+    --green: #00ff9d;
+    --green-dim: #00c97a;
+    --amber: #ffb347;
+    --red: #ff3f3f;
+    --white: #e8e6df;
+    --gray: #4a4a5a;
+    --panel: rgba(10,10,18,0.85);
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Bebas Neue', sans-serif;
+    --body: 'Crimson Pro', Georgia, serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--body);
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* SCANLINE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,255,157,0.015) 2px,
+      rgba(0,255,157,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* NOISE TEXTURE */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0.4;
+  }
+
+  /* ─── NAVIGATION ─── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 3rem;
+    background: linear-gradient(to bottom, rgba(5,5,7,0.98) 0%, transparent 100%);
+    border-bottom: 1px solid rgba(0,255,157,0.08);
+  }
+
+  .nav-logo {
+    font-family: var(--display);
+    font-size: 1.8rem;
+    letter-spacing: 0.3em;
+    color: var(--green);
+    text-decoration: none;
+  }
+
+  .nav-logo span { color: var(--white); }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--gray);
+    text-decoration: none;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--green); }
+
+  .nav-status {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--green);
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .nav-status::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 8rem 3rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 70% 50%, rgba(0,255,157,0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 20% 80%, rgba(255,179,71,0.03) 0%, transparent 60%);
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,157,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,157,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 0%, transparent 100%);
+  }
+
+  .chapter-tag {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--amber);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .chapter-tag::after {
+    content: '';
+    flex: 0 0 40px;
+    height: 1px;
+    background: var(--amber);
+  }
+
+  .hero h1 {
+    font-family: var(--display);
+    font-size: clamp(4rem, 12vw, 11rem);
+    line-height: 0.92;
+    letter-spacing: 0.02em;
+    color: var(--white);
+    position: relative;
+    max-width: 900px;
+  }
+
+  .hero h1 .accent {
+    color: var(--green);
+    display: block;
+  }
+
+  .glitch {
+    position: relative;
+    display: inline-block;
+  }
+
+  .glitch::before,
+  .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+
+  .glitch::before {
+    color: var(--red);
+    animation: glitch1 4s infinite;
+    clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+    transform: translateX(-2px);
+  }
+
+  .glitch::after {
+    color: var(--green);
+    animation: glitch2 4s infinite;
+    clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+    transform: translateX(2px);
+  }
+
+  .hero-subtitle {
+    font-family: var(--body);
+    font-style: italic;
+    font-size: 1.3rem;
+    color: rgba(232,230,223,0.55);
+    max-width: 500px;
+    margin-top: 2rem;
+    line-height: 1.6;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 3rem;
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .meta-item {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--gray);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .meta-item strong {
+    display: block;
+    font-size: 1.1rem;
+    color: var(--white);
+    font-family: var(--body);
+    font-weight: 300;
+    font-style: normal;
+    letter-spacing: 0;
+    text-transform: none;
+    margin-top: 0.3rem;
+  }
+
+  .scroll-indicator {
+    position: absolute;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--gray);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 60px;
+    background: linear-gradient(to bottom, var(--green), transparent);
+    animation: scrolldown 2s ease-in-out infinite;
+  }
+
+  /* ─── TERMINAL INTRO ─── */
+  .terminal-section {
+    padding: 6rem 3rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .terminal-window {
+    background: rgba(5,5,7,0.9);
+    border: 1px solid rgba(0,255,157,0.15);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(0,255,157,0.05), inset 0 0 40px rgba(0,0,0,0.5);
+  }
+
+  .terminal-header {
+    background: rgba(0,255,157,0.05);
+    padding: 0.8rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border-bottom: 1px solid rgba(0,255,157,0.08);
+  }
+
+  .terminal-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .terminal-dot.red { background: #ff5f57; }
+  .terminal-dot.yellow { background: #febc2e; }
+  .terminal-dot.green { background: #28c840; }
+
+  .terminal-title {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--gray);
+    letter-spacing: 0.1em;
+    margin-left: 0.5rem;
+  }
+
+  .terminal-body {
+    padding: 2rem;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    line-height: 1.9;
+  }
+
+  .t-prompt { color: var(--green); }
+  .t-cmd { color: var(--white); }
+  .t-output { color: rgba(232,230,223,0.6); }
+  .t-highlight { color: var(--amber); }
+  .t-dim { color: var(--gray); }
+  .t-cursor {
+    display: inline-block;
+    width: 8px; height: 1.1em;
+    background: var(--green);
+    animation: blink 1s step-end infinite;
+    vertical-align: text-bottom;
+    margin-left: 2px;
+  }
+
+  /* ─── DEFINITION SECTION ─── */
+  .section {
+    padding: 8rem 3rem;
+    position: relative;
+  }
+
+  .section-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--green);
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .section-number {
+    font-family: var(--display);
+    font-size: 8rem;
+    color: rgba(0,255,157,0.04);
+    position: absolute;
+    top: 4rem;
+    right: 3rem;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .section h2 {
+    font-family: var(--display);
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    letter-spacing: 0.04em;
+    line-height: 1.05;
+    margin-bottom: 3rem;
+    color: var(--white);
+  }
+
+  .section h2 em {
+    font-style: normal;
+    color: var(--green);
+  }
+
+  .definition-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: start;
+  }
+
+  .definition-text {
+    font-size: 1.15rem;
+    color: rgba(232,230,223,0.75);
+    line-height: 1.85;
+  }
+
+  .definition-text p + p { margin-top: 1.2rem; }
+
+  .definition-text strong {
+    color: var(--white);
+    font-weight: 400;
+  }
+
+  .concept-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .concept-card {
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 1.5rem;
+    position: relative;
+    background: rgba(255,255,255,0.02);
+    transition: border-color 0.3s, background 0.3s;
+    cursor: default;
+  }
+
+  .concept-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--green);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.3s;
+  }
+
+  .concept-card:hover {
+    border-color: rgba(0,255,157,0.2);
+    background: rgba(0,255,157,0.03);
+  }
+
+  .concept-card:hover::before { transform: scaleY(1); }
+
+  .concept-card h3 {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--amber);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .concept-card p {
+    font-size: 0.95rem;
+    color: rgba(232,230,223,0.6);
+    line-height: 1.6;
+  }
+
+  /* ─── TIMELINE SECTION ─── */
+  .timeline-section {
+    padding: 8rem 3rem;
+    background: linear-gradient(to bottom, transparent, rgba(0,255,157,0.015), transparent);
+  }
+
+  .timeline {
+    max-width: 800px;
+    margin: 4rem auto 0;
+    position: relative;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 100px;
+    top: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, rgba(0,255,157,0.3) 10%, rgba(0,255,157,0.3) 90%, transparent);
+  }
+
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    position: relative;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s, transform 0.6s;
+  }
+
+  .timeline-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .timeline-year {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--green);
+    text-align: right;
+    padding-top: 0.2rem;
+    letter-spacing: 0.05em;
+  }
+
+  .timeline-content {
+    padding-left: 2rem;
+    position: relative;
+    border-left: none;
+  }
+
+  .timeline-content::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: 0.5rem;
+    width: 9px; height: 9px;
+    background: var(--black);
+    border: 1px solid var(--green);
+    border-radius: 50%;
+    transition: background 0.3s;
+  }
+
+  .timeline-item:hover .timeline-content::before {
+    background: var(--green);
+  }
+
+  .timeline-content h3 {
+    font-family: var(--body);
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--white);
+    margin-bottom: 0.4rem;
+  }
+
+  .timeline-content p {
+    font-size: 0.95rem;
+    color: rgba(232,230,223,0.5);
+    line-height: 1.6;
+  }
+
+  .timeline-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid rgba(255,179,71,0.3);
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  /* ─── PEOPLE SECTION ─── */
+  .people-section {
+    padding: 8rem 3rem;
+  }
+
+  .people-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5px;
+    margin-top: 4rem;
+    background: rgba(0,255,157,0.08);
+  }
+
+  .person-card {
+    background: var(--black);
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+
+  .person-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,255,157,0.04) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .person-card:hover { background: rgba(0,255,157,0.02); }
+  .person-card:hover::after { opacity: 1; }
+
+  .person-role {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--green);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .person-name {
+    font-family: var(--display);
+    font-size: 1.8rem;
+    letter-spacing: 0.05em;
+    color: var(--white);
+    margin-bottom: 0.8rem;
+    line-height: 1.1;
+  }
+
+  .person-years {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--amber);
+    margin-bottom: 1rem;
+  }
+
+  .person-desc {
+    font-size: 0.95rem;
+    color: rgba(232,230,223,0.5);
+    line-height: 1.65;
+  }
+
+  .person-impact {
+    margin-top: 1.5rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: rgba(0,255,157,0.5);
+    letter-spacing: 0.05em;
+  }
+
+  /* ─── IMPACT SECTION ─── */
+  .impact-section {
+    padding: 8rem 3rem;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .impact-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(255,63,63,0.03) 0%, transparent 70%);
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+    background: rgba(255,255,255,0.04);
+    margin-top: 4rem;
+    margin-bottom: 5rem;
+  }
+
+  .stat-box {
+    background: var(--black);
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+
+  .stat-number {
+    font-family: var(--display);
+    font-size: 3.5rem;
+    color: var(--green);
+    letter-spacing: 0.02em;
+    display: block;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--gray);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 0.8rem;
+    display: block;
+  }
+
+  .impact-text {
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .impact-text p {
+    font-size: 1.2rem;
+    color: rgba(232,230,223,0.6);
+    line-height: 1.8;
+    font-style: italic;
+  }
+
+  /* ─── BRANCHES / TAXONOMY ─── */
+  .branches-section {
+    padding: 8rem 3rem;
+  }
+
+  .branches-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: rgba(0,255,157,0.06);
+    margin-top: 4rem;
+  }
+
+  .branch-item {
+    background: var(--black);
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+
+  .branch-item:hover { background: rgba(0,255,157,0.02); }
+
+  .branch-num {
+    font-family: var(--display);
+    font-size: 4rem;
+    color: rgba(0,255,157,0.06);
+    position: absolute;
+    top: 1rem; right: 1.5rem;
+    line-height: 1;
+  }
+
+  .branch-item h3 {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--green);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .branch-item p {
+    font-size: 0.95rem;
+    color: rgba(232,230,223,0.55);
+    line-height: 1.65;
+  }
+
+  /* ─── LEARNING LOG ─── */
+  .log-section {
+    padding: 6rem 3rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .log-entry {
+    max-width: 800px;
+    margin: 3rem auto 0;
+    background: rgba(0,255,157,0.03);
+    border: 1px solid rgba(0,255,157,0.1);
+    padding: 3rem;
+    position: relative;
+  }
+
+  .log-entry::before {
+    content: 'ENTRADA DE APRENDIZAJE // CAPÍTULO 01';
+    font-family: var(--mono);
+    font-size: 0.55rem;
+    color: var(--green);
+    letter-spacing: 0.25em;
+    position: absolute;
+    top: -0.5rem;
+    left: 2rem;
+    background: var(--black);
+    padding: 0 0.8rem;
+  }
+
+  .log-date {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--gray);
+    margin-bottom: 1.5rem;
+  }
+
+  .log-entry p {
+    font-size: 1.05rem;
+    color: rgba(232,230,223,0.65);
+    line-height: 1.85;
+    font-style: italic;
+  }
+
+  /* ─── FOOTER / NEXT ─── */
+  footer {
+    padding: 4rem 3rem;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-brand {
+    font-family: var(--display);
+    font-size: 1.5rem;
+    letter-spacing: 0.3em;
+    color: rgba(0,255,157,0.3);
+  }
+
+  .next-chapter {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.3rem;
+    cursor: pointer;
+  }
+
+  .next-label {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--gray);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .next-title {
+    font-family: var(--display);
+    font-size: 1.2rem;
+    letter-spacing: 0.1em;
+    color: var(--white);
+    transition: color 0.2s;
+  }
+
+  .next-chapter:hover .next-title { color: var(--green); }
+
+  .footer-copy {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--gray);
+    letter-spacing: 0.1em;
+    margin-top: 3rem;
+    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255,255,255,0.03);
+  }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  @keyframes glitch1 {
+    0%, 90%, 100% { clip-path: none; transform: none; opacity: 0; }
+    91% { clip-path: polygon(0 15%, 100% 15%, 100% 30%, 0 30%); transform: translateX(-3px); opacity: 0.8; }
+    93% { clip-path: polygon(0 45%, 100% 45%, 100% 55%, 0 55%); transform: translateX(3px); opacity: 0.8; }
+    95% { clip-path: polygon(0 5%, 100% 5%, 100% 20%, 0 20%); transform: translateX(-2px); opacity: 0.8; }
+    97% { clip-path: none; transform: none; opacity: 0; }
+  }
+
+  @keyframes glitch2 {
+    0%, 92%, 100% { clip-path: none; transform: none; opacity: 0; }
+    93% { clip-path: polygon(0 60%, 100% 60%, 100% 75%, 0 75%); transform: translateX(2px); opacity: 0.8; }
+    95% { clip-path: polygon(0 70%, 100% 70%, 100% 90%, 0 90%); transform: translateX(-3px); opacity: 0.8; }
+    97% { clip-path: none; transform: none; opacity: 0; }
+  }
+
+  @keyframes scrolldown {
+    0% { transform: scaleY(0); transform-origin: top; }
+    50% { transform: scaleY(1); transform-origin: top; }
+    51% { transform: scaleY(1); transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; }
+  }
+
+  @keyframes typewriter {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .section, .timeline-section, .people-section, .impact-section, .branches-section { padding: 5rem 1.5rem; }
+    .definition-block { grid-template-columns: 1fr; gap: 2rem; }
+    .people-grid { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .branches-grid { grid-template-columns: 1fr; }
+    .hero { padding: 7rem 1.5rem 3rem; }
+    .hero-meta { flex-wrap: wrap; gap: 1.5rem; }
+    footer { flex-direction: column; gap: 2rem; align-items: flex-start; }
+    .next-chapter { align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">CIPHER<span>DOC</span></a>
+  <ul class="nav-links">
+    <li><a href="#definicion">Definición</a></li>
+    <li><a href="#historia">Historia</a></li>
+    <li><a href="#personas">Personas</a></li>
+    <li><a href="#impacto">Impacto</a></li>
+    <li><a href="#ramas">Ramas</a></li>
+  </ul>
+  <div class="nav-status">CAPÍTULO 01 ACTIVO</div>
+</nav>
+
+<!-- ════ HERO ════ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <p class="chapter-tag">Capítulo 01 — Fundamentos</p>
+
+  <h1>
+    <span class="glitch" data-text="¿QUÉ ES">¿QUÉ ES</span>
+    <em class="accent">LA CIBER-</em>
+    SEGURIDAD?
+  </h1>
+
+  <p class="hero-subtitle">
+    Un documental de aprendizaje personal sobre el arte y la ciencia de proteger el mundo digital.
+  </p>
+
+  <div class="hero-meta">
+    <div class="meta-item">
+      Autor
+      <strong>Estudiante en tránsito</strong>
+    </div>
+    <div class="meta-item">
+      Capítulos
+      <strong>01 de N</strong>
+    </div>
+    <div class="meta-item">
+      Stack
+      <strong>Python · FastAPI · PostgreSQL</strong>
+    </div>
+    <div class="meta-item">
+      Estado
+      <strong style="color:var(--green)">En construcción ↗</strong>
+    </div>
+  </div>
+
+  <div class="scroll-indicator">
+    <span>Explorar</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ════ TERMINAL INTRO ════ -->
+<div class="terminal-section">
+  <div class="terminal-window">
+    <div class="terminal-header">
+      <div class="terminal-dot red"></div>
+      <div class="terminal-dot yellow"></div>
+      <div class="terminal-dot green"></div>
+      <span class="terminal-title">cipher@documental:~$</span>
+    </div>
+    <div class="terminal-body">
+      <p><span class="t-prompt">cipher@documental</span><span class="t-dim">:</span><span class="t-highlight">~</span><span class="t-dim">$</span> <span class="t-cmd">whatis ciberseguridad</span></p>
+      <br>
+      <p class="t-output">ciberseguridad (n.) —</p>
+      <p class="t-output">&nbsp;&nbsp;La práctica de proteger sistemas, redes y programas de ataques digitales.</p>
+      <p class="t-output">&nbsp;&nbsp;Combinación de tecnología, procesos y personas para defender activos digitales.</p>
+      <br>
+      <p><span class="t-prompt">cipher@documental</span><span class="t-dim">:</span><span class="t-highlight">~</span><span class="t-dim">$</span> <span class="t-cmd">cat /etc/motivacion.txt</span></p>
+      <br>
+      <p class="t-output">&nbsp;&nbsp;"En un mundo donde todo está conectado,</p>
+      <p class="t-output">&nbsp;&nbsp;&nbsp;la seguridad digital no es una opción —</p>
+      <p class="t-output">&nbsp;&nbsp;&nbsp;<span class="t-highlight">es una necesidad fundamental."</span></p>
+      <br>
+      <p><span class="t-prompt">cipher@documental</span><span class="t-dim">:</span><span class="t-highlight">~</span><span class="t-dim">$</span> <span class="t-cursor"></span></p>
+    </div>
+  </div>
+</div>
+
+<!-- ════ DEFINICIÓN ════ -->
+<section class="section" id="definicion">
+  <div class="section-inner">
+    <div class="section-number">01</div>
+    <p class="section-label">// sección 01</p>
+    <h2>Una disciplina que <em>defiende</em><br>el tejido digital del mundo</h2>
+
+    <div class="definition-block">
+      <div class="definition-text">
+        <p>
+          La <strong>ciberseguridad</strong> es el conjunto de tecnologías, procesos y prácticas diseñadas para proteger redes, dispositivos, programas y datos contra ataques, daños o accesos no autorizados.
+        </p>
+        <p>
+          No es solo código ni herramientas. Es una <strong>disciplina multidimensional</strong> que combina ingeniería, psicología, derecho, ética y estrategia militar para comprender cómo piensan los adversarios y anticiparse a sus movimientos.
+        </p>
+        <p>
+          En su núcleo existe un principio simple: la información tiene valor, y donde hay valor, hay quienes intentarán robarlo, manipularlo o destruirlo.
+        </p>
+      </div>
+
+      <div class="concept-cards">
+        <div class="concept-card">
+          <h3>Confidencialidad</h3>
+          <p>La información solo debe ser accesible para quienes están autorizados a verla. Base del cifrado moderno.</p>
+        </div>
+        <div class="concept-card">
+          <h3>Integridad</h3>
+          <p>Los datos no deben ser alterados sin autorización. Garantizamos que lo que enviamos llega sin modificaciones.</p>
+        </div>
+        <div class="concept-card">
+          <h3>Disponibilidad</h3>
+          <p>Los sistemas deben funcionar cuando se necesitan. Los ataques de denegación de servicio apuntan exactamente aquí.</p>
+        </div>
+        <div class="concept-card">
+          <h3>No repudio</h3>
+          <p>Garantizar que una acción digital pueda ser atribuida inequívocamente a quien la realizó.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ HISTORIA ════ -->
+<section class="timeline-section" id="historia">
+  <div style="max-width:1100px; margin:0 auto;">
+    <p class="section-label">// sección 02</p>
+    <h2 style="font-family:var(--display);font-size:clamp(2.5rem,5vw,5rem);letter-spacing:0.04em;line-height:1.05;color:var(--white);">Los <em style="font-style:normal;color:var(--green);">orígenes</em><br>de una guerra silenciosa</h2>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-year">1969</div>
+        <div class="timeline-content">
+          <span class="timeline-tag">Origen</span>
+          <h3>ARPANET — La red que lo inició todo</h3>
+          <p>El Departamento de Defensa de EE.UU. crea la primera red de computadoras. Nadie pensó en seguridad porque todos se conocían. Ese fue el primer error.</p>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-year">1971</div>
+        <div class="timeline-content">
+          <span class="timeline-tag">Primer Virus</span>
+          <h3>Creeper — El primer programa "malicioso"</h3>
+          <p>Bob Thomas crea Creeper, un programa experimental que se replicaba entre computadoras DEC PDP-10. No era destructivo, pero marcó el comienzo de algo oscuro.</p>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-year">1988</div>
+        <div class="timeline-content">
+          <span class="timeline-tag">Primer Ataque Masivo</span>
+          <h3>El Gusano Morris — Internet colapsa por primera vez</h3>
+          <p>Robert Tappan Morris lanza el primer gusano autopropagante. Infectó ~6,000 máquinas (el 10% de internet) y causó millones en daños. El resultado: la creación del primer CERT.</p>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-year">1993</div>
+        <div class="timeline-content">
+          <span class="timeline-tag">Cultura</span>
+          <h3>DEF CON — La contracultura hacker nace en Las Vegas</h3>
+          <p>Jeff Moss ("Dark Tangent") organiza la primera conferencia hacker del mundo. Hoy es el evento de seguridad más grande del planeta, con 30,000+ asistentes anuales.</p>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-year">2000</div>
+        <div class="timeline-content">
+          <span class="timeline-tag">Guerra Cibernética</span>
+          <h3>ILOVEYOU — 50 millones de máquinas infectadas</h3>
+          <p>Un script de 10KB escrito en Visual Basic por dos filipinos causó $10 billones en daños globales. Demostró que el factor humano es la vulnerabilidad más grande.</p>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-year">2010</div>
+        <div class="timeline-content">
+          <span class="timeline-tag">Estado-Nación</span>
+          <h3>Stuxnet — La primera arma cibernética estatal</h3>
+          <p>EE.UU. e Israel crean el primer malware diseñado para destruir infraestructura física. Atacó las centrifugadoras nucleares de Irán. La ciberguerra se volvió oficial.</p>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-year">Hoy</div>
+        <div class="timeline-content">
+          <span class="timeline-tag">Era Actual</span>
+          <h3>IA + Ciberseguridad — El tablero cambia</h3>
+          <p>Los ataques se automatizan con inteligencia artificial. La defensa también. El campo de batalla es global, instantáneo, y nunca duerme.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ PERSONAS IMPORTANTES ════ -->
+<section class="people-section" id="personas">
+  <div class="section-inner">
+    <p class="section-label">// sección 03</p>
+    <h2 style="font-family:var(--display);font-size:clamp(2.5rem,5vw,5rem);letter-spacing:0.04em;line-height:1.05;color:var(--white);margin-bottom:0.5rem;">Las mentes que <em style="font-style:normal;color:var(--green);">definieron</em><br>el campo</h2>
+  </div>
+
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="people-grid">
+      <div class="person-card">
+        <div class="person-role">Pionero / Criptógrafo</div>
+        <div class="person-name">WHITFIELD DIFFIE</div>
+        <div class="person-years">1944 — presente</div>
+        <p class="person-desc">Junto a Martin Hellman, inventó la criptografía de clave pública en 1976. Sin ellos, no existirían HTTPS, SSH, ni ninguna comunicación segura en internet.</p>
+        <div class="person-impact">→ Inventó el cifrado asimétrico que protege toda comunicación online</div>
+      </div>
+
+      <div class="person-card">
+        <div class="person-role">Pionero / Matemático</div>
+        <div class="person-name">MARTIN HELLMAN</div>
+        <div class="person-years">1945 — presente</div>
+        <p class="person-desc">Coautor del intercambio Diffie-Hellman. Premio Turing 2015. Su trabajo fundamenta la privacidad digital moderna de una forma que la mayoría nunca comprenderá.</p>
+        <div class="person-impact">→ Premio Turing 2015 por el intercambio de claves seguro</div>
+      </div>
+
+      <div class="person-card">
+        <div class="person-role">Hacker / Activista</div>
+        <div class="person-name">KEVIN MITNICK</div>
+        <div class="person-years">1963 — 2023</div>
+        <p class="person-desc">El hacker más buscado del mundo en los 90s. Después de prisión, se convirtió en consultor de seguridad. Su trabajo reveló que la ingeniería social supera a cualquier firewall.</p>
+        <div class="person-impact">→ Demostró que el eslabón más débil siempre es el humano</div>
+      </div>
+
+      <div class="person-card">
+        <div class="person-role">Investigador / CERT Fundador</div>
+        <div class="person-name">EUGENE SPAFFORD</div>
+        <div class="person-years">1956 — presente</div>
+        <p class="person-desc">Analizó el Gusano Morris de 1988 y ayudó a fundar el primer CERT. Profesor en Purdue, es una figura central en ética computacional y políticas de seguridad.</p>
+        <div class="person-impact">→ Sentó las bases de la respuesta a incidentes moderna</div>
+      </div>
+
+      <div class="person-card">
+        <div class="person-role">Cryptógrafo / Visionario</div>
+        <div class="person-name">BRUCE SCHNEIER</div>
+        <div class="person-years">1963 — presente</div>
+        <p class="person-desc">Autor de "Applied Cryptography" y "Secrets and Lies". Creó Blowfish. Su blog Schneier on Security ha educado a generaciones enteras sobre ciberseguridad real.</p>
+        <div class="person-impact">→ "La seguridad es un proceso, no un producto"</div>
+      </div>
+
+      <div class="person-card">
+        <div class="person-role">Analista / Estratega</div>
+        <div class="person-name">RICHARD CLARKE</div>
+        <div class="person-years">1950 — presente</div>
+        <p class="person-desc">Asesor de contraterrorismo de cuatro presidentes de EE.UU. Su libro "Cyber War" (2010) fue la primera advertencia seria sobre vulnerabilidades de infraestructura crítica estatal.</p>
+        <div class="person-impact">→ Puso la ciberguerra en la agenda política global</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ IMPACTO ════ -->
+<section class="impact-section" id="impacto">
+  <div class="impact-bg"></div>
+  <div class="section-inner">
+    <p class="section-label">// sección 04</p>
+    <h2 style="font-family:var(--display);font-size:clamp(2.5rem,5vw,5rem);letter-spacing:0.04em;line-height:1.05;color:var(--white);">El <em style="font-style:normal;color:var(--red);">costo</em> real<br>de ignorarla</h2>
+
+    <div class="stats-row">
+      <div class="stat-box">
+        <span class="stat-number">$9.5T</span>
+        <span class="stat-label">Daño global estimado en 2024</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-number">2,200</span>
+        <span class="stat-label">Ataques por día a nivel mundial</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-number">3.5M</span>
+        <span class="stat-label">Empleos sin cubrir en el sector</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-number">277</span>
+        <span class="stat-label">Días promedio para detectar una brecha</span>
+      </div>
+    </div>
+
+    <div class="impact-text">
+      <p>
+        La ciberseguridad ya no es territorio exclusivo de gobiernos y grandes corporaciones. Cada dispositivo conectado — tu teléfono, tu router, el termostato inteligente — es una puerta potencial. Aprender a defenderlos no es paranoia. Es alfabetización digital del siglo XXI.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ════ RAMAS DE LA CIBERSEGURIDAD ════ -->
+<section class="branches-section" id="ramas">
+  <div class="section-inner">
+    <p class="section-label">// sección 05</p>
+    <h2 style="font-family:var(--display);font-size:clamp(2.5rem,5vw,5rem);letter-spacing:0.04em;line-height:1.05;color:var(--white);margin-bottom:0;">Las <em style="font-style:normal;color:var(--green);">ramas</em><br>del árbol</h2>
+    <p style="font-size:1rem;color:rgba(232,230,223,0.4);font-style:italic;margin-bottom:0;margin-top:0.8rem;">Próximos capítulos de este documental</p>
+  </div>
+
+  <div style="max-width:1100px;margin:3rem auto 0;">
+    <div class="branches-grid">
+      <div class="branch-item">
+        <div class="branch-num">02</div>
+        <h3>Seguridad de Redes</h3>
+        <p>Firewalls, VPNs, IDS/IPS. Cómo fluye la información y cómo se intercepta. El campo de batalla invisible entre routers.</p>
+      </div>
+      <div class="branch-item">
+        <div class="branch-num">03</div>
+        <h3>Criptografía</h3>
+        <p>El arte de ocultar información. Desde César hasta AES-256. La base matemática de toda privacidad digital.</p>
+      </div>
+      <div class="branch-item">
+        <div class="branch-num">04</div>
+        <h3>Ethical Hacking / Pentesting</h3>
+        <p>Pensar como atacante para defender mejor. Kali Linux, OWASP, CVEs. El lado ofensivo con propósito.</p>
+      </div>
+      <div class="branch-item">
+        <div class="branch-num">05</div>
+        <h3>Seguridad de Aplicaciones</h3>
+        <p>OWASP Top 10, SQL Injection, XSS, CSRF. Cómo el código que escribimos puede convertirse en una puerta abierta.</p>
+      </div>
+      <div class="branch-item">
+        <div class="branch-num">06</div>
+        <h3>Ingeniería Social</h3>
+        <p>El ataque más efectivo no requiere código. Phishing, pretexting, y por qué el humano es siempre el eslabón más débil.</p>
+      </div>
+      <div class="branch-item">
+        <div class="branch-num">07</div>
+        <h3>Forense Digital & OSINT</h3>
+        <p>Investigar incidentes. Recuperar evidencia. Rastrear actores maliciosos usando solo fuentes públicas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ LOG DE APRENDIZAJE ════ -->
+<section class="log-section">
+  <div class="log-entry">
+    <div class="log-date">ENTRADA #001 — CAPÍTULO 01 COMPLETADO</div>
+    <p>
+      Hoy entendí que la ciberseguridad no es solo "proteger contraseñas". Es una disciplina con historia, filosofía y consecuencias reales en el mundo físico. El triángulo CIA (Confidencialidad, Integridad, Disponibilidad) es el punto de partida de todo. Los próximos pasos serán entender cómo funciona una red desde cero, y por qué cada capa del modelo OSI importa para la seguridad. El stack técnico que voy construyendo con Python y FastAPI será mi laboratorio personal.
+    </p>
+  </div>
+</section>
+
+<!-- ════ FOOTER ════ -->
+<footer>
+  <div class="footer-brand">CIPHER</div>
+
+  <div class="next-chapter">
+    <span class="next-label">Próximo capítulo</span>
+    <span class="next-title">02 — Redes y Protocolos ↗</span>
+  </div>
+</footer>
+
+<div class="footer-copy">
+  CIPHER DOC — Un documental de aprendizaje personal en construcción · Stack: Python · FastAPI · PostgreSQL · Construido con Claude Pro
+</div>
+
+<script>
+  // Intersection Observer para animar elementos al hacer scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+  document.querySelectorAll('.timeline-item').forEach(item => {
+    observer.observe(item);
+  });
+
+  // Stagger de timeline items
+  document.querySelectorAll('.timeline-item').forEach((item, i) => {
+    item.style.transitionDelay = `${i * 0.08}s`;
+  });
+
+  // Counter animation para estadísticas
+  const animateCounter = (el, target, suffix) => {
+    let start = 0;
+    const duration = 2000;
+    const step = (timestamp) => {
+      if (!start) start = timestamp;
+      const progress = Math.min((timestamp - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = (typeof target === 'string') ? target : Math.floor(eased * parseFloat(target)).toLocaleString() + (suffix || '');
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+
+  const statsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const nums = entry.target.querySelectorAll('.stat-number');
+        nums[0] && animateCounter(nums[0], '$9.5T', '');
+        nums[1] && animateCounter(nums[1], 2200, '');
+        nums[2] && animateCounter(nums[2], '3.5M', '');
+        nums[3] && animateCounter(nums[3], 277, '');
+        statsObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  const statsRow = document.querySelector('.stats-row');
+  if (statsRow) statsObserver.observe(statsRow);
+
+  // Typing effect para el terminal
+  const terminalLines = document.querySelectorAll('.t-cmd');
+  terminalLines.forEach(line => {
+    const text = line.textContent;
+    line.textContent = '';
+    let i = 0;
+    setTimeout(() => {
+      const type = () => {
+        if (i < text.length) {
+          line.textContent += text[i++];
+          setTimeout(type, 40 + Math.random() * 30);
+        }
+      };
+      type();
+    }, 800);
+  });
+</script>
+</body>
+</html>
