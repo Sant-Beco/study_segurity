@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIPHER — Cap. 02: Redes & Protocolos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #050507;
+    --green: #00ff9d;
+    --green-dim: rgba(0,255,157,0.12);
+    --amber: #ffb347;
+    --red: #ff3f3f;
+    --blue: #4fc3f7;
+    --white: #e8e6df;
+    --gray: #4a4a5a;
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Bebas Neue', sans-serif;
+    --body: 'Crimson Pro', Georgia, serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: var(--body);
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,157,0.012) 2px, rgba(0,255,157,0.012) 4px);
+    pointer-events: none; z-index: 9999;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 3rem;
+    background: linear-gradient(to bottom, rgba(5,5,7,0.98) 0%, transparent 100%);
+    border-bottom: 1px solid rgba(0,255,157,0.06);
+  }
+  .nav-logo { font-family: var(--display); font-size: 1.8rem; letter-spacing: 0.3em; color: var(--green); text-decoration: none; }
+  .nav-logo span { color: var(--white); }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a { font-family: var(--mono); font-size: 0.68rem; color: var(--gray); text-decoration: none; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--green); }
+  .nav-prev { font-family: var(--mono); font-size: 0.65rem; color: var(--gray); letter-spacing: 0.1em; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; transition: color 0.2s; }
+  .nav-prev:hover { color: var(--white); }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    justify-content: flex-end; padding: 8rem 3rem 5rem;
+    position: relative; overflow: hidden;
+  }
+
+  /* Animated network graph background */
+  #network-canvas {
+    position: absolute; inset: 0; z-index: 0;
+    opacity: 0.35;
+  }
+
+  .hero-overlay {
+    position: absolute; inset: 0; z-index: 1;
+    background: linear-gradient(to top, var(--black) 30%, transparent 70%);
+  }
+
+  .hero-content { position: relative; z-index: 2; }
+
+  .chapter-tag {
+    font-family: var(--mono); font-size: 0.65rem;
+    color: var(--blue); letter-spacing: 0.3em; text-transform: uppercase;
+    margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem;
+  }
+  .chapter-tag::after { content: ''; flex: 0 0 40px; height: 1px; background: var(--blue); }
+
+  .hero h1 {
+    font-family: var(--display);
+    font-size: clamp(3.5rem, 10vw, 10rem);
+    line-height: 0.9; letter-spacing: 0.02em;
+    color: var(--white); max-width: 900px;
+  }
+  .hero h1 .accent { color: var(--blue); }
+  .hero h1 .sub { font-size: 0.5em; color: rgba(232,230,223,0.3); letter-spacing: 0.1em; display: block; margin-top: 0.5rem; }
+
+  .hero-cols {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4rem; margin-top: 3rem; padding-top: 2rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    position: relative; z-index: 2;
+  }
+
+  .hero-desc { font-size: 1.1rem; color: rgba(232,230,223,0.55); line-height: 1.8; font-style: italic; }
+
+  .hero-stack {
+    display: flex; flex-direction: column; gap: 0.5rem;
+  }
+
+  .stack-line {
+    font-family: var(--mono); font-size: 0.7rem;
+    display: flex; align-items: center; gap: 0.8rem;
+    color: var(--gray); letter-spacing: 0.05em;
+    padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .stack-line .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .stack-line .val { margin-left: auto; color: var(--white); }
+  .dot-green { background: var(--green); }
+  .dot-blue { background: var(--blue); }
+  .dot-amber { background: var(--amber); }
+  .dot-red { background: var(--red); }
+
+  /* ─── OSI MODEL INTERACTIVE ─── */
+  .osi-section {
+    padding: 8rem 3rem;
+    position: relative;
+  }
+
+  .section-inner { max-width: 1100px; margin: 0 auto; }
+  .section-label { font-family: var(--mono); font-size: 0.6rem; color: var(--green); letter-spacing: 0.35em; text-transform: uppercase; margin-bottom: 1rem; }
+
+  .section-h2 {
+    font-family: var(--display);
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    letter-spacing: 0.04em; line-height: 1.05; color: var(--white);
+  }
+  .section-h2 em { font-style: normal; color: var(--blue); }
+
+  .osi-layout {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4rem; margin-top: 4rem; align-items: start;
+  }
+
+  .osi-stack {
+    display: flex; flex-direction: column; gap: 2px;
+  }
+
+  .osi-layer {
+    display: grid; grid-template-columns: 2rem 1fr;
+    gap: 1rem; align-items: stretch;
+    cursor: pointer; transition: transform 0.2s;
+    position: relative;
+  }
+  .osi-layer:hover { transform: translateX(4px); }
+
+  .osi-num {
+    font-family: var(--mono); font-size: 0.6rem; color: var(--gray);
+    display: flex; align-items: center; justify-content: flex-end;
+    padding-right: 0.3rem; letter-spacing: 0.05em;
+  }
+
+  .osi-bar {
+    padding: 0.9rem 1.2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1px solid rgba(255,255,255,0.04);
+    transition: border-color 0.3s, background 0.3s;
+    position: relative; overflow: hidden;
+  }
+
+  .osi-bar::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    transition: opacity 0.3s;
+  }
+
+  .osi-layer:hover .osi-bar,
+  .osi-layer.active .osi-bar { border-color: rgba(255,255,255,0.12); }
+
+  .osi-name { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .osi-proto { font-family: var(--mono); font-size: 0.6rem; color: var(--gray); }
+
+  /* Layer colors */
+  .l7 .osi-bar { background: rgba(255,179,71,0.05); } .l7 .osi-bar::before { background: var(--amber); opacity: 0.7; } .l7 .osi-name { color: var(--amber); }
+  .l6 .osi-bar { background: rgba(255,179,71,0.04); } .l6 .osi-bar::before { background: var(--amber); opacity: 0.5; } .l6 .osi-name { color: #ffd47a; }
+  .l5 .osi-bar { background: rgba(255,179,71,0.03); } .l5 .osi-bar::before { background: var(--amber); opacity: 0.35; } .l5 .osi-name { color: #ffd47a; }
+  .l4 .osi-bar { background: rgba(0,255,157,0.05); } .l4 .osi-bar::before { background: var(--green); opacity: 0.8; } .l4 .osi-name { color: var(--green); }
+  .l3 .osi-bar { background: rgba(79,195,247,0.05); } .l3 .osi-bar::before { background: var(--blue); opacity: 0.8; } .l3 .osi-name { color: var(--blue); }
+  .l2 .osi-bar { background: rgba(79,195,247,0.03); } .l2 .osi-bar::before { background: var(--blue); opacity: 0.5; } .l2 .osi-name { color: #8dd6f5; }
+  .l1 .osi-bar { background: rgba(79,195,247,0.02); } .l1 .osi-bar::before { background: var(--blue); opacity: 0.3; } .l1 .osi-name { color: #8dd6f5; }
+
+  .osi-detail {
+    background: rgba(10,10,18,0.6);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 2rem;
+    position: sticky; top: 8rem;
+    min-height: 300px;
+  }
+
+  .osi-detail-title {
+    font-family: var(--display); font-size: 2.5rem;
+    letter-spacing: 0.05em; margin-bottom: 0.5rem;
+  }
+  .osi-detail-num { font-family: var(--mono); font-size: 0.65rem; color: var(--gray); letter-spacing: 0.2em; margin-bottom: 1.5rem; }
+  .osi-detail-body { font-size: 1rem; color: rgba(232,230,223,0.6); line-height: 1.75; }
+  .osi-detail-protos { margin-top: 1.5rem; }
+  .osi-detail-protos h4 { font-family: var(--mono); font-size: 0.6rem; color: var(--gray); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 0.8rem; }
+  .proto-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .proto-pill {
+    font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em;
+    padding: 0.25rem 0.7rem; border: 1px solid rgba(255,255,255,0.1);
+    color: var(--white);
+  }
+  .osi-fastapi-note {
+    margin-top: 1.5rem; padding: 1rem;
+    background: rgba(0,255,157,0.04);
+    border: 1px solid rgba(0,255,157,0.15);
+    font-family: var(--mono); font-size: 0.7rem;
+    color: var(--green); line-height: 1.6;
+    display: none;
+  }
+  .osi-fastapi-note.show { display: block; }
+
+  /* ─── PACKET JOURNEY ─── */
+  .packet-section {
+    padding: 8rem 3rem;
+    background: linear-gradient(to bottom, transparent, rgba(79,195,247,0.015), transparent);
+  }
+
+  .packet-flow {
+    margin-top: 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .packet-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 2px;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 0.5s, transform 0.5s;
+  }
+  .packet-row.visible { opacity: 1; transform: translateX(0); }
+
+  .packet-role {
+    font-family: var(--mono); font-size: 0.6rem;
+    color: var(--gray); letter-spacing: 0.1em; text-transform: uppercase;
+    writing-mode: horizontal-tb;
+    width: 130px; min-width: 130px;
+    display: flex; align-items: center;
+    padding-right: 1.5rem; flex-shrink: 0;
+  }
+
+  .packet-cells { display: flex; flex: 1; }
+
+  .packet-cell {
+    flex: 1; padding: 1rem 0.8rem;
+    border: 1px solid rgba(255,255,255,0.04);
+    border-left: none; text-align: center;
+    font-family: var(--mono); font-size: 0.65rem;
+    letter-spacing: 0.05em; color: var(--gray);
+    position: relative; transition: background 0.2s;
+  }
+  .packet-cell:first-child { border-left: 1px solid rgba(255,255,255,0.04); }
+  .packet-cell.active { color: var(--white); }
+  .packet-cell .label { font-size: 0.5rem; color: var(--gray); display: block; margin-top: 0.2rem; }
+
+  .pkt-app    { background: rgba(255,179,71,0.08); color: var(--amber); border-color: rgba(255,179,71,0.15); }
+  .pkt-trans  { background: rgba(0,255,157,0.06); color: var(--green); border-color: rgba(0,255,157,0.12); }
+  .pkt-net    { background: rgba(79,195,247,0.06); color: var(--blue); border-color: rgba(79,195,247,0.12); }
+  .pkt-link   { background: rgba(79,195,247,0.03); color: #8dd6f5; border-color: rgba(79,195,247,0.08); }
+  .pkt-phys   { background: rgba(79,195,247,0.015); color: #6ab5d4; border-color: rgba(79,195,247,0.05); }
+
+  /* ─── HTTP DEEP DIVE ─── */
+  .http-section { padding: 8rem 3rem; }
+
+  .http-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 3rem; margin-top: 4rem;
+  }
+
+  .http-panel {
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(10,10,18,0.5);
+    overflow: hidden;
+  }
+
+  .panel-header {
+    background: rgba(255,255,255,0.03);
+    padding: 0.8rem 1.2rem;
+    display: flex; align-items: center; gap: 0.8rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-family: var(--mono); font-size: 0.6rem;
+    color: var(--gray); letter-spacing: 0.15em; text-transform: uppercase;
+  }
+  .panel-badge {
+    padding: 0.15rem 0.5rem; font-size: 0.55rem;
+    letter-spacing: 0.1em;
+  }
+  .badge-req { background: rgba(0,255,157,0.1); color: var(--green); border: 1px solid rgba(0,255,157,0.2); }
+  .badge-res { background: rgba(79,195,247,0.1); color: var(--blue); border: 1px solid rgba(79,195,247,0.2); }
+
+  .panel-body { padding: 1.5rem; font-family: var(--mono); font-size: 0.78rem; line-height: 2; }
+
+  .http-method { color: var(--amber); font-weight: bold; }
+  .http-path { color: var(--white); }
+  .http-ver { color: var(--gray); }
+  .http-hkey { color: var(--blue); }
+  .http-hval { color: rgba(232,230,223,0.6); }
+  .http-body-label { color: var(--gray); font-size: 0.65rem; margin-top: 0.5rem; display: block; }
+  .http-status-200 { color: var(--green); }
+  .http-status-4xx { color: var(--red); }
+  .http-json-key { color: var(--amber); }
+  .http-json-val { color: var(--green); }
+  .http-json-str { color: rgba(232,230,223,0.7); }
+  .http-comment { color: var(--gray); font-size: 0.68rem; font-style: italic; }
+
+  /* ─── FASTAPI BRIDGE ─── */
+  .fastapi-section {
+    padding: 8rem 3rem;
+    position: relative; overflow: hidden;
+  }
+
+  .fastapi-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,255,157,0.03) 0%, transparent 70%);
+  }
+
+  .fastapi-diagram {
+    margin-top: 5rem;
+    position: relative;
+  }
+
+  .diagram-row {
+    display: flex; align-items: stretch;
+    gap: 0; margin-bottom: 3px;
+  }
+
+  .diag-label {
+    font-family: var(--mono); font-size: 0.6rem; color: var(--gray);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    width: 120px; min-width: 120px;
+    display: flex; align-items: center; flex-shrink: 0;
+    padding-right: 1.5rem;
+  }
+
+  .diag-content {
+    flex: 1; padding: 1.2rem 1.5rem;
+    border: 1px solid rgba(255,255,255,0.05);
+    display: flex; align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .diag-name {
+    font-family: var(--mono); font-size: 0.75rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .diag-desc { font-family: var(--mono); font-size: 0.65rem; color: var(--gray); max-width: 500px; }
+  .diag-badge { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.1em; padding: 0.2rem 0.6rem; border: 1px solid; flex-shrink: 0; }
+
+  .row-browser  .diag-content { background: rgba(255,179,71,0.04); border-color: rgba(255,179,71,0.1); }
+  .row-browser  .diag-name { color: var(--amber); }
+  .row-browser  .diag-badge { color: var(--amber); border-color: rgba(255,179,71,0.3); }
+
+  .row-http  .diag-content { background: rgba(0,255,157,0.04); border-color: rgba(0,255,157,0.1); }
+  .row-http  .diag-name { color: var(--green); }
+  .row-http  .diag-badge { color: var(--green); border-color: rgba(0,255,157,0.3); }
+
+  .row-uvicorn  .diag-content { background: rgba(0,255,157,0.02); border-color: rgba(0,255,157,0.08); }
+  .row-uvicorn  .diag-name { color: var(--green); }
+  .row-uvicorn  .diag-badge { color: rgba(0,255,157,0.6); border-color: rgba(0,255,157,0.2); }
+
+  .row-fastapi  .diag-content { background: rgba(0,255,157,0.06); border-color: rgba(0,255,157,0.18); }
+  .row-fastapi  .diag-name { color: var(--green); font-size: 0.9rem; }
+  .row-fastapi  .diag-badge { color: var(--green); border-color: rgba(0,255,157,0.4); }
+
+  .row-router  .diag-content { background: rgba(79,195,247,0.03); border-color: rgba(79,195,247,0.08); }
+  .row-router  .diag-name { color: var(--blue); }
+  .row-router  .diag-badge { color: var(--blue); border-color: rgba(79,195,247,0.3); }
+
+  .row-db  .diag-content { background: rgba(79,195,247,0.05); border-color: rgba(79,195,247,0.12); }
+  .row-db  .diag-name { color: var(--blue); }
+  .row-db  .diag-badge { color: var(--blue); border-color: rgba(79,195,247,0.3); }
+
+  .diag-arrow {
+    text-align: center; font-family: var(--mono); font-size: 0.6rem;
+    color: rgba(0,255,157,0.3); padding: 0.3rem 0 0.3rem 120px;
+    letter-spacing: 0.1em;
+  }
+
+  /* ─── CODE BLOCK ─── */
+  .code-section { padding: 6rem 3rem; }
+
+  .code-tabs { display: flex; gap: 0; margin-top: 4rem; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .code-tab {
+    font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 0.7rem 1.5rem;
+    color: var(--gray); cursor: pointer; border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .code-tab.active { color: var(--green); border-bottom-color: var(--green); }
+  .code-tab:hover { color: var(--white); }
+
+  .code-pane { display: none; }
+  .code-pane.active { display: block; }
+
+  .code-block {
+    background: rgba(5,5,7,0.95);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-top: none; padding: 2rem;
+    font-family: var(--mono); font-size: 0.8rem;
+    line-height: 1.9; overflow-x: auto;
+  }
+
+  .line-num { color: rgba(74,74,90,0.5); display: inline-block; width: 2.5rem; user-select: none; }
+  .kw { color: #c792ea; }
+  .fn { color: var(--amber); }
+  .str { color: var(--green); }
+  .cm { color: var(--gray); font-style: italic; }
+  .dec { color: var(--blue); }
+  .cls { color: #82aaff; }
+  .num { color: var(--red); }
+  .op { color: rgba(232,230,223,0.5); }
+
+  /* ─── SECURITY PROTOCOLS ─── */
+  .security-section { padding: 8rem 3rem; }
+
+  .security-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px; background: rgba(255,63,63,0.06);
+    margin-top: 4rem;
+  }
+
+  .sec-card {
+    background: var(--black); padding: 2rem;
+    position: relative; overflow: hidden;
+    transition: background 0.3s;
+  }
+  .sec-card:hover { background: rgba(255,63,63,0.02); }
+
+  .sec-icon {
+    font-family: var(--display); font-size: 3rem;
+    color: rgba(255,63,63,0.08); position: absolute;
+    top: 1rem; right: 1rem; line-height: 1;
+  }
+
+  .sec-status {
+    font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.2em;
+    text-transform: uppercase; padding: 0.15rem 0.5rem;
+    margin-bottom: 1rem; display: inline-block;
+  }
+  .status-safe { background: rgba(0,255,157,0.08); color: var(--green); border: 1px solid rgba(0,255,157,0.2); }
+  .status-warn { background: rgba(255,179,71,0.08); color: var(--amber); border: 1px solid rgba(255,179,71,0.2); }
+  .status-danger { background: rgba(255,63,63,0.08); color: var(--red); border: 1px solid rgba(255,63,63,0.2); }
+
+  .sec-card h3 { font-family: var(--mono); font-size: 0.9rem; color: var(--white); letter-spacing: 0.1em; margin-bottom: 0.6rem; }
+  .sec-card p { font-size: 0.9rem; color: rgba(232,230,223,0.5); line-height: 1.6; }
+  .sec-use { font-family: var(--mono); font-size: 0.6rem; color: rgba(0,255,157,0.5); margin-top: 1rem; }
+
+  /* ─── VULNERABILITIES ─── */
+  .vuln-section { padding: 8rem 3rem; }
+
+  .vuln-list { margin-top: 4rem; display: flex; flex-direction: column; gap: 1px; }
+
+  .vuln-item {
+    display: grid; grid-template-columns: 60px 200px 1fr 100px;
+    align-items: center; gap: 1.5rem; padding: 1.2rem 1.5rem;
+    border: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.2s, border-color 0.2s;
+    cursor: default;
+  }
+  .vuln-item:hover { background: rgba(255,255,255,0.01); border-color: rgba(255,255,255,0.08); }
+
+  .vuln-sev {
+    font-family: var(--display); font-size: 1.6rem;
+    text-align: center; line-height: 1;
+  }
+  .sev-crit { color: var(--red); }
+  .sev-high { color: var(--amber); }
+  .sev-med  { color: #ffe066; }
+
+  .vuln-name { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.05em; color: var(--white); }
+  .vuln-name small { display: block; color: var(--gray); font-size: 0.6rem; margin-top: 0.2rem; }
+
+  .vuln-desc { font-size: 0.9rem; color: rgba(232,230,223,0.45); line-height: 1.5; }
+
+  .vuln-cvss {
+    font-family: var(--mono); font-size: 1rem; text-align: right;
+    letter-spacing: 0.05em;
+  }
+  .cvss-crit { color: var(--red); }
+  .cvss-high { color: var(--amber); }
+  .cvss-med  { color: #ffe066; }
+
+  /* ─── LOG ─── */
+  .log-section { padding: 5rem 3rem; border-top: 1px solid rgba(255,255,255,0.04); }
+
+  .log-entry {
+    max-width: 800px; margin: 3rem auto 0;
+    background: rgba(0,255,157,0.02);
+    border: 1px solid rgba(0,255,157,0.08);
+    padding: 3rem; position: relative;
+  }
+  .log-entry::before {
+    content: 'ENTRADA DE APRENDIZAJE // CAPÍTULO 02';
+    font-family: var(--mono); font-size: 0.55rem; color: var(--green);
+    letter-spacing: 0.25em; position: absolute; top: -0.5rem; left: 2rem;
+    background: var(--black); padding: 0 0.8rem;
+  }
+  .log-date { font-family: var(--mono); font-size: 0.65rem; color: var(--gray); margin-bottom: 1.5rem; }
+  .log-entry p { font-size: 1.05rem; color: rgba(232,230,223,0.65); line-height: 1.85; font-style: italic; }
+  .log-entry p + p { margin-top: 1rem; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    padding: 4rem 3rem; border-top: 1px solid rgba(255,255,255,0.04);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-brand { font-family: var(--display); font-size: 1.5rem; letter-spacing: 0.3em; color: rgba(0,255,157,0.3); }
+  .chapter-nav { display: flex; gap: 3rem; }
+  .ch-link { display: flex; flex-direction: column; gap: 0.3rem; cursor: pointer; text-decoration: none; }
+  .ch-label { font-family: var(--mono); font-size: 0.6rem; color: var(--gray); letter-spacing: 0.2em; text-transform: uppercase; }
+  .ch-title { font-family: var(--display); font-size: 1.1rem; letter-spacing: 0.1em; color: var(--white); transition: color 0.2s; }
+  .ch-link:hover .ch-title { color: var(--green); }
+  .ch-link.prev .ch-title { color: rgba(232,230,223,0.3); }
+  .footer-copy { font-family: var(--mono); font-size: 0.6rem; color: var(--gray); letter-spacing: 0.1em; text-align: center; padding: 1.5rem 3rem; border-top: 1px solid rgba(255,255,255,0.03); }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:0} }
+  @keyframes float { 0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)} }
+
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.6s, transform 0.6s; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; }
+    .hero, .osi-section, .packet-section, .http-section, .fastapi-section, .code-section, .security-section, .vuln-section { padding: 5rem 1.5rem; }
+    .osi-layout { grid-template-columns: 1fr; }
+    .osi-detail { position: static; }
+    .http-grid { grid-template-columns: 1fr; }
+    .security-grid { grid-template-columns: 1fr; }
+    .hero-cols { grid-template-columns: 1fr; gap: 2rem; }
+    .vuln-item { grid-template-columns: 40px 1fr; gap: 1rem; }
+    .vuln-desc, .vuln-cvss { display: none; }
+    footer { flex-direction: column; gap: 2rem; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="cybersec_chapter1.html" class="nav-logo">CIPHER<span>DOC</span></a>
+  <ul class="nav-links">
+    <li><a href="#osi">Modelo OSI</a></li>
+    <li><a href="#http">HTTP</a></li>
+    <li><a href="#fastapi">FastAPI</a></li>
+    <li><a href="#seguridad">Seguridad</a></li>
+    <li><a href="#vulnerabilidades">Vulnerabilidades</a></li>
+  </ul>
+  <a href="cybersec_chapter1.html" class="nav-prev">← Cap. 01</a>
+</nav>
+
+<!-- ════ HERO ════ -->
+<section class="hero">
+  <canvas id="network-canvas"></canvas>
+  <div class="hero-overlay"></div>
+
+  <div class="hero-content">
+    <p class="chapter-tag">Capítulo 02 — Infraestructura</p>
+    <h1>
+      REDES
+      <em class="accent">&amp; PROTO</em>COLOS
+      <span class="sub">// La autopista donde todo viaja</span>
+    </h1>
+
+    <div class="hero-cols">
+      <p class="hero-desc">
+        Antes de atacar o defender cualquier sistema, hay que entender cómo viajan los datos. Cada request de tu FastAPI recorre capas de protocolos antes de llegar al servidor. Entender esas capas es entender dónde están los puntos de quiebre.
+      </p>
+      <div class="hero-stack">
+        <div class="stack-line"><span class="dot dot-amber"></span> Capa de Aplicación <span class="val">HTTP / HTTPS / WebSocket</span></div>
+        <div class="stack-line"><span class="dot dot-green"></span> Servidor ASGI <span class="val">Uvicorn</span></div>
+        <div class="stack-line"><span class="dot dot-green"></span> Framework <span class="val">FastAPI</span></div>
+        <div class="stack-line"><span class="dot dot-blue"></span> Transporte <span class="val">TCP / TLS 1.3</span></div>
+        <div class="stack-line"><span class="dot dot-blue"></span> Red <span class="val">IPv4 / IPv6</span></div>
+        <div class="stack-line"><span class="dot dot-red"></span> Amenazas en tránsito <span class="val">MITM · Sniffing · DoS</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ MODELO OSI ════ -->
+<section class="osi-section" id="osi">
+  <div class="section-inner">
+    <p class="section-label">// sección 01</p>
+    <h2 class="section-h2 fade-in">El <em>Modelo OSI</em><br>Las 7 capas de la realidad</h2>
+    <p class="fade-in" style="font-size:1.05rem;color:rgba(232,230,223,0.45);font-style:italic;margin-top:0.8rem;max-width:600px;">
+      Selecciona cada capa para entender qué hace, qué protocolos viven ahí, y cómo se conecta con tu stack.
+    </p>
+
+    <div class="osi-layout" style="margin-top:3rem;">
+      <div class="osi-stack">
+        <div class="osi-layer l7 active" data-layer="7">
+          <div class="osi-num">7</div>
+          <div class="osi-bar">
+            <span class="osi-name">Aplicación</span>
+            <span class="osi-proto">HTTP · DNS · SMTP · FTP</span>
+          </div>
+        </div>
+        <div class="osi-layer l6" data-layer="6">
+          <div class="osi-num">6</div>
+          <div class="osi-bar">
+            <span class="osi-name">Presentación</span>
+            <span class="osi-proto">TLS · SSL · JPEG · JSON</span>
+          </div>
+        </div>
+        <div class="osi-layer l5" data-layer="5">
+          <div class="osi-num">5</div>
+          <div class="osi-bar">
+            <span class="osi-name">Sesión</span>
+            <span class="osi-proto">NetBIOS · RPC · WebSocket</span>
+          </div>
+        </div>
+        <div class="osi-layer l4" data-layer="4">
+          <div class="osi-num">4</div>
+          <div class="osi-bar">
+            <span class="osi-name">Transporte</span>
+            <span class="osi-proto">TCP · UDP · QUIC</span>
+          </div>
+        </div>
+        <div class="osi-layer l3" data-layer="3">
+          <div class="osi-num">3</div>
+          <div class="osi-bar">
+            <span class="osi-name">Red</span>
+            <span class="osi-proto">IP · ICMP · ARP · BGP</span>
+          </div>
+        </div>
+        <div class="osi-layer l2" data-layer="2">
+          <div class="osi-num">2</div>
+          <div class="osi-bar">
+            <span class="osi-name">Enlace de Datos</span>
+            <span class="osi-proto">Ethernet · MAC · Wi-Fi</span>
+          </div>
+        </div>
+        <div class="osi-layer l1" data-layer="1">
+          <div class="osi-num">1</div>
+          <div class="osi-bar">
+            <span class="osi-name">Física</span>
+            <span class="osi-proto">Cable · Fibra · Radio · USB</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="osi-detail" id="osi-detail">
+        <div class="osi-detail-num" id="det-num">CAPA 7 — APLICACIÓN</div>
+        <div class="osi-detail-title" id="det-title" style="color:var(--amber);">Application</div>
+        <div class="osi-detail-body" id="det-body">
+          Aquí vive tu aplicación FastAPI. Esta capa define cómo se estructura y presenta la información al usuario final. HTTP, el protocolo que une internet, opera en esta capa. Cuando defines un endpoint <code style="color:var(--green);font-size:0.85em;">@app.get("/users")</code>, estás trabajando enteramente en capa 7.
+        </div>
+        <div class="osi-detail-protos">
+          <h4>Protocolos en esta capa</h4>
+          <div class="proto-pills" id="det-pills">
+            <span class="proto-pill" style="border-color:rgba(255,179,71,0.3);color:var(--amber);">HTTP/1.1</span>
+            <span class="proto-pill" style="border-color:rgba(255,179,71,0.3);color:var(--amber);">HTTP/2</span>
+            <span class="proto-pill" style="border-color:rgba(255,179,71,0.3);color:var(--amber);">HTTP/3</span>
+            <span class="proto-pill">HTTPS</span>
+            <span class="proto-pill">DNS</span>
+            <span class="proto-pill">SMTP</span>
+            <span class="proto-pill">WebSocket</span>
+          </div>
+        </div>
+        <div class="osi-fastapi-note show" id="det-fastapi">
+          → FastAPI opera aquí. Cada @router, cada modelo Pydantic,<br>
+          cada response JSON vive en esta capa.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ VIAJE DE UN PAQUETE ════ -->
+<section class="packet-section" id="paquete">
+  <div class="section-inner">
+    <p class="section-label">// sección 02</p>
+    <h2 class="section-h2 fade-in">El viaje de <em>un paquete</em></h2>
+    <p class="fade-in" style="font-size:1.05rem;color:rgba(232,230,223,0.45);font-style:italic;margin-top:0.8rem;max-width:600px;">
+      Cuando haces GET /api/users, esto es exactamente lo que sucede — capa por capa.
+    </p>
+
+    <div class="packet-flow" style="margin-top:3rem;">
+      <!-- Headers row -->
+      <div style="display:flex;margin-bottom:2px;">
+        <div style="width:130px;min-width:130px;"></div>
+        <div style="display:flex;flex:1;gap:0;">
+          <div style="flex:1;font-family:var(--mono);font-size:0.55rem;color:var(--gray);letter-spacing:0.1em;text-align:center;padding:0.5rem 0.3rem;border:1px solid rgba(255,255,255,0.03);border-left:none;text-transform:uppercase;">Acción</div>
+          <div style="flex:1;font-family:var(--mono);font-size:0.55rem;color:var(--gray);letter-spacing:0.1em;text-align:center;padding:0.5rem 0.3rem;border:1px solid rgba(255,255,255,0.03);border-left:none;text-transform:uppercase;">Datos enviados</div>
+          <div style="flex:1;font-family:var(--mono);font-size:0.55rem;color:var(--gray);letter-spacing:0.1em;text-align:center;padding:0.5rem 0.3rem;border:1px solid rgba(255,255,255,0.03);border-left:none;text-transform:uppercase;">Amenaza aquí</div>
+          <div style="flex:1;font-family:var(--mono);font-size:0.55rem;color:var(--gray);letter-spacing:0.1em;text-align:center;padding:0.5rem 0.3rem;border:1px solid rgba(255,255,255,0.03);border-left:none;text-transform:uppercase;">Tu código</div>
+        </div>
+      </div>
+
+      <div class="packet-row">
+        <div class="packet-role">Aplicación</div>
+        <div class="packet-cells">
+          <div class="packet-cell pkt-app active">GET /api/users<span class="label">HTTP Request</span></div>
+          <div class="packet-cell pkt-app">Headers + Body JSON<span class="label">Payload</span></div>
+          <div class="packet-cell pkt-app">Injection · XSS<span class="label">Ataque</span></div>
+          <div class="packet-cell pkt-app">@app.get("/users")<span class="label">FastAPI</span></div>
+        </div>
+      </div>
+
+      <div class="packet-row">
+        <div class="packet-role">Presentación</div>
+        <div class="packet-cells">
+          <div class="packet-cell pkt-app">Cifra con TLS 1.3<span class="label">Acción</span></div>
+          <div class="packet-cell pkt-app">Datos cifrados<span class="label">Payload</span></div>
+          <div class="packet-cell pkt-app">MITM · Downgrade<span class="label">Ataque</span></div>
+          <div class="packet-cell pkt-app">SSL certificado<span class="label">Config</span></div>
+        </div>
+      </div>
+
+      <div class="packet-row">
+        <div class="packet-role">Transporte</div>
+        <div class="packet-cells">
+          <div class="packet-cell pkt-trans">Segmenta en TCP<span class="label">Acción</span></div>
+          <div class="packet-cell pkt-trans">Segmentos TCP<span class="label">Payload</span></div>
+          <div class="packet-cell pkt-trans">SYN Flood · DoS<span class="label">Ataque</span></div>
+          <div class="packet-cell pkt-trans">Puerto :8000<span class="label">Uvicorn</span></div>
+        </div>
+      </div>
+
+      <div class="packet-row">
+        <div class="packet-role">Red</div>
+        <div class="packet-cells">
+          <div class="packet-cell pkt-net">Enruta por IP<span class="label">Acción</span></div>
+          <div class="packet-cell pkt-net">Paquetes IP<span class="label">Payload</span></div>
+          <div class="packet-cell pkt-net">IP Spoofing · Routing<span class="label">Ataque</span></div>
+          <div class="packet-cell pkt-net">Router / Nginx<span class="label">Infra</span></div>
+        </div>
+      </div>
+
+      <div class="packet-row">
+        <div class="packet-role">Física</div>
+        <div class="packet-cells">
+          <div class="packet-cell pkt-phys">Envía bits<span class="label">Acción</span></div>
+          <div class="packet-cell pkt-phys">0s y 1s<span class="label">Payload</span></div>
+          <div class="packet-cell pkt-phys">Wiretapping<span class="label">Ataque</span></div>
+          <div class="packet-cell pkt-phys">Cable / Radio<span class="label">Medio</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ HTTP DEEP DIVE ════ -->
+<section class="http-section" id="http">
+  <div class="section-inner">
+    <p class="section-label">// sección 03</p>
+    <h2 class="section-h2 fade-in"><em>HTTP</em> — El lenguaje<br>de la web</h2>
+
+    <div class="http-grid">
+      <div class="http-panel">
+        <div class="panel-header">
+          <span class="panel-badge badge-req">REQUEST</span>
+          Cliente → Tu FastAPI
+        </div>
+        <div class="panel-body">
+          <div><span class="http-method">POST</span> <span class="http-path">/api/v1/users</span> <span class="http-ver">HTTP/1.1</span></div>
+          <div><span class="http-hkey">Host:</span> <span class="http-hval">api.tudominio.com</span></div>
+          <div><span class="http-hkey">Content-Type:</span> <span class="http-hval">application/json</span></div>
+          <div><span class="http-hkey">Authorization:</span> <span class="http-hval">Bearer eyJhbGci...</span></div>
+          <div><span class="http-hkey">User-Agent:</span> <span class="http-hval">Mozilla/5.0...</span></div>
+          <div><span class="http-hkey">Accept:</span> <span class="http-hval">application/json</span></div>
+          <br>
+          <div><span class="http-comment">// Body (JSON)</span></div>
+          <div>{</div>
+          <div>&nbsp;&nbsp;<span class="http-json-key">"username"</span>: <span class="http-json-str">"alice"</span>,</div>
+          <div>&nbsp;&nbsp;<span class="http-json-key">"email"</span>: <span class="http-json-str">"alice@example.com"</span>,</div>
+          <div>&nbsp;&nbsp;<span class="http-json-key">"password"</span>: <span class="http-json-str">"[hashed]"</span></div>
+          <div>}</div>
+        </div>
+      </div>
+
+      <div class="http-panel">
+        <div class="panel-header">
+          <span class="panel-badge badge-res">RESPONSE</span>
+          FastAPI → Cliente
+        </div>
+        <div class="panel-body">
+          <div>HTTP/1.1 <span class="http-status-200">201 Created</span></div>
+          <div><span class="http-hkey">Content-Type:</span> <span class="http-hval">application/json</span></div>
+          <div><span class="http-hkey">X-Request-ID:</span> <span class="http-hval">f3a9b2c1-...</span></div>
+          <div><span class="http-hkey">Strict-Transport-Security:</span> <span class="http-hval">max-age=31536000</span></div>
+          <div><span class="http-hkey">X-Content-Type-Options:</span> <span class="http-hval">nosniff</span></div>
+          <br>
+          <div><span class="http-comment">// Body (JSON)</span></div>
+          <div>{</div>
+          <div>&nbsp;&nbsp;<span class="http-json-key">"id"</span>: <span class="http-json-val">42</span>,</div>
+          <div>&nbsp;&nbsp;<span class="http-json-key">"username"</span>: <span class="http-json-str">"alice"</span>,</div>
+          <div>&nbsp;&nbsp;<span class="http-json-key">"created_at"</span>: <span class="http-json-str">"2026-04-02T..."</span>,</div>
+          <div>&nbsp;&nbsp;<span class="http-json-key">"status"</span>: <span class="http-json-str">"active"</span></div>
+          <div>}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HTTP Methods -->
+    <div style="margin-top:3rem;display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:rgba(255,255,255,0.05);" class="fade-in">
+      <div style="background:var(--black);padding:1.5rem;text-align:center;">
+        <div style="font-family:var(--display);font-size:2rem;color:var(--green);">GET</div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--gray);margin-top:0.5rem;">Leer recursos</div>
+        <div style="font-family:var(--mono);font-size:0.58rem;color:rgba(0,255,157,0.4);margin-top:0.3rem;">Idempotente</div>
+      </div>
+      <div style="background:var(--black);padding:1.5rem;text-align:center;">
+        <div style="font-family:var(--display);font-size:2rem;color:var(--amber);">POST</div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--gray);margin-top:0.5rem;">Crear recursos</div>
+        <div style="font-family:var(--mono);font-size:0.58rem;color:rgba(255,179,71,0.4);margin-top:0.3rem;">No idempotente</div>
+      </div>
+      <div style="background:var(--black);padding:1.5rem;text-align:center;">
+        <div style="font-family:var(--display);font-size:2rem;color:var(--blue);">PUT</div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--gray);margin-top:0.5rem;">Reemplazar</div>
+        <div style="font-family:var(--mono);font-size:0.58rem;color:rgba(79,195,247,0.4);margin-top:0.3rem;">Idempotente</div>
+      </div>
+      <div style="background:var(--black);padding:1.5rem;text-align:center;">
+        <div style="font-family:var(--display);font-size:2rem;color:var(--blue);">PATCH</div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--gray);margin-top:0.5rem;">Actualizar parcial</div>
+        <div style="font-family:var(--mono);font-size:0.58rem;color:rgba(79,195,247,0.4);margin-top:0.3rem;">Condicional</div>
+      </div>
+      <div style="background:var(--black);padding:1.5rem;text-align:center;">
+        <div style="font-family:var(--display);font-size:2rem;color:var(--red);">DELETE</div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--gray);margin-top:0.5rem;">Eliminar</div>
+        <div style="font-family:var(--mono);font-size:0.58rem;color:rgba(255,63,63,0.4);margin-top:0.3rem;">Idempotente</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ FASTAPI BRIDGE ════ -->
+<section class="fastapi-section" id="fastapi">
+  <div class="fastapi-bg"></div>
+  <div class="section-inner">
+    <p class="section-label">// sección 04 — conexión con tu stack</p>
+    <h2 class="section-h2 fade-in">Cómo <em>FastAPI</em><br>vive en las capas</h2>
+    <p class="fade-in" style="font-size:1.05rem;color:rgba(232,230,223,0.45);font-style:italic;margin-top:0.8rem;max-width:600px;">
+      Cada request que llega a tu API recorre exactamente este camino. Entender esto es entender dónde poner tus defensas.
+    </p>
+
+    <div class="fastapi-diagram">
+      <div class="diagram-row row-browser fade-in">
+        <div class="diag-label">Cliente</div>
+        <div class="diag-content">
+          <span class="diag-name">Navegador / App / curl</span>
+          <span class="diag-desc">Genera el HTTP Request. Puede ser un humano o un atacante.</span>
+          <span class="diag-badge">CAPA 7</span>
+        </div>
+      </div>
+      <div class="diag-arrow fade-in">↓ TCP Connection :443 (TLS 1.3)</div>
+
+      <div class="diagram-row row-http fade-in">
+        <div class="diag-label">Proxy</div>
+        <div class="diag-content">
+          <span class="diag-name">Nginx / Caddy</span>
+          <span class="diag-desc">Termina TLS. Balancea carga. Primera línea de defensa contra DoS.</span>
+          <span class="diag-badge">CAPA 7 / 4</span>
+        </div>
+      </div>
+      <div class="diag-arrow fade-in">↓ HTTP (interno) → localhost:8000</div>
+
+      <div class="diagram-row row-uvicorn fade-in">
+        <div class="diag-label">ASGI Server</div>
+        <div class="diag-content">
+          <span class="diag-name">Uvicorn</span>
+          <span class="diag-desc">Servidor ASGI asincrónico. Escucha el socket TCP, parsea HTTP, pasa al framework.</span>
+          <span class="diag-badge">ASGI / HTTP</span>
+        </div>
+      </div>
+      <div class="diag-arrow fade-in">↓ ASGI scope, receive, send</div>
+
+      <div class="diagram-row row-fastapi fade-in">
+        <div class="diag-label">Framework</div>
+        <div class="diag-content">
+          <span class="diag-name">FastAPI</span>
+          <span class="diag-desc">Middleware chain → Router → Dependency Injection → Pydantic validation → Handler.</span>
+          <span class="diag-badge">Tu código</span>
+        </div>
+      </div>
+      <div class="diag-arrow fade-in">↓ SQLAlchemy async session</div>
+
+      <div class="diagram-row row-db fade-in">
+        <div class="diag-label">Base de Datos</div>
+        <div class="diag-content">
+          <span class="diag-name">PostgreSQL 15</span>
+          <span class="diag-desc">Datos persistidos. Conexión por socket local o TCP cifrado. Alembic gestiona el esquema.</span>
+          <span class="diag-badge">TCP :5432</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ CÓDIGO FASTAPI ════ -->
+<section class="code-section" id="codigo">
+  <div class="section-inner">
+    <p class="section-label">// sección 05 — primer código real</p>
+    <h2 class="section-h2 fade-in">Tu primera <em>API segura</em><br>desde cero</h2>
+
+    <div class="code-tabs">
+      <div class="code-tab active" data-tab="main">main.py</div>
+      <div class="code-tab" data-tab="router">router/users.py</div>
+      <div class="code-tab" data-tab="security">middleware/security.py</div>
+      <div class="code-tab" data-tab="run">Ejecutar</div>
+    </div>
+
+    <div class="code-pane active" id="tab-main">
+      <div class="code-block">
+<span class="cm"># main.py — punto de entrada de tu FastAPI</span>
+<span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
+<span class="kw">from</span> fastapi.middleware.cors <span class="kw">import</span> CORSMiddleware
+<span class="kw">from</span> fastapi.middleware.trustedhost <span class="kw">import</span> TrustedHostMiddleware
+<span class="kw">from</span> app.routers <span class="kw">import</span> users, auth
+<span class="kw">from</span> app.middleware.security <span class="kw">import</span> SecurityHeadersMiddleware
+
+app = <span class="fn">FastAPI</span>(
+    title=<span class="str">"CipherDoc API"</span>,
+    version=<span class="str">"0.1.0"</span>,
+    docs_url=<span class="str">"/docs"</span>,  <span class="cm"># desactivar en producción</span>
+)
+
+<span class="cm"># ── Middleware de seguridad (orden importa)</span>
+app.<span class="fn">add_middleware</span>(TrustedHostMiddleware, allowed_hosts=[<span class="str">"*"</span>])
+app.<span class="fn">add_middleware</span>(SecurityHeadersMiddleware)
+app.<span class="fn">add_middleware</span>(
+    CORSMiddleware,
+    allow_origins=[<span class="str">"https://tudominio.com"</span>],
+    allow_credentials=<span class="kw">True</span>,
+    allow_methods=[<span class="str">"GET"</span>, <span class="str">"POST"</span>, <span class="str">"PUT"</span>, <span class="str">"DELETE"</span>],
+    allow_headers=[<span class="str">"*"</span>],
+)
+
+<span class="cm"># ── Routers</span>
+app.<span class="fn">include_router</span>(users.router, prefix=<span class="str">"/api/v1"</span>)
+app.<span class="fn">include_router</span>(auth.router, prefix=<span class="str">"/api/v1"</span>)
+
+<span class="dec">@app.get</span>(<span class="str">"/"</span>)
+<span class="kw">async def</span> <span class="fn">root</span>():
+    <span class="kw">return</span> {<span class="str">"status"</span>: <span class="str">"online"</span>, <span class="str">"version"</span>: <span class="str">"0.1.0"</span>}
+      </div>
+    </div>
+
+    <div class="code-pane" id="tab-router">
+      <div class="code-block">
+<span class="cm"># routers/users.py — endpoints de usuarios</span>
+<span class="kw">from</span> fastapi <span class="kw">import</span> APIRouter, Depends, HTTPException, status
+<span class="kw">from</span> sqlalchemy.ext.asyncio <span class="kw">import</span> AsyncSession
+<span class="kw">from</span> app.db <span class="kw">import</span> get_db
+<span class="kw">from</span> app.schemas <span class="kw">import</span> UserCreate, UserResponse
+<span class="kw">from</span> app.services <span class="kw">import</span> user_service
+<span class="kw">from</span> app.auth <span class="kw">import</span> get_current_user
+
+router = <span class="fn">APIRouter</span>(prefix=<span class="str">"/users"</span>, tags=[<span class="str">"users"</span>])
+
+<span class="dec">@router.get</span>(<span class="str">"/"</span>, response_model=<span class="cls">list</span>[UserResponse])
+<span class="kw">async def</span> <span class="fn">list_users</span>(
+    db: AsyncSession = <span class="fn">Depends</span>(get_db),
+    current_user = <span class="fn">Depends</span>(get_current_user),  <span class="cm"># auth requerida</span>
+    skip: <span class="cls">int</span> = <span class="num">0</span>,
+    limit: <span class="cls">int</span> = <span class="num">100</span>,
+):
+    <span class="cm">"""Listar usuarios. Solo admins."""</span>
+    <span class="kw">if not</span> current_user.is_admin:
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=<span class="str">"Acceso denegado"</span>
+        )
+    <span class="kw">return await</span> user_service.<span class="fn">get_users</span>(db, skip=skip, limit=limit)
+
+<span class="dec">@router.post</span>(<span class="str">"/"</span>, response_model=UserResponse, status_code=<span class="num">201</span>)
+<span class="kw">async def</span> <span class="fn">create_user</span>(
+    user_data: UserCreate,  <span class="cm"># Pydantic valida automáticamente</span>
+    db: AsyncSession = <span class="fn">Depends</span>(get_db),
+):
+    <span class="cm"># Verificar duplicados</span>
+    existing = <span class="kw">await</span> user_service.<span class="fn">get_by_email</span>(db, user_data.email)
+    <span class="kw">if</span> existing:
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(status_code=<span class="num">409</span>, detail=<span class="str">"Email ya registrado"</span>)
+    <span class="kw">return await</span> user_service.<span class="fn">create_user</span>(db, user_data)
+      </div>
+    </div>
+
+    <div class="code-pane" id="tab-security">
+      <div class="code-block">
+<span class="cm"># middleware/security.py — headers de seguridad HTTP</span>
+<span class="kw">from</span> starlette.middleware.base <span class="kw">import</span> BaseHTTPMiddleware
+<span class="kw">from</span> starlette.requests <span class="kw">import</span> Request
+
+<span class="kw">class</span> <span class="cls">SecurityHeadersMiddleware</span>(BaseHTTPMiddleware):
+    <span class="kw">async def</span> <span class="fn">dispatch</span>(<span class="kw">self</span>, request: Request, call_next):
+        response = <span class="kw">await</span> <span class="fn">call_next</span>(request)
+
+        <span class="cm"># Previene clickjacking</span>
+        response.headers[<span class="str">"X-Frame-Options"</span>] = <span class="str">"DENY"</span>
+
+        <span class="cm"># Previene MIME sniffing</span>
+        response.headers[<span class="str">"X-Content-Type-Options"</span>] = <span class="str">"nosniff"</span>
+
+        <span class="cm"># Fuerza HTTPS (HSTS)</span>
+        response.headers[<span class="str">"Strict-Transport-Security"</span>] = (
+            <span class="str">"max-age=31536000; includeSubDomains"</span>
+        )
+
+        <span class="cm"># Content Security Policy</span>
+        response.headers[<span class="str">"Content-Security-Policy"</span>] = (
+            <span class="str">"default-src 'self'; script-src 'self'"</span>
+        )
+
+        <span class="cm"># Ocultar información del servidor</span>
+        response.headers[<span class="str">"X-Powered-By"</span>] = <span class="str">""</span>
+        response.headers[<span class="str">"Server"</span>] = <span class="str">""</span>
+
+        <span class="kw">return</span> response
+      </div>
+    </div>
+
+    <div class="code-pane" id="tab-run">
+      <div class="code-block">
+<span class="cm"># Instalar dependencias con Poetry</span>
+$ poetry <span class="fn">add</span> fastapi uvicorn sqlalchemy alembic pydantic loguru
+
+<span class="cm"># Estructura del proyecto</span>
+cipher-api/
+├── app/
+│   ├── main.py
+│   ├── routers/
+│   │   ├── users.py
+│   │   └── auth.py
+│   ├── middleware/
+│   │   └── security.py
+│   ├── models/          <span class="cm"># SQLAlchemy models</span>
+│   ├── schemas/         <span class="cm"># Pydantic schemas</span>
+│   ├── services/        <span class="cm"># Business logic</span>
+│   └── db.py            <span class="cm"># Database connection</span>
+├── alembic/             <span class="cm"># Migrations</span>
+├── tests/
+├── pyproject.toml       <span class="cm"># Poetry</span>
+└── docker-compose.yml
+
+<span class="cm"># Correr en desarrollo</span>
+$ uvicorn app.main:app --reload --port <span class="num">8000</span>
+
+<span class="cm"># Docs automáticas de FastAPI</span>
+→ http://localhost:<span class="num">8000</span>/docs      <span class="cm"># Swagger UI</span>
+→ http://localhost:<span class="num">8000</span>/redoc     <span class="cm"># ReDoc</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ PROTOCOLOS DE SEGURIDAD ════ -->
+<section class="security-section" id="seguridad">
+  <div class="section-inner">
+    <p class="section-label">// sección 06</p>
+    <h2 class="section-h2 fade-in">Protocolos que <em>definen</em><br>la seguridad en tránsito</h2>
+
+    <div class="security-grid">
+      <div class="sec-card">
+        <div class="sec-icon">TLS</div>
+        <span class="sec-status status-safe">Usar siempre</span>
+        <h3>TLS 1.3</h3>
+        <p>Transport Layer Security. Cifra toda la comunicación. Versión 1.3 eliminó algoritmos débiles. Es lo que convierte HTTP en HTTPS. Tu Uvicorn debe estar detrás de Nginx con TLS.</p>
+        <div class="sec-use">→ Nginx + Certbot (Let's Encrypt gratis)</div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon">JWT</div>
+        <span class="sec-status status-warn">Con cuidado</span>
+        <h3>JWT / OAuth 2.0</h3>
+        <p>JSON Web Tokens para autenticación stateless. Peligroso si se mal-implementa: algoritmo 'none', claves débiles, o sin expiración. FastAPI tiene soporte nativo vía python-jose.</p>
+        <div class="sec-use">→ python-jose + passlib[bcrypt]</div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon">SSH</div>
+        <span class="sec-status status-safe">Usar siempre</span>
+        <h3>SSH</h3>
+        <p>Secure Shell. Acceso remoto cifrado a tus servidores. Nunca exponer contraseñas por SSH — siempre usar claves RSA/ED25519. Tu deploy en DigitalOcean/Render depende de esto.</p>
+        <div class="sec-use">→ ssh-keygen -t ed25519</div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon">SSL</div>
+        <span class="sec-status status-danger">Obsoleto</span>
+        <h3>SSL / TLS 1.0-1.1</h3>
+        <p>Protocolos viejos con vulnerabilidades conocidas (POODLE, BEAST, DROWN). Nunca habilitar en producción. Los scanners de seguridad los detectarán inmediatamente.</p>
+        <div class="sec-use">→ Deshabilitar en nginx.conf</div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon">VPN</div>
+        <span class="sec-status status-safe">Recomendado</span>
+        <h3>WireGuard / VPN</h3>
+        <p>Para acceso seguro a tu base de datos PostgreSQL en producción. Nunca exponer el puerto 5432 al internet público. WireGuard es más rápido y seguro que OpenVPN.</p>
+        <div class="sec-use">→ Puerto 5432 solo accesible internamente</div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-icon">DNS</div>
+        <span class="sec-status status-warn">Punto débil</span>
+        <h3>DNS & DNSSEC</h3>
+        <p>El DNS es el directorio del internet. Sin DNSSEC, un atacante puede redirigir tu dominio a su servidor (DNS Spoofing). Cloudflare ofrece protección DNS gratuita.</p>
+        <div class="sec-use">→ Cloudflare DNS + DNSSEC activado</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ VULNERABILIDADES DE RED ════ -->
+<section class="vuln-section" id="vulnerabilidades">
+  <div class="section-inner">
+    <p class="section-label">// sección 07</p>
+    <h2 class="section-h2 fade-in">Ataques de red que<br><em>debes conocer</em></h2>
+
+    <div class="vuln-list">
+      <div class="vuln-item fade-in">
+        <div class="vuln-sev sev-crit">⬛</div>
+        <div class="vuln-name">Man-in-the-Middle (MITM)<small>Intercepción de tráfico</small></div>
+        <div class="vuln-desc">El atacante se posiciona entre cliente y servidor para interceptar y modificar el tráfico. Sin TLS, cualquier dato en tránsito es legible. Común en redes Wi-Fi públicas.</div>
+        <div class="vuln-cvss cvss-crit">9.8</div>
+      </div>
+      <div class="vuln-item fade-in">
+        <div class="vuln-sev sev-crit">⬛</div>
+        <div class="vuln-name">SYN Flood / DDoS<small>Denegación de servicio</small></div>
+        <div class="vuln-desc">Saturar tu servidor con requests TCP a medio completar. Agota los recursos del sistema. Tu FastAPI caerá si no tienes rate limiting y un proxy delante.</div>
+        <div class="vuln-cvss cvss-crit">9.1</div>
+      </div>
+      <div class="vuln-item fade-in">
+        <div class="vuln-sev sev-high">⬛</div>
+        <div class="vuln-name">DNS Spoofing<small>Envenenamiento de caché DNS</small></div>
+        <div class="vuln-desc">Redirigir el dominio de tu API a un servidor malicioso sin que el usuario lo sepa. DNSSEC y HTTPS con certificados verificados son las defensas principales.</div>
+        <div class="vuln-cvss cvss-high">8.1</div>
+      </div>
+      <div class="vuln-item fade-in">
+        <div class="vuln-sev sev-high">⬛</div>
+        <div class="vuln-name">HTTP Header Injection<small>Manipulación de headers</small></div>
+        <div class="vuln-desc">Inyectar headers maliciosos en requests o responses. Tu middleware de seguridad en FastAPI debe sanitizar y establecer headers seguros en cada response.</div>
+        <div class="vuln-cvss cvss-high">7.5</div>
+      </div>
+      <div class="vuln-item fade-in">
+        <div class="vuln-sev sev-med">⬛</div>
+        <div class="vuln-name">SSL Stripping<small>Downgrade de HTTPS a HTTP</small></div>
+        <div class="vuln-desc">Forzar al cliente a usar HTTP en lugar de HTTPS. El header HSTS (Strict-Transport-Security) que implementaste en tu middleware es la defensa directa.</div>
+        <div class="vuln-cvss cvss-med">6.8</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ LOG ════ -->
+<section class="log-section">
+  <div class="log-entry">
+    <div class="log-date">ENTRADA #002 — CAPÍTULO 02 COMPLETADO</div>
+    <p>
+      El modelo OSI deja de ser teoría abstracta cuando lo ves directamente en tu stack: cada request de FastAPI comienza en la capa 7 (Aplicación), pasa por Uvicorn en la capa de transporte TCP, viaja cifrado por TLS, y llega físicamente a través de cables o radio. Cada capa es un punto donde algo puede salir mal — o donde puedo defender.
+    </p>
+    <p>
+      Lo más importante de este capítulo: los headers de seguridad HTTP no son opcionales. Ese middleware que escribí hoy — X-Frame-Options, HSTS, CSP — son la primera línea de defensa real en mi código, antes de que llegue a cualquier lógica de negocio.
+    </p>
+  </div>
+</section>
+
+<!-- ════ FOOTER ════ -->
+<footer>
+  <div class="footer-brand">CIPHER</div>
+  <div class="chapter-nav">
+    <a href="cybersec_chapter1.html" class="ch-link prev">
+      <span class="ch-label">← Anterior</span>
+      <span class="ch-title">01 — Qué es Ciberseguridad</span>
+    </a>
+    <a href="#" class="ch-link">
+      <span class="ch-label">Próximo →</span>
+      <span class="ch-title">03 — Criptografía</span>
+    </a>
+  </div>
+</footer>
+
+<div class="footer-copy">
+  CIPHER DOC — Capítulo 02: Redes & Protocolos · Stack: Python · FastAPI · PostgreSQL · Construido con Claude Pro
+</div>
+
+<script>
+// ── Network canvas animation
+const canvas = document.getElementById('network-canvas');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const nodes = Array.from({length: 40}, () => ({
+  x: Math.random() * window.innerWidth,
+  y: Math.random() * window.innerHeight,
+  vx: (Math.random() - 0.5) * 0.4,
+  vy: (Math.random() - 0.5) * 0.4,
+  r: Math.random() * 2.5 + 1,
+}));
+
+function drawNetwork() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw edges
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const dx = nodes[i].x - nodes[j].x;
+      const dy = nodes[i].y - nodes[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 160) {
+        ctx.beginPath();
+        ctx.moveTo(nodes[i].x, nodes[i].y);
+        ctx.lineTo(nodes[j].x, nodes[j].y);
+        ctx.strokeStyle = `rgba(0,255,157,${0.12 * (1 - dist/160)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Draw nodes
+  nodes.forEach(n => {
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,255,157,0.5)';
+    ctx.fill();
+  });
+
+  // Update
+  nodes.forEach(n => {
+    n.x += n.vx; n.y += n.vy;
+    if (n.x < 0 || n.x > canvas.width) n.vx *= -1;
+    if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
+  });
+  requestAnimationFrame(drawNetwork);
+}
+drawNetwork();
+
+// ── OSI Layer interaction
+const layerData = {
+  7: {
+    color: 'var(--amber)', num: 'CAPA 7 — APLICACIÓN', title: 'Application',
+    body: 'Aquí vive tu FastAPI. Define cómo se estructura la información. HTTP, DNS, SMTP operan aquí. Cada endpoint @app.get("/") es código de capa 7. Los ataques de inyección (SQL, XSS) también ocurren en esta capa.',
+    pills: ['HTTP/1.1','HTTP/2','HTTP/3','HTTPS','DNS','WebSocket','REST','GraphQL'],
+    fastapi: '→ FastAPI opera aquí. @router, Pydantic schemas,\nJSON responses viven en esta capa.',
+    show: true
+  },
+  6: {
+    color: '#ffd47a', num: 'CAPA 6 — PRESENTACIÓN', title: 'Presentation',
+    body: 'Transforma los datos para que sean comprensibles: cifrado/descifrado TLS, compresión, serialización JSON/XML. Cuando Uvicorn recibe un request HTTPS, TLS se desencripta en esta capa antes de pasar el contenido a FastAPI.',
+    pills: ['TLS 1.3','SSL','JSON','XML','JPEG','gzip','base64'],
+    fastapi: '→ TLS termina aquí (en Nginx). FastAPI recibe\nlos datos ya descifrados.',
+    show: true
+  },
+  5: {
+    color: '#ffd47a', num: 'CAPA 5 — SESIÓN', title: 'Session',
+    body: 'Gestiona el establecimiento, mantenimiento y cierre de sesiones entre dos sistemas. WebSockets (que FastAPI soporta) operan en esta capa. Las sesiones de usuario en tu app son una abstracción de capa 5.',
+    pills: ['NetBIOS','RPC','WebSocket','PPTP','L2TP'],
+    fastapi: '→ WebSocket endpoints en FastAPI viven aquí.\n@app.websocket("/ws")',
+    show: true
+  },
+  4: {
+    color: 'var(--green)', num: 'CAPA 4 — TRANSPORTE', title: 'Transport',
+    body: 'TCP garantiza que todos los paquetes llegan en orden, sin pérdida. UDP es más rápido pero sin garantías. Uvicorn escucha en un puerto TCP (por defecto :8000). Los ataques SYN Flood ocurren aquí.',
+    pills: ['TCP','UDP','QUIC','SCTP','TLS handshake'],
+    fastapi: '→ Uvicorn escucha en TCP :8000.\nCada conexión es un socket TCP.',
+    show: true
+  },
+  3: {
+    color: 'var(--blue)', num: 'CAPA 3 — RED', title: 'Network',
+    body: 'Enrutamiento de paquetes IP entre redes. Los routers operan aquí. Cuando tu API en DigitalOcean recibe una request, los paquetes IP viajaron por múltiples routers hasta llegar. IP Spoofing ocurre en esta capa.',
+    pills: ['IPv4','IPv6','ICMP','ARP','BGP','OSPF'],
+    fastapi: '→ Tu IP pública del servidor vive aquí.\nNginx recibe por IP, reenvía a localhost.',
+    show: true
+  },
+  2: {
+    color: '#8dd6f5', num: 'CAPA 2 — ENLACE DE DATOS', title: 'Data Link',
+    body: 'Transferencia de datos entre dispositivos en la misma red. Usa direcciones MAC. Los switches operan aquí. ARP Poisoning (para ataques MITM en red local) ocurre en esta capa.',
+    pills: ['Ethernet','Wi-Fi 802.11','MAC address','PPP','VLANs'],
+    fastapi: '→ Invisible para FastAPI, pero los ataques\nMITM en red local comienzan aquí.',
+    show: false
+  },
+  1: {
+    color: '#6ab5d4', num: 'CAPA 1 — FÍSICA', title: 'Physical',
+    body: 'La transmisión real de bits: electricidad en cables, luz en fibra óptica, ondas de radio en Wi-Fi. Los ataques físicos (wiretapping, acceso físico al servidor) ocurren aquí. Por eso los datacenters tienen seguridad física estricta.',
+    pills: ['Cable UTP','Fibra óptica','Wi-Fi','Bluetooth','USB','RS-232'],
+    fastapi: '→ Completamente transparente para FastAPI.\nPero un servidor físico comprometido = game over.',
+    show: false
+  }
+};
+
+document.querySelectorAll('.osi-layer').forEach(layer => {
+  layer.addEventListener('click', () => {
+    document.querySelectorAll('.osi-layer').forEach(l => l.classList.remove('active'));
+    layer.classList.add('active');
+    const n = parseInt(layer.dataset.layer);
+    const d = layerData[n];
+
+    document.getElementById('det-num').textContent = d.num;
+    document.getElementById('det-title').textContent = d.title;
+    document.getElementById('det-title').style.color = d.color;
+    document.getElementById('det-body').textContent = d.body;
+
+    const pillsEl = document.getElementById('det-pills');
+    pillsEl.innerHTML = d.pills.map(p =>
+      `<span class="proto-pill" style="border-color:${d.color}33;color:${d.color}">${p}</span>`
+    ).join('');
+
+    const fastapiEl = document.getElementById('det-fastapi');
+    fastapiEl.textContent = d.fastapi.replace('\\n', '\n');
+    fastapiEl.classList.toggle('show', d.show);
+  });
+});
+
+// ── Code tabs
+document.querySelectorAll('.code-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.code-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Intersection observer
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.fade-in, .packet-row').forEach((el, i) => {
+  el.style.transitionDelay = `${(i % 6) * 0.08}s`;
+  observer.observe(el);
+});
+</script>
+</body>
+</html>
