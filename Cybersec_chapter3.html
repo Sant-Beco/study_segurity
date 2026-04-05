@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIPHER — Cap. 03: Criptografía</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #050507;
+    --purple: #b57bff;
+    --purple-dim: rgba(181,123,255,0.08);
+    --green: #00ff9d;
+    --amber: #ffb347;
+    --red: #ff3f3f;
+    --blue: #4fc3f7;
+    --white: #e8e6df;
+    --gray: #4a4a5a;
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Bebas Neue', sans-serif;
+    --body: 'Crimson Pro', Georgia, serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--black);color:var(--white);font-family:var(--body);font-weight:300;line-height:1.7;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(181,123,255,0.01) 2px,rgba(181,123,255,0.01) 4px);pointer-events:none;z-index:9999}
+
+  /* NAV */
+  nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:1.2rem 3rem;background:linear-gradient(to bottom,rgba(5,5,7,0.98) 0%,transparent 100%);border-bottom:1px solid rgba(181,123,255,0.08)}
+  .nav-logo{font-family:var(--display);font-size:1.8rem;letter-spacing:0.3em;color:var(--purple);text-decoration:none}
+  .nav-logo span{color:var(--white)}
+  .nav-links{display:flex;gap:2rem;list-style:none}
+  .nav-links a{font-family:var(--mono);font-size:0.68rem;color:var(--gray);text-decoration:none;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s}
+  .nav-links a:hover{color:var(--purple)}
+  .nav-prev{font-family:var(--mono);font-size:0.65rem;color:var(--gray);letter-spacing:0.1em;text-decoration:none;transition:color 0.2s}
+  .nav-prev:hover{color:var(--white)}
+
+  /* HERO */
+  .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:8rem 3rem 5rem;position:relative;overflow:hidden}
+  #hero-canvas{position:absolute;inset:0;z-index:0;opacity:0.5}
+  .hero-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(to top,var(--black) 35%,rgba(5,5,7,0.4) 100%)}
+  .hero-content{position:relative;z-index:2}
+  .chapter-tag{font-family:var(--mono);font-size:0.65rem;color:var(--purple);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem}
+  .chapter-tag::after{content:'';flex:0 0 40px;height:1px;background:var(--purple)}
+  .hero h1{font-family:var(--display);font-size:clamp(4rem,11vw,11rem);line-height:0.88;letter-spacing:0.02em;color:var(--white)}
+  .hero h1 .accent{color:var(--purple)}
+  .hero-bottom{display:grid;grid-template-columns:1fr 1fr;gap:4rem;margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.05)}
+  .hero-desc{font-size:1.1rem;color:rgba(232,230,223,0.5);line-height:1.85;font-style:italic}
+  .hero-keys{display:flex;flex-direction:column;gap:0.4rem}
+  .key-item{font-family:var(--mono);font-size:0.68rem;display:flex;align-items:center;gap:0.8rem;color:var(--gray);padding:0.45rem 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+  .key-item .k{color:var(--purple);font-size:0.85rem}
+  .key-item .v{margin-left:auto;color:var(--white)}
+
+  /* SHARED STYLES */
+  .section{padding:8rem 3rem;position:relative}
+  .section-inner{max-width:1100px;margin:0 auto}
+  .sec-label{font-family:var(--mono);font-size:0.6rem;color:var(--purple);letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem}
+  .sec-h2{font-family:var(--display);font-size:clamp(2.5rem,5vw,5rem);letter-spacing:0.04em;line-height:1.05;color:var(--white)}
+  .sec-h2 em{font-style:normal;color:var(--purple)}
+  .sec-sub{font-size:1.05rem;color:rgba(232,230,223,0.4);font-style:italic;margin-top:0.8rem;max-width:600px}
+  .fade-in{opacity:0;transform:translateY(16px);transition:opacity 0.6s,transform 0.6s}
+  .fade-in.visible{opacity:1;transform:translateY(0)}
+
+  /* ── INTERACTIVE CAESAR CIPHER ── */
+  .caesar-demo{margin-top:4rem;border:1px solid rgba(181,123,255,0.15);background:rgba(10,10,18,0.8)}
+  .caesar-header{background:rgba(181,123,255,0.05);border-bottom:1px solid rgba(181,123,255,0.1);padding:1rem 1.5rem;display:flex;align-items:center;gap:1rem}
+  .caesar-header span{font-family:var(--mono);font-size:0.65rem;color:var(--gray);letter-spacing:0.15em;text-transform:uppercase}
+  .caesar-tag{font-family:var(--mono);font-size:0.55rem;padding:0.15rem 0.6rem;background:rgba(181,123,255,0.1);border:1px solid rgba(181,123,255,0.2);color:var(--purple);letter-spacing:0.1em}
+  .caesar-body{padding:2rem}
+  .caesar-inputs{display:grid;grid-template-columns:1fr auto;gap:1.5rem;align-items:end;margin-bottom:1.5rem}
+  .input-group label{font-family:var(--mono);font-size:0.6rem;color:var(--gray);letter-spacing:0.15em;text-transform:uppercase;display:block;margin-bottom:0.5rem}
+  .cipher-input{width:100%;background:transparent;border:1px solid rgba(181,123,255,0.2);color:var(--white);font-family:var(--mono);font-size:1rem;padding:0.8rem 1rem;outline:none;transition:border-color 0.2s;letter-spacing:0.05em}
+  .cipher-input:focus{border-color:rgba(181,123,255,0.5)}
+  .shift-control{display:flex;flex-direction:column;align-items:center;gap:0.5rem}
+  .shift-control label{font-family:var(--mono);font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase}
+  .shift-val{font-family:var(--display);font-size:2.5rem;color:var(--purple);line-height:1;min-width:60px;text-align:center}
+  .shift-slider{-webkit-appearance:none;appearance:none;width:120px;height:2px;background:rgba(181,123,255,0.2);outline:none}
+  .shift-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--purple);border-radius:50%;cursor:pointer}
+  .caesar-alphabet{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:2px;margin-bottom:1.5rem;padding-bottom:0.5rem}
+  .alpha-pair{display:flex;flex-direction:column;align-items:center;min-width:28px}
+  .alpha-plain{font-family:var(--mono);font-size:0.65rem;color:var(--gray);padding:0.3rem;border:1px solid rgba(255,255,255,0.05)}
+  .alpha-cipher{font-family:var(--mono);font-size:0.65rem;color:var(--purple);padding:0.3rem;border:1px solid rgba(181,123,255,0.15);background:rgba(181,123,255,0.05);margin-top:2px}
+  .alpha-pair.active .alpha-plain{color:var(--white);border-color:rgba(255,255,255,0.2)}
+  .alpha-pair.active .alpha-cipher{color:var(--white);background:rgba(181,123,255,0.2);border-color:var(--purple)}
+  .caesar-output{background:rgba(181,123,255,0.04);border:1px solid rgba(181,123,255,0.1);padding:1rem 1.5rem}
+  .output-label{font-family:var(--mono);font-size:0.55rem;color:var(--gray);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem}
+  .output-text{font-family:var(--mono);font-size:1.1rem;color:var(--purple);letter-spacing:0.1em;word-break:break-all;min-height:2rem}
+  .caesar-note{font-family:var(--mono);font-size:0.65rem;color:rgba(232,230,223,0.3);margin-top:1rem;font-style:italic}
+
+  /* ── SYMMETRIC vs ASYMMETRIC VISUAL ── */
+  .crypto-compare{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:rgba(181,123,255,0.06);margin-top:4rem}
+  .crypto-panel{background:var(--black);padding:0}
+  .crypto-panel-head{padding:1.5rem 2rem;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:1rem}
+  .crypto-panel-head h3{font-family:var(--mono);font-size:0.8rem;letter-spacing:0.15em;text-transform:uppercase}
+  .crypto-type-sym .crypto-panel-head h3{color:var(--amber)}
+  .crypto-type-asym .crypto-panel-head h3{color:var(--blue)}
+  .crypto-badge{font-family:var(--mono);font-size:0.55rem;padding:0.15rem 0.5rem;letter-spacing:0.1em}
+  .badge-sym{background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.2);color:var(--amber)}
+  .badge-asym{background:rgba(79,195,247,0.08);border:1px solid rgba(79,195,247,0.2);color:var(--blue)}
+
+  .key-exchange-visual{padding:2rem;display:flex;flex-direction:column;gap:1.5rem}
+  .actor-row{display:flex;align-items:center;gap:0.8rem;font-family:var(--mono);font-size:0.7rem}
+  .actor{padding:0.5rem 1rem;border:1px solid;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;min-width:80px;text-align:center}
+  .actor-alice{border-color:rgba(255,179,71,0.3);color:var(--amber)}
+  .actor-bob{border-color:rgba(79,195,247,0.3);color:var(--blue)}
+  .actor-eve{border-color:rgba(255,63,63,0.3);color:var(--red)}
+  .transfer-arrow{flex:1;display:flex;align-items:center;gap:0.5rem;position:relative}
+  .arrow-line{flex:1;height:1px;position:relative;overflow:visible}
+  .arrow-line.sym{background:rgba(255,179,71,0.3)}
+  .arrow-line.asym-pub{background:rgba(79,195,247,0.3)}
+  .arrow-line.asym-priv{background:rgba(181,123,255,0.3)}
+  .arrow-label{font-family:var(--mono);font-size:0.58rem;color:var(--gray);white-space:nowrap;position:absolute;top:-1.2rem;left:50%;transform:translateX(-50%)}
+  .arrow-label.sym{color:var(--amber)}
+  .arrow-label.pub{color:var(--blue)}
+  .arrow-label.priv{color:var(--purple)}
+  .arrow-label.danger{color:var(--red)}
+  .arrow-tip{font-size:0.8rem}
+  .transfer-data{font-size:0.6rem;padding:0.3rem 0.6rem;border:1px solid rgba(255,255,255,0.08);color:rgba(232,230,223,0.6);white-space:nowrap}
+  .eve-row{opacity:0.6;font-size:0.65rem;color:var(--gray);display:flex;align-items:center;gap:0.5rem;padding:0.5rem;border:1px dashed rgba(255,63,63,0.2);font-family:var(--mono)}
+  .crypto-pros{padding:1.5rem 2rem;border-top:1px solid rgba(255,255,255,0.05);font-size:0.9rem;color:rgba(232,230,223,0.5);line-height:1.65}
+  .pro-item{display:flex;align-items:flex-start;gap:0.5rem;margin-bottom:0.4rem;font-family:var(--mono);font-size:0.7rem}
+  .pro-item .icon{flex-shrink:0}
+  .pro-item.good .icon{color:var(--green)}
+  .pro-item.bad .icon{color:var(--red)}
+
+  /* ── HASHING VISUAL ── */
+  .hash-section{padding:8rem 3rem;background:linear-gradient(to bottom,transparent,rgba(181,123,255,0.02),transparent)}
+  .hash-demo{margin-top:3rem;display:flex;flex-direction:column;gap:2rem}
+  .hash-row{display:grid;grid-template-columns:1fr 80px 1fr;align-items:center;gap:1.5rem}
+  .hash-input-box{border:1px solid rgba(255,255,255,0.08);padding:1.2rem 1.5rem;font-family:var(--mono);font-size:0.85rem;color:var(--white);background:rgba(255,255,255,0.02)}
+  .hash-box{width:80px;height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.3rem;border:1px solid rgba(181,123,255,0.2);background:rgba(181,123,255,0.05)}
+  .hash-fn{font-family:var(--display);font-size:1.2rem;color:var(--purple);letter-spacing:0.05em;text-align:center;line-height:1}
+  .hash-arrow{font-family:var(--mono);font-size:0.6rem;color:var(--gray)}
+  .hash-output-box{border:1px solid rgba(181,123,255,0.15);padding:1.2rem 1.5rem;font-family:var(--mono);font-size:0.75rem;color:var(--purple);background:rgba(181,123,255,0.03);word-break:break-all;line-height:1.6}
+  .hash-label{font-family:var(--mono);font-size:0.55rem;color:var(--gray);letter-spacing:0.15em;text-transform:uppercase;display:block;margin-bottom:0.4rem}
+  .hash-separator{height:1px;background:rgba(255,255,255,0.05)}
+
+  /* Interactive hash */
+  .hash-interactive{margin-top:3rem;border:1px solid rgba(181,123,255,0.15);background:rgba(10,10,18,0.7)}
+  .hash-int-header{background:rgba(181,123,255,0.05);padding:1rem 1.5rem;border-bottom:1px solid rgba(181,123,255,0.1);display:flex;align-items:center;justify-content:space-between}
+  .hash-int-title{font-family:var(--mono);font-size:0.7rem;color:var(--purple);letter-spacing:0.15em;text-transform:uppercase}
+  .hash-int-body{padding:2rem;display:flex;flex-direction:column;gap:1.5rem}
+  .hash-int-input{width:100%;background:transparent;border:1px solid rgba(181,123,255,0.2);color:var(--white);font-family:var(--mono);font-size:1rem;padding:0.8rem 1rem;outline:none;transition:border-color 0.2s}
+  .hash-int-input:focus{border-color:rgba(181,123,255,0.5)}
+  .hash-results{display:flex;flex-direction:column;gap:0.8rem}
+  .hash-result-row{display:flex;align-items:stretch;gap:0}
+  .hash-alg{font-family:var(--mono);font-size:0.65rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;width:120px;min-width:120px;display:flex;align-items:center;padding:0.8rem 1rem;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05)}
+  .hash-val{font-family:var(--mono);font-size:0.7rem;color:var(--purple);padding:0.8rem 1rem;border:1px solid rgba(181,123,255,0.12);border-left:none;flex:1;word-break:break-all;line-height:1.5;background:rgba(181,123,255,0.02)}
+  .hash-bits{font-family:var(--mono);font-size:0.6rem;color:var(--gray);padding:0.8rem 0.8rem;border:1px solid rgba(255,255,255,0.04);border-left:none;white-space:nowrap;display:flex;align-items:center}
+  .avalanche-note{font-family:var(--mono);font-size:0.7rem;color:var(--green);background:rgba(0,255,157,0.04);border:1px solid rgba(0,255,157,0.12);padding:1rem;line-height:1.6}
+
+  /* ── BCRYPT VISUAL ── */
+  .bcrypt-visual{margin-top:4rem;display:flex;flex-direction:column;gap:2px}
+  .bcrypt-step{display:grid;grid-template-columns:140px 1fr;align-items:stretch;gap:0}
+  .bcrypt-num{font-family:var(--display);font-size:3rem;color:rgba(181,123,255,0.08);display:flex;align-items:center;justify-content:flex-end;padding-right:1.5rem}
+  .bcrypt-content{border:1px solid rgba(255,255,255,0.06);padding:1.5rem;transition:background 0.2s;position:relative}
+  .bcrypt-content:hover{background:rgba(181,123,255,0.02)}
+  .bcrypt-step-label{font-family:var(--mono);font-size:0.65rem;color:var(--purple);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.4rem}
+  .bcrypt-step-data{font-family:var(--mono);font-size:0.75rem;color:var(--white);word-break:break-all;line-height:1.6}
+  .bcrypt-step-desc{font-size:0.9rem;color:rgba(232,230,223,0.45);margin-top:0.5rem;line-height:1.5}
+  .bcrypt-cost{position:absolute;top:1rem;right:1rem;font-family:var(--mono);font-size:0.6rem;padding:0.2rem 0.6rem;background:rgba(181,123,255,0.08);border:1px solid rgba(181,123,255,0.2);color:var(--purple);letter-spacing:0.1em}
+  .cost-slider-wrap{padding:1.5rem 2rem;background:rgba(181,123,255,0.03);border:1px solid rgba(181,123,255,0.1);border-top:none}
+  .cost-row{display:flex;align-items:center;gap:1.5rem}
+  .cost-label{font-family:var(--mono);font-size:0.65rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap}
+  .cost-display{font-family:var(--display);font-size:2rem;color:var(--purple);min-width:3rem}
+  .cost-time{font-family:var(--mono);font-size:0.7rem;color:var(--amber)}
+  #cost-range{-webkit-appearance:none;appearance:none;flex:1;height:2px;background:rgba(181,123,255,0.2);outline:none}
+  #cost-range::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--purple);border-radius:50%;cursor:pointer}
+
+  /* ── TLS HANDSHAKE ── */
+  .tls-section{padding:8rem 3rem}
+  .tls-diagram{margin-top:4rem;display:grid;grid-template-columns:160px 1fr 160px;gap:0}
+  .tls-actor-col{display:flex;flex-direction:column}
+  .tls-actor-head{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;padding:1rem;text-align:center;border-bottom:1px solid rgba(255,255,255,0.06)}
+  .tls-actor-head.client-head{color:var(--amber);border:1px solid rgba(255,179,71,0.15);background:rgba(255,179,71,0.03)}
+  .tls-actor-head.server-head{color:var(--blue);border:1px solid rgba(79,195,247,0.15);background:rgba(79,195,247,0.03)}
+  .tls-center{display:flex;flex-direction:column}
+  .tls-step{display:flex;align-items:center;gap:0;min-height:70px;position:relative}
+  .tls-step-label{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;padding:0.5rem 1rem;border:1px solid rgba(255,255,255,0.05);background:rgba(255,255,255,0.01);white-space:nowrap;text-align:center;min-width:100%}
+  .step-c2s{border-color:rgba(255,179,71,0.15);color:var(--amber);background:rgba(255,179,71,0.03)}
+  .step-s2c{border-color:rgba(79,195,247,0.15);color:var(--blue);background:rgba(79,195,247,0.03)}
+  .step-both{border-color:rgba(0,255,157,0.15);color:var(--green);background:rgba(0,255,157,0.03)}
+  .step-done{border-color:rgba(181,123,255,0.15);color:var(--purple);background:rgba(181,123,255,0.03)}
+  .tls-step-sub{font-size:0.55rem;color:var(--gray);display:block;margin-top:0.2rem}
+  .tls-left-connector,.tls-right-connector{display:flex;align-items:stretch}
+  .tls-timeline{width:1px;background:linear-gradient(to bottom,rgba(255,255,255,0.06),rgba(255,255,255,0.06));margin:0 auto}
+  .step-arrow{font-family:var(--mono);font-size:0.7rem;flex:1;display:flex;align-items:center;padding:0.3rem}
+
+  /* ── JWT ── */
+  .jwt-section{padding:8rem 3rem;background:linear-gradient(to bottom,transparent,rgba(181,123,255,0.02),transparent)}
+  .jwt-visual{margin-top:4rem}
+  .jwt-token{font-family:var(--mono);font-size:0.8rem;word-break:break-all;line-height:2;padding:1.5rem;border:1px solid rgba(255,255,255,0.06);background:rgba(10,10,18,0.7);margin-bottom:3rem}
+  .jwt-part-h{color:var(--red)}
+  .jwt-part-p{color:var(--purple)}
+  .jwt-part-s{color:var(--green)}
+  .jwt-dot{color:var(--gray)}
+  .jwt-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:rgba(255,255,255,0.04)}
+  .jwt-col{background:var(--black);padding:2rem;position:relative}
+  .jwt-col-label{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.8rem;display:flex;align-items:center;gap:0.5rem}
+  .label-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .jwt-col-code{font-family:var(--mono);font-size:0.75rem;line-height:1.8;color:rgba(232,230,223,0.7)}
+  .jwt-col-desc{font-size:0.9rem;color:rgba(232,230,223,0.4);margin-top:1rem;line-height:1.6}
+  .jwt-key-h{color:var(--amber)}
+  .jwt-key-p{color:var(--blue)}
+  .jwt-key-s{color:var(--green)}
+  .jwt-val{color:rgba(232,230,223,0.7)}
+  .jwt-str{color:var(--purple)}
+  .jwt-num{color:var(--red)}
+  .jwt-bool{color:var(--amber)}
+
+  /* ── CODE ── */
+  .code-section{padding:6rem 3rem}
+  .code-tabs{display:flex;gap:0;margin-top:4rem;border-bottom:1px solid rgba(255,255,255,0.06)}
+  .code-tab{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.7rem 1.5rem;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;transition:color 0.2s,border-color 0.2s}
+  .code-tab.active{color:var(--purple);border-bottom-color:var(--purple)}
+  .code-pane{display:none}
+  .code-pane.active{display:block}
+  .code-block{background:rgba(5,5,7,0.95);border:1px solid rgba(255,255,255,0.06);border-top:none;padding:2rem;font-family:var(--mono);font-size:0.78rem;line-height:1.9;overflow-x:auto}
+  .kw{color:#c792ea}.fn{color:var(--amber)}.str{color:var(--green)}.cm{color:var(--gray);font-style:italic}.dec{color:var(--blue)}.cls{color:#82aaff}.num{color:var(--red)}.op{color:rgba(232,230,223,0.4)}
+
+  /* ── ATTACKS ── */
+  .attacks-section{padding:8rem 3rem}
+  .attacks-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem;margin-top:4rem}
+  .attack-card{border:1px solid rgba(255,63,63,0.1);padding:2rem;background:rgba(255,63,63,0.02);position:relative;overflow:hidden;transition:border-color 0.3s}
+  .attack-card:hover{border-color:rgba(255,63,63,0.25)}
+  .attack-num{position:absolute;top:1rem;right:1.5rem;font-family:var(--display);font-size:4rem;color:rgba(255,63,63,0.05);line-height:1}
+  .attack-severity{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;padding:0.15rem 0.5rem;margin-bottom:1rem;display:inline-block}
+  .sev-crit{background:rgba(255,63,63,0.08);border:1px solid rgba(255,63,63,0.2);color:var(--red)}
+  .sev-high{background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.2);color:var(--amber)}
+  .attack-card h3{font-family:var(--mono);font-size:0.8rem;color:var(--white);letter-spacing:0.1em;margin-bottom:0.6rem}
+  .attack-card p{font-size:0.9rem;color:rgba(232,230,223,0.5);line-height:1.6}
+  .attack-defense{margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.05);font-family:var(--mono);font-size:0.65rem;color:rgba(0,255,157,0.5)}
+
+  /* ── LOG ── */
+  .log-section{padding:5rem 3rem;border-top:1px solid rgba(255,255,255,0.04)}
+  .log-entry{max-width:800px;margin:3rem auto 0;background:rgba(181,123,255,0.02);border:1px solid rgba(181,123,255,0.1);padding:3rem;position:relative}
+  .log-entry::before{content:'ENTRADA DE APRENDIZAJE // CAPÍTULO 03';font-family:var(--mono);font-size:0.55rem;color:var(--purple);letter-spacing:0.25em;position:absolute;top:-0.5rem;left:2rem;background:var(--black);padding:0 0.8rem}
+  .log-date{font-family:var(--mono);font-size:0.65rem;color:var(--gray);margin-bottom:1.5rem}
+  .log-entry p{font-size:1.05rem;color:rgba(232,230,223,0.65);line-height:1.85;font-style:italic}
+  .log-entry p+p{margin-top:1rem}
+
+  /* ── FOOTER ── */
+  footer{padding:4rem 3rem;border-top:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center}
+  .footer-brand{font-family:var(--display);font-size:1.5rem;letter-spacing:0.3em;color:rgba(181,123,255,0.3)}
+  .chapter-nav{display:flex;gap:3rem}
+  .ch-link{display:flex;flex-direction:column;gap:0.3rem;cursor:pointer;text-decoration:none}
+  .ch-label{font-family:var(--mono);font-size:0.6rem;color:var(--gray);letter-spacing:0.2em;text-transform:uppercase}
+  .ch-title{font-family:var(--display);font-size:1.1rem;letter-spacing:0.1em;color:var(--white);transition:color 0.2s}
+  .ch-link:hover .ch-title{color:var(--purple)}
+  .ch-link.prev .ch-title{color:rgba(232,230,223,0.3)}
+  .footer-copy{font-family:var(--mono);font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-align:center;padding:1.5rem 3rem;border-top:1px solid rgba(255,255,255,0.03)}
+
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  @keyframes flow{0%{stroke-dashoffset:20}100%{stroke-dashoffset:0}}
+  @keyframes glow{0%,100%{box-shadow:0 0 10px rgba(181,123,255,0.1)}50%{box-shadow:0 0 30px rgba(181,123,255,0.3)}}
+
+  @media(max-width:900px){
+    nav{padding:1rem 1.5rem}
+    .nav-links{display:none}
+    .section,.hash-section,.tls-section,.jwt-section,.code-section,.attacks-section{padding:5rem 1.5rem}
+    .hero-bottom{grid-template-columns:1fr;gap:2rem}
+    .crypto-compare{grid-template-columns:1fr}
+    .hash-row{grid-template-columns:1fr;gap:0.8rem}
+    .hash-box{width:100%;height:50px;flex-direction:row}
+    .jwt-breakdown{grid-template-columns:1fr}
+    .attacks-grid{grid-template-columns:1fr}
+    .tls-diagram{grid-template-columns:80px 1fr 80px}
+    footer{flex-direction:column;gap:2rem;align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">CIPHER<span>DOC</span></a>
+  <ul class="nav-links">
+    <li><a href="#historia">Historia</a></li>
+    <li><a href="#tipos">Simétrica/Asimétrica</a></li>
+    <li><a href="#hashing">Hashing</a></li>
+    <li><a href="#tls">TLS</a></li>
+    <li><a href="#jwt">JWT</a></li>
+  </ul>
+  <a href="cybersec_chapter2.html" class="nav-prev">← Cap. 02</a>
+</nav>
+
+<!-- ════ HERO ════ -->
+<section class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="chapter-tag">Capítulo 03 — El Arte del Secreto</p>
+    <h1>
+      <em class="accent">CRIPTO</em><br>GRAFÍA
+    </h1>
+    <div class="hero-bottom">
+      <p class="hero-desc">
+        El arte de ocultar información tiene 4,000 años. Lo que cambió no es el objetivo — es la matemática. Hoy, los mismos principios que usaba Julio César protegen tu contraseña en PostgreSQL, firman tu JWT, y encriptan cada byte que viaja por HTTPS.
+      </p>
+      <div class="hero-keys">
+        <div class="key-item"><span class="k">⚿</span> Cifrado Simétrico <span class="v">AES-256</span></div>
+        <div class="key-item"><span class="k">⚿</span> Cifrado Asimétrico <span class="v">RSA / ECC</span></div>
+        <div class="key-item"><span class="k">#</span> Hashing <span class="v">SHA-256 / bcrypt</span></div>
+        <div class="key-item"><span class="k">◈</span> Autenticación <span class="v">JWT / OAuth 2.0</span></div>
+        <div class="key-item"><span class="k">⟳</span> Intercambio de Claves <span class="v">Diffie-Hellman</span></div>
+        <div class="key-item"><span class="k">∴</span> En tu stack <span class="v">bcrypt + python-jose</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ HISTORIA + CIFRADO CÉSAR INTERACTIVO ════ -->
+<section class="section" id="historia">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 01 — origen</p>
+    <h2 class="sec-h2 fade-in">4,000 años de <em>secretos</em></h2>
+    <p class="sec-sub fade-in">Todo empieza con el principio más simple: sustituir letras. Inténtalo tú mismo.</p>
+
+    <!-- Timeline rápida -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:rgba(181,123,255,0.08);margin-top:3rem;" class="fade-in">
+      <div style="background:var(--black);padding:1.5rem;text-align:center">
+        <div style="font-family:var(--display);font-size:2rem;color:var(--purple);opacity:0.6">−2000</div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--gray);margin-top:0.5rem;line-height:1.5">Jeroglíficos<br>alterados · Egipto</div>
+      </div>
+      <div style="background:var(--black);padding:1.5rem;text-align:center">
+        <div style="font-family:var(--display);font-size:2rem;color:var(--purple);opacity:0.7">−50</div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--gray);margin-top:0.5rem;line-height:1.5">Cifrado César<br>Roma · ROT-3</div>
+      </div>
+      <div style="background:var(--black);padding:1.5rem;text-align:center">
+        <div style="font-family:var(--display);font-size:2rem;color:var(--purple);opacity:0.8">1940</div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--gray);margin-top:0.5rem;line-height:1.5">Enigma + Turing<br>WWII · Bletchley</div>
+      </div>
+      <div style="background:var(--black);padding:1.5rem;text-align:center">
+        <div style="font-family:var(--display);font-size:2rem;color:var(--purple);opacity:0.9">1976</div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--gray);margin-top:0.5rem;line-height:1.5">Diffie-Hellman<br>Clave pública</div>
+      </div>
+      <div style="background:var(--black);padding:1.5rem;text-align:center">
+        <div style="font-family:var(--display);font-size:2rem;color:var(--purple)">2001</div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--gray);margin-top:0.5rem;line-height:1.5">AES estándar<br>NIST · 128/256 bit</div>
+      </div>
+    </div>
+
+    <!-- Caesar cipher interactivo -->
+    <div class="caesar-demo fade-in" style="margin-top:4rem">
+      <div class="caesar-header">
+        <span>Cifrado César — Interactivo</span>
+        <span class="caesar-tag">~50 a.C.</span>
+        <span style="margin-left:auto;color:rgba(232,230,223,0.3);font-family:var(--mono);font-size:0.6rem">Julio César usaba ROT-3 para comunicaciones militares</span>
+      </div>
+      <div class="caesar-body">
+        <div class="caesar-inputs">
+          <div class="input-group" style="flex:1">
+            <label>Texto a cifrar</label>
+            <input type="text" class="cipher-input" id="caesar-in" value="FASTAPI ES SEGURO" placeholder="Escribe algo...">
+          </div>
+          <div class="shift-control">
+            <label>Desplazamiento</label>
+            <div class="shift-val" id="shift-val">3</div>
+            <input type="range" class="shift-slider" id="shift-range" min="1" max="25" value="3">
+          </div>
+        </div>
+
+        <div class="caesar-alphabet" id="caesar-alphabet"></div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(181,123,255,0.1)">
+          <div class="caesar-output">
+            <div class="output-label">Texto original (plain)</div>
+            <div class="output-text" id="caesar-plain"></div>
+          </div>
+          <div class="caesar-output" style="background:rgba(181,123,255,0.06);border-color:rgba(181,123,255,0.2)">
+            <div class="output-label" style="color:var(--purple)">Texto cifrado (cipher)</div>
+            <div class="output-text" id="caesar-cipher"></div>
+          </div>
+        </div>
+
+        <p class="caesar-note">↑ Prueba con desplazamiento 13 — eso es ROT-13, todavía usado en foros hoy. Con 26 letras solo hay 25 claves posibles: un computador lo rompe en microsegundos.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ SIMÉTRICO vs ASIMÉTRICO ════ -->
+<section class="section" id="tipos" style="background:linear-gradient(to bottom,transparent,rgba(181,123,255,0.015),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 02 — tipos de cifrado</p>
+    <h2 class="sec-h2 fade-in">Una clave o <em>dos claves</em>:<br>el dilema fundamental</h2>
+    <p class="sec-sub fade-in">El problema clásico de criptografía: ¿cómo compartes un secreto sin que nadie lo intercepte?</p>
+
+    <div class="crypto-compare fade-in">
+      <!-- SIMÉTRICO -->
+      <div class="crypto-panel crypto-type-sym">
+        <div class="crypto-panel-head">
+          <h3>Simétrico</h3>
+          <span class="crypto-badge badge-sym">Una sola clave</span>
+        </div>
+        <div class="key-exchange-visual">
+          <p style="font-family:var(--mono);font-size:0.65rem;color:var(--gray);line-height:1.6">Alice y Bob comparten <strong style="color:var(--amber)">la misma clave</strong>. El problema: ¿cómo se la envían de forma segura la primera vez?</p>
+
+          <div class="actor-row">
+            <div class="actor actor-alice">Alice</div>
+            <div class="transfer-arrow">
+              <div class="arrow-line sym" style="flex:1;position:relative">
+                <span class="arrow-label sym">🔑 misma clave secreta</span>
+                <div style="position:absolute;right:-4px;top:-4px;width:8px;height:8px;border-top:1px solid var(--amber);border-right:1px solid var(--amber);transform:rotate(45deg)"></div>
+              </div>
+            </div>
+            <div class="actor actor-bob">Bob</div>
+          </div>
+          <div style="text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--gray)">↓</div>
+          <div class="actor-row">
+            <div class="actor actor-alice">Alice</div>
+            <div class="transfer-arrow">
+              <div class="arrow-line sym" style="flex:1;position:relative">
+                <span class="arrow-label sym" style="top:-1.2rem">🔒 "Hola Bob" cifrado</span>
+                <div style="position:absolute;right:-4px;top:-4px;width:8px;height:8px;border-top:1px solid var(--amber);border-right:1px solid var(--amber);transform:rotate(45deg)"></div>
+              </div>
+            </div>
+            <div class="actor actor-bob">Bob</div>
+          </div>
+          <div class="eve-row">
+            <span style="color:var(--red)">👁 Eve intercepta:</span>
+            <span>ve texto cifrado pero sin la clave → ilegible</span>
+          </div>
+
+          <div style="padding:1rem;background:rgba(255,179,71,0.04);border:1px solid rgba(255,179,71,0.12)">
+            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--amber);margin-bottom:0.5rem">ALGORITMOS</div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
+              <span style="font-family:var(--mono);font-size:0.6rem;padding:0.2rem 0.5rem;border:1px solid rgba(255,179,71,0.2);color:var(--amber)">AES-128</span>
+              <span style="font-family:var(--mono);font-size:0.6rem;padding:0.2rem 0.5rem;border:1px solid rgba(255,179,71,0.2);color:var(--amber)">AES-256 ✓</span>
+              <span style="font-family:var(--mono);font-size:0.6rem;padding:0.2rem 0.5rem;border:1px solid rgba(255,179,71,0.2);color:var(--amber)">ChaCha20</span>
+              <span style="font-family:var(--mono);font-size:0.6rem;padding:0.2rem 0.5rem;border:1px solid rgba(255,179,71,0.2);color:rgba(255,63,63,0.7)">DES ✗</span>
+            </div>
+          </div>
+        </div>
+        <div class="crypto-pros">
+          <div class="pro-item good"><span class="icon">✓</span> Muy rápido — ideal para grandes volúmenes de datos</div>
+          <div class="pro-item good"><span class="icon">✓</span> AES-256 es prácticamente irrompible con hardware actual</div>
+          <div class="pro-item bad"><span class="icon">✗</span> Problema de distribución de claves (key distribution problem)</div>
+          <div class="pro-item bad"><span class="icon">✗</span> N usuarios necesitan N×(N-1)/2 claves diferentes</div>
+        </div>
+      </div>
+
+      <!-- ASIMÉTRICO -->
+      <div class="crypto-panel crypto-type-asym">
+        <div class="crypto-panel-head">
+          <h3>Asimétrico</h3>
+          <span class="crypto-badge badge-asym">Par de claves</span>
+        </div>
+        <div class="key-exchange-visual">
+          <p style="font-family:var(--mono);font-size:0.65rem;color:var(--gray);line-height:1.6">Bob tiene <strong style="color:var(--blue)">clave pública</strong> (pública) y <strong style="color:var(--purple)">clave privada</strong> (solo él). Alice cifra con la pública, solo Bob descifra con la privada.</p>
+
+          <div class="actor-row">
+            <div class="actor actor-bob">Bob</div>
+            <div class="transfer-arrow">
+              <div class="arrow-line asym-pub" style="flex:1;position:relative">
+                <span class="arrow-label pub">🔓 clave pública de Bob</span>
+                <div style="position:absolute;right:-4px;top:-4px;width:8px;height:8px;border-top:1px solid var(--blue);border-right:1px solid var(--blue);transform:rotate(45deg)"></div>
+              </div>
+            </div>
+            <div class="actor actor-alice">Alice</div>
+          </div>
+          <div class="actor-row">
+            <div class="actor actor-alice">Alice</div>
+            <div class="transfer-arrow">
+              <div class="arrow-line asym-priv" style="flex:1;position:relative">
+                <span class="arrow-label priv">🔒 mensaje cifrado con clave pública</span>
+                <div style="position:absolute;right:-4px;top:-4px;width:8px;height:8px;border-top:1px solid var(--purple);border-right:1px solid var(--purple);transform:rotate(45deg)"></div>
+              </div>
+            </div>
+            <div class="actor actor-bob">Bob</div>
+          </div>
+          <div class="eve-row">
+            <span style="color:var(--red)">👁 Eve intercepta:</span>
+            <span>clave pública (inútil para descifrar) + texto cifrado (ilegible)</span>
+          </div>
+
+          <div style="padding:1rem;background:rgba(79,195,247,0.03);border:1px solid rgba(79,195,247,0.12)">
+            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--blue);margin-bottom:0.5rem">ALGORITMOS</div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
+              <span style="font-family:var(--mono);font-size:0.6rem;padding:0.2rem 0.5rem;border:1px solid rgba(79,195,247,0.2);color:var(--blue)">RSA-2048 ✓</span>
+              <span style="font-family:var(--mono);font-size:0.6rem;padding:0.2rem 0.5rem;border:1px solid rgba(79,195,247,0.2);color:var(--blue)">ECC / ECDSA</span>
+              <span style="font-family:var(--mono);font-size:0.6rem;padding:0.2rem 0.5rem;border:1px solid rgba(79,195,247,0.2);color:var(--blue)">Ed25519 ✓</span>
+              <span style="font-family:var(--mono);font-size:0.6rem;padding:0.2rem 0.5rem;border:1px solid rgba(79,195,247,0.2);color:var(--blue)">Diffie-Hellman</span>
+            </div>
+          </div>
+        </div>
+        <div class="crypto-pros">
+          <div class="pro-item good"><span class="icon">✓</span> Resuelve el problema de distribución de claves</div>
+          <div class="pro-item good"><span class="icon">✓</span> Base de HTTPS, SSH, PGP, firma digital</div>
+          <div class="pro-item bad"><span class="icon">✗</span> 100-1000x más lento que simétrico</div>
+          <div class="pro-item bad"><span class="icon">✗</span> En la práctica: usa asimétrico para acordar clave simétrica (TLS)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Diffie-Hellman visual -->
+    <div style="margin-top:4rem;border:1px solid rgba(181,123,255,0.15);padding:2.5rem;" class="fade-in">
+      <div style="font-family:var(--mono);font-size:0.7rem;color:var(--purple);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:1.5rem">
+        ◈ Intercambio Diffie-Hellman — Cómo dos personas acuerdan una clave sin nunca enviársela
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 80px 1fr;gap:1.5rem;align-items:start;">
+        <div>
+          <div style="font-family:var(--mono);font-size:0.65rem;color:var(--amber);letter-spacing:0.1em;margin-bottom:1rem">ALICE</div>
+          <div style="font-family:var(--mono);font-size:0.72rem;line-height:2;color:rgba(232,230,223,0.7)">
+            Secreto privado: <span style="color:var(--amber)">a = 6</span><br>
+            Público acordado: <span style="color:var(--gray)">g=5, p=23</span><br>
+            Calcula: <span style="color:var(--amber)">A = g^a mod p</span><br>
+            <span style="color:var(--white)">A = 5^6 mod 23 = <strong>8</strong></span><br>
+            <span style="color:var(--gray)">Envía 8 a Bob →</span><br>
+            Recibe B=19 de Bob<br>
+            Clave: <span style="color:var(--green)">19^6 mod 23 = <strong>2</strong></span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;padding-top:3rem">
+          <div style="font-family:var(--mono);font-size:0.6rem;color:var(--gray);text-align:center">g=5, p=23<br>(público)</div>
+          <div style="font-family:var(--mono);font-size:0.9rem;color:var(--gray)">⟷</div>
+          <div style="font-family:var(--mono);font-size:0.55rem;color:var(--red);text-align:center;padding:0.5rem;border:1px dashed rgba(255,63,63,0.2)">Eve ve:<br>8 y 19<br>No puede<br>calcular 2</div>
+        </div>
+        <div>
+          <div style="font-family:var(--mono);font-size:0.65rem;color:var(--blue);letter-spacing:0.1em;margin-bottom:1rem">BOB</div>
+          <div style="font-family:var(--mono);font-size:0.72rem;line-height:2;color:rgba(232,230,223,0.7)">
+            Secreto privado: <span style="color:var(--blue)">b = 15</span><br>
+            Público acordado: <span style="color:var(--gray)">g=5, p=23</span><br>
+            Calcula: <span style="color:var(--blue)">B = g^b mod p</span><br>
+            <span style="color:var(--white)">B = 5^15 mod 23 = <strong>19</strong></span><br>
+            <span style="color:var(--gray)">← Recibe A=8 de Alice</span><br>
+            Envía 19 a Alice<br>
+            Clave: <span style="color:var(--green)">8^15 mod 23 = <strong>2</strong></span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:1.5rem;padding:1rem;background:rgba(0,255,157,0.03);border:1px solid rgba(0,255,157,0.1);font-family:var(--mono);font-size:0.7rem;color:var(--green)">
+        ✓ Ambos llegaron a la misma clave secreta (2) sin jamás enviársela. Eve vio los intercambios pero no puede calcularla — esto se llama el problema del logaritmo discreto.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ HASHING ════ -->
+<section class="hash-section" id="hashing">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 03 — funciones hash</p>
+    <h2 class="sec-h2 fade-in">Hashing: <em>sin retorno</em></h2>
+    <p class="sec-sub fade-in">No es cifrado — no hay llave ni reversa. El mismo input produce siempre el mismo output. Un solo bit diferente cambia todo. Así se guarda tu contraseña en PostgreSQL.</p>
+
+    <!-- Visualización: mismo largo de output -->
+    <div class="hash-demo fade-in">
+      <div class="hash-row">
+        <div class="hash-input-box"><span class="hash-label">Input A</span>"hola"</div>
+        <div class="hash-box"><div class="hash-fn">SHA<br>256</div></div>
+        <div class="hash-output-box"><span class="hash-label">Output (256 bits = 64 hex)</span>8b1a9953c4611296a827abf8c47804d7<br>e6feec37ba21e769c86ed3a5d24a7e8c</div>
+      </div>
+      <div class="hash-row">
+        <div class="hash-input-box"><span class="hash-label">Input B (un bit diferente)</span>"hola<span style="color:var(--red)">!</span>"</div>
+        <div class="hash-box"><div class="hash-fn">SHA<br>256</div></div>
+        <div class="hash-output-box"><span class="hash-label">Output completamente diferente (efecto avalancha)</span>2c624232cdd221771294dfbb310acbc8<br>a601a85b54c29b3d5c82dc3a94069d5</div>
+      </div>
+      <div class="hash-row">
+        <div class="hash-input-box"><span class="hash-label">Input C (un libro entero)</span>"En un lugar de la Mancha... [500,000 palabras]"</div>
+        <div class="hash-box"><div class="hash-fn">SHA<br>256</div></div>
+        <div class="hash-output-box"><span class="hash-label">Mismo tamaño siempre</span>a3f5d2c1b8e4f9234c56d789ab012ef4<br>7c89012345678abcdef0123456789ab</div>
+      </div>
+    </div>
+
+    <!-- Hash interactivo -->
+    <div class="hash-interactive fade-in">
+      <div class="hash-int-header">
+        <span class="hash-int-title">⟳ Playground — Prueba el efecto avalancha</span>
+        <span style="font-family:var(--mono);font-size:0.6rem;color:var(--gray)">implementado con Web Crypto API</span>
+      </div>
+      <div class="hash-int-body">
+        <input type="text" class="hash-int-input" id="hash-input" value="fastapi" placeholder="Escribe algo y observa cómo cambia todo el hash...">
+        <div class="hash-results" id="hash-results">
+          <div class="hash-result-row">
+            <div class="hash-alg">SHA-256</div>
+            <div class="hash-val" id="hash-sha256">calculando...</div>
+            <div class="hash-bits">256 bits</div>
+          </div>
+          <div class="hash-result-row">
+            <div class="hash-alg">SHA-1</div>
+            <div class="hash-val" id="hash-sha1" style="color:var(--amber)">calculando...</div>
+            <div class="hash-bits" style="color:var(--amber)">160 bits ⚠</div>
+          </div>
+          <div class="hash-result-row">
+            <div class="hash-alg" style="color:var(--red)">MD5</div>
+            <div class="hash-val" id="hash-md5" style="color:var(--red)">calculando...</div>
+            <div class="hash-bits" style="color:var(--red)">128 bits ✗</div>
+          </div>
+        </div>
+        <div class="avalanche-note" id="avalanche-note">
+          ↑ Cambia una sola letra y observa: el hash cambia completamente. Eso es el efecto avalancha — por diseño.
+        </div>
+      </div>
+    </div>
+
+    <!-- bcrypt visual paso a paso -->
+    <div style="margin-top:5rem" class="fade-in">
+      <h3 style="font-family:var(--display);font-size:2.5rem;letter-spacing:0.05em;color:var(--white);margin-bottom:0.5rem">bcrypt — el hash para <em style="font-style:normal;color:var(--purple)">contraseñas</em></h3>
+      <p style="font-size:1rem;color:rgba(232,230,223,0.4);font-style:italic;margin-bottom:0">SHA-256 es rápido — demasiado rápido para contraseñas. bcrypt está diseñado para ser lento. A propósito.</p>
+
+      <div class="bcrypt-visual" style="margin-top:2rem">
+        <div class="bcrypt-step">
+          <div class="bcrypt-num">1</div>
+          <div class="bcrypt-content">
+            <div class="bcrypt-step-label">Input del usuario</div>
+            <div class="bcrypt-step-data" style="color:var(--white)">"MiPassword123"</div>
+            <div class="bcrypt-step-desc">La contraseña en texto plano. Nunca debe guardarse así.</div>
+          </div>
+        </div>
+        <div class="bcrypt-step">
+          <div class="bcrypt-num">2</div>
+          <div class="bcrypt-content">
+            <div class="bcrypt-step-label">Salt aleatorio (128 bits)</div>
+            <div class="bcrypt-step-data" style="color:var(--blue)">$2b$12$R9h/cIPz0gi.URNNX3kh2O</div>
+            <div class="bcrypt-step-desc">Generado aleatoriamente para cada contraseña. Previene ataques de rainbow table.</div>
+            <span class="bcrypt-cost">SALT</span>
+          </div>
+        </div>
+        <div class="bcrypt-step">
+          <div class="bcrypt-num">3</div>
+          <div class="bcrypt-content">
+            <div class="bcrypt-step-label">Cost Factor (work factor)</div>
+            <div class="bcrypt-step-data" style="color:var(--purple)">2^12 = 4,096 iteraciones</div>
+            <div class="bcrypt-step-desc">Cuanto mayor el costo, más tiempo tarda. Eso es exactamente el objetivo.</div>
+            <span class="bcrypt-cost">COST = 12</span>
+          </div>
+        </div>
+        <div class="bcrypt-step">
+          <div class="bcrypt-num">4</div>
+          <div class="bcrypt-content">
+            <div class="bcrypt-step-label">Hash resultante (guardado en PostgreSQL)</div>
+            <div class="bcrypt-step-data" style="color:var(--green)">$2b$12$R9h/cIPz0gi.URNNX3kh2OPST3/3He9U2W8H9W8Iak8bE9x5.3gXm</div>
+            <div class="bcrypt-step-desc">El hash final incluye: algoritmo + costo + salt + hash. Todo lo necesario para verificar.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cost-slider-wrap">
+        <div class="cost-row">
+          <span class="cost-label">Cost Factor:</span>
+          <span class="cost-display" id="cost-val">12</span>
+          <input type="range" id="cost-range" min="4" max="20" value="12" style="flex:1">
+          <span class="cost-label">Tiempo estimado:</span>
+          <span class="cost-time" id="cost-time">~250ms por hash</span>
+        </div>
+        <p style="font-family:var(--mono);font-size:0.65rem;color:var(--gray);margin-top:0.8rem;line-height:1.5">
+          Factor 12 = ~250ms = un atacante con GPU puede probar ~4,000 contraseñas/segundo.<br>
+          Factor 14 = ~1s = ~1,000/seg. Factor 10 = ~60ms = ~16,000/seg. El balance: lento para atacante, rápido para usuario.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ TLS HANDSHAKE ════ -->
+<section class="tls-section" id="tls">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 04 — protocolo TLS</p>
+    <h2 class="sec-h2 fade-in">TLS Handshake:<br><em>los primeros 100ms</em></h2>
+    <p class="sec-sub fade-in">Antes de que tu FastAPI procese un solo byte, esto sucede automáticamente en cada conexión HTTPS.</p>
+
+    <div class="tls-diagram fade-in" style="margin-top:4rem">
+      <div class="tls-actor-col">
+        <div class="tls-actor-head client-head">🖥 Cliente<br><small style="font-size:0.55rem;color:var(--gray)">Navegador / curl</small></div>
+        <div style="flex:1;border-left:1px solid rgba(255,179,71,0.1);border-right:none;border-bottom:1px solid rgba(255,179,71,0.05);border-top:none;margin-right:-1px;z-index:1"></div>
+      </div>
+
+      <div class="tls-center">
+        <div style="height:52px"></div>
+        <div class="tls-step" style="border-bottom:1px solid rgba(255,255,255,0.04)">
+          <div class="tls-step-label step-c2s">
+            ClientHello →
+            <span class="tls-step-sub">TLS version, cipher suites, random A</span>
+          </div>
+        </div>
+        <div class="tls-step" style="border-bottom:1px solid rgba(255,255,255,0.04)">
+          <div class="tls-step-label step-s2c">
+            ← ServerHello
+            <span class="tls-step-sub">Cipher suite elegida, random B</span>
+          </div>
+        </div>
+        <div class="tls-step" style="border-bottom:1px solid rgba(255,255,255,0.04)">
+          <div class="tls-step-label step-s2c">
+            ← Certificate
+            <span class="tls-step-sub">Certificado X.509 del servidor (clave pública)</span>
+          </div>
+        </div>
+        <div class="tls-step" style="border-bottom:1px solid rgba(255,255,255,0.04)">
+          <div class="tls-step-label step-s2c">
+            ← ServerKeyExchange
+            <span class="tls-step-sub">Parámetros Diffie-Hellman firmados</span>
+          </div>
+        </div>
+        <div class="tls-step" style="border-bottom:1px solid rgba(255,255,255,0.04)">
+          <div class="tls-step-label step-c2s">
+            ClientKeyExchange →
+            <span class="tls-step-sub">Pre-master secret cifrado con clave pública</span>
+          </div>
+        </div>
+        <div class="tls-step" style="border-bottom:1px solid rgba(255,255,255,0.04)">
+          <div class="tls-step-label step-both">
+            ⟷ Ambos derivan Session Keys
+            <span class="tls-step-sub">AES-256 + MAC keys — simétricas, temporales</span>
+          </div>
+        </div>
+        <div class="tls-step" style="border-bottom:1px solid rgba(255,255,255,0.04)">
+          <div class="tls-step-label step-c2s">
+            ChangeCipherSpec + Finished →
+            <span class="tls-step-sub">Confirmación: ya usamos cifrado simétrico</span>
+          </div>
+        </div>
+        <div class="tls-step">
+          <div class="tls-step-label step-done">
+            ✓ Canal seguro establecido — FastAPI recibe la request
+            <span class="tls-step-sub">Todo lo anterior tomó ~50-100ms (1 RTT en TLS 1.3)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tls-actor-col">
+        <div class="tls-actor-head server-head">⚡ Servidor<br><small style="font-size:0.55rem;color:var(--gray)">Nginx → Uvicorn</small></div>
+        <div style="flex:1;border-right:1px solid rgba(79,195,247,0.1);border-left:none;border-bottom:1px solid rgba(79,195,247,0.05);margin-left:-1px;z-index:1"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ JWT ANATOMY ════ -->
+<section class="jwt-section" id="jwt">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 05 — autenticación</p>
+    <h2 class="sec-h2 fade-in">JWT: el token que<br><em>lleva sus credenciales</em></h2>
+    <p class="sec-sub fade-in">JSON Web Token — un string auto-contenido que tu FastAPI genera al hacer login y valida en cada request.</p>
+
+    <div class="jwt-visual fade-in">
+      <!-- Token real -->
+      <div class="jwt-token">
+        <span class="jwt-part-h">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span><span class="jwt-dot">.</span><span class="jwt-part-p">eyJzdWIiOiI0MiIsInVzZXJuYW1lIjoiYWxpY2UiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MDk4MjM2MDAsImV4cCI6MTcwOTkxMDAwMH0</span><span class="jwt-dot">.</span><span class="jwt-part-s">X7kU_9vKs3mNpQ2wRdF4hYcLbE8jT1A6nMvZ0oGiWXE</span>
+      </div>
+
+      <div class="jwt-breakdown">
+        <div class="jwt-col">
+          <div class="jwt-col-label"><div class="label-dot" style="background:var(--red)"></div><span style="color:var(--red)">HEADER</span> — Base64URL</div>
+          <div class="jwt-col-code">
+            {<br>
+            &nbsp;&nbsp;<span class="jwt-key-h">"alg"</span>: <span class="jwt-str">"HS256"</span>,<br>
+            &nbsp;&nbsp;<span class="jwt-key-h">"typ"</span>: <span class="jwt-str">"JWT"</span><br>
+            }
+          </div>
+          <div class="jwt-col-desc">Algoritmo de firma y tipo de token. HS256 = HMAC-SHA256. <strong style="color:var(--red)">Nunca usar "none"</strong> — vulnerabilidad clásica.</div>
+        </div>
+        <div class="jwt-col">
+          <div class="jwt-col-label"><div class="label-dot" style="background:var(--purple)"></div><span style="color:var(--purple)">PAYLOAD</span> — Claims</div>
+          <div class="jwt-col-code">
+            {<br>
+            &nbsp;&nbsp;<span class="jwt-key-p">"sub"</span>: <span class="jwt-str">"42"</span>,<br>
+            &nbsp;&nbsp;<span class="jwt-key-p">"username"</span>: <span class="jwt-str">"alice"</span>,<br>
+            &nbsp;&nbsp;<span class="jwt-key-p">"role"</span>: <span class="jwt-str">"admin"</span>,<br>
+            &nbsp;&nbsp;<span class="jwt-key-p">"iat"</span>: <span class="jwt-num">1709823600</span>,<br>
+            &nbsp;&nbsp;<span class="jwt-key-p">"exp"</span>: <span class="jwt-num">1709910000</span><br>
+            }
+          </div>
+          <div class="jwt-col-desc">Los datos del usuario. <strong style="color:var(--amber)">NO cifrado</strong>, solo codificado. No guardes contraseñas aquí. <code style="color:var(--purple)">exp</code> = expiración obligatoria.</div>
+        </div>
+        <div class="jwt-col">
+          <div class="jwt-col-label"><div class="label-dot" style="background:var(--green)"></div><span style="color:var(--green)">SIGNATURE</span> — Verificación</div>
+          <div class="jwt-col-code">
+            HMAC-SHA256(<br>
+            &nbsp;&nbsp;base64(header) + "."<br>
+            &nbsp;&nbsp;+ base64(payload),<br>
+            &nbsp;&nbsp;<span class="jwt-key-s">SECRET_KEY</span><br>
+            )
+          </div>
+          <div class="jwt-col-desc">La firma que tu FastAPI verifica. Si alguien modifica el payload, la firma no coincide. La <code style="color:var(--green)">SECRET_KEY</code> nunca sale del servidor.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ CÓDIGO FASTAPI ════ -->
+<section class="code-section" id="codigo">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 06 — implementación real</p>
+    <h2 class="sec-h2 fade-in">Código: criptografía<br><em>en tu FastAPI</em></h2>
+
+    <div class="code-tabs">
+      <div class="code-tab active" data-tab="bcrypt">passwords.py</div>
+      <div class="code-tab" data-tab="jwt">auth/jwt.py</div>
+      <div class="code-tab" data-tab="models">models/user.py</div>
+      <div class="code-tab" data-tab="env">.env seguro</div>
+    </div>
+
+    <div class="code-pane active" id="tab-bcrypt">
+      <div class="code-block">
+<span class="cm"># app/core/passwords.py</span>
+<span class="cm"># pip install passlib[bcrypt]</span>
+<span class="kw">from</span> passlib.context <span class="kw">import</span> CryptContext
+
+<span class="cm"># Configurar bcrypt con cost factor 12</span>
+pwd_context = <span class="fn">CryptContext</span>(
+    schemes=[<span class="str">"bcrypt"</span>],
+    deprecated=<span class="str">"auto"</span>,
+    bcrypt__rounds=<span class="num">12</span>  <span class="cm"># ~250ms</span>
+)
+
+<span class="kw">def</span> <span class="fn">hash_password</span>(plain_password: <span class="cls">str</span>) -> <span class="cls">str</span>:
+    <span class="cm">"""Hashear contraseña con bcrypt + salt automático."""</span>
+    <span class="kw">return</span> pwd_context.<span class="fn">hash</span>(plain_password)
+    <span class="cm"># Output: "$2b$12$[22 chars salt][31 chars hash]"</span>
+
+<span class="kw">def</span> <span class="fn">verify_password</span>(plain: <span class="cls">str</span>, hashed: <span class="cls">str</span>) -> <span class="cls">bool</span>:
+    <span class="cm">"""Verificar contraseña contra hash almacenado."""</span>
+    <span class="cm"># passlib extrae el salt del hash automáticamente</span>
+    <span class="kw">return</span> pwd_context.<span class="fn">verify</span>(plain, hashed)
+
+<span class="cm"># ── Uso en tu servicio ──</span>
+<span class="kw">async def</span> <span class="fn">create_user</span>(db, user_data: UserCreate):
+    hashed = <span class="fn">hash_password</span>(user_data.password)
+    <span class="cm"># NUNCA guardes user_data.password directamente</span>
+    user = User(
+        email=user_data.email,
+        hashed_password=hashed  <span class="cm"># ← esto va a PostgreSQL</span>
+    )
+    db.<span class="fn">add</span>(user)
+    <span class="kw">await</span> db.<span class="fn">commit</span>()
+    <span class="kw">return</span> user
+
+<span class="cm"># ── Login ──</span>
+<span class="kw">async def</span> <span class="fn">authenticate_user</span>(db, email: <span class="cls">str</span>, password: <span class="cls">str</span>):
+    user = <span class="kw">await</span> <span class="fn">get_user_by_email</span>(db, email)
+    <span class="kw">if not</span> user: <span class="kw">return None</span>
+    <span class="kw">if not</span> <span class="fn">verify_password</span>(password, user.hashed_password):
+        <span class="kw">return None</span>
+    <span class="kw">return</span> user
+      </div>
+    </div>
+
+    <div class="code-pane" id="tab-jwt">
+      <div class="code-block">
+<span class="cm"># app/auth/jwt.py</span>
+<span class="cm"># pip install python-jose[cryptography]</span>
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime, timedelta, timezone
+<span class="kw">from</span> jose <span class="kw">import</span> JWTError, jwt
+<span class="kw">from</span> fastapi <span class="kw">import</span> Depends, HTTPException, status
+<span class="kw">from</span> fastapi.security <span class="kw">import</span> OAuth2PasswordBearer
+<span class="kw">from</span> app.core.config <span class="kw">import</span> settings
+
+oauth2_scheme = <span class="fn">OAuth2PasswordBearer</span>(tokenUrl=<span class="str">"/api/v1/auth/login"</span>)
+
+<span class="kw">def</span> <span class="fn">create_access_token</span>(data: <span class="cls">dict</span>) -> <span class="cls">str</span>:
+    payload = data.<span class="fn">copy</span>()
+    expire = <span class="fn">datetime.now</span>(timezone.utc) + <span class="fn">timedelta</span>(
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES  <span class="cm"># 30 min</span>
+    )
+    payload.<span class="fn">update</span>({<span class="str">"exp"</span>: expire, <span class="str">"iat"</span>: <span class="fn">datetime.now</span>(timezone.utc)})
+
+    <span class="kw">return</span> jwt.<span class="fn">encode</span>(
+        payload,
+        settings.SECRET_KEY,      <span class="cm"># desde .env, nunca hardcodeado</span>
+        algorithm=<span class="str">"HS256"</span>
+    )
+
+<span class="kw">async def</span> <span class="fn">get_current_user</span>(token: <span class="cls">str</span> = <span class="fn">Depends</span>(oauth2_scheme)):
+    credentials_exception = <span class="fn">HTTPException</span>(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail=<span class="str">"Token inválido o expirado"</span>,
+        headers={<span class="str">"WWW-Authenticate"</span>: <span class="str">"Bearer"</span>},
+    )
+    <span class="kw">try</span>:
+        payload = jwt.<span class="fn">decode</span>(token, settings.SECRET_KEY, algorithms=[<span class="str">"HS256"</span>])
+        user_id: <span class="cls">str</span> = payload.<span class="fn">get</span>(<span class="str">"sub"</span>)
+        <span class="kw">if</span> user_id <span class="kw">is None</span>:
+            <span class="kw">raise</span> credentials_exception
+    <span class="kw">except</span> JWTError:
+        <span class="kw">raise</span> credentials_exception
+
+    user = <span class="kw">await</span> <span class="fn">get_user</span>(db, user_id=user_id)
+    <span class="kw">if</span> user <span class="kw">is None</span>:
+        <span class="kw">raise</span> credentials_exception
+    <span class="kw">return</span> user
+      </div>
+    </div>
+
+    <div class="code-pane" id="tab-models">
+      <div class="code-block">
+<span class="cm"># app/models/user.py — SQLAlchemy model</span>
+<span class="kw">from</span> sqlalchemy <span class="kw">import</span> Column, Integer, String, Boolean, DateTime
+<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> declarative_base
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime, timezone
+
+Base = <span class="fn">declarative_base</span>()
+
+<span class="kw">class</span> <span class="cls">User</span>(Base):
+    __tablename__ = <span class="str">"users"</span>
+
+    id = <span class="fn">Column</span>(<span class="cls">Integer</span>, primary_key=<span class="kw">True</span>, index=<span class="kw">True</span>)
+    email = <span class="fn">Column</span>(<span class="cls">String</span>, unique=<span class="kw">True</span>, index=<span class="kw">True</span>, nullable=<span class="kw">False</span>)
+    username = <span class="fn">Column</span>(<span class="cls">String</span>, unique=<span class="kw">True</span>, index=<span class="kw">True</span>)
+
+    <span class="cm"># ← NUNCA una columna "password" — siempre "hashed_password"</span>
+    hashed_password = <span class="fn">Column</span>(<span class="cls">String</span>, nullable=<span class="kw">False</span>)
+    <span class="cm"># El bcrypt hash tiene exactamente 60 caracteres</span>
+    <span class="cm"># "$2b$12$" + 22 (salt) + 31 (hash) = 60</span>
+
+    is_active = <span class="fn">Column</span>(<span class="cls">Boolean</span>, default=<span class="kw">True</span>)
+    is_admin = <span class="fn">Column</span>(<span class="cls">Boolean</span>, default=<span class="kw">False</span>)
+    created_at = <span class="fn">Column</span>(<span class="cls">DateTime</span>, default=<span class="kw">lambda</span>: <span class="fn">datetime.now</span>(timezone.utc))
+    last_login = <span class="fn">Column</span>(<span class="cls">DateTime</span>, nullable=<span class="kw">True</span>)
+
+<span class="cm"># En PostgreSQL, la tabla queda así:</span>
+<span class="cm"># id | email           | hashed_password                             | is_admin</span>
+<span class="cm"># 1  | alice@mail.com  | $2b$12$R9h/cIPz0gi.URNNX3kh2OPS...         | false</span>
+<span class="cm"># 2  | bob@mail.com    | $2b$12$Kx7qN1mP3wL8uV2jC9nRtO...          | true</span>
+<span class="cm">#</span>
+<span class="cm"># Si tu DB es robada, las contraseñas están seguras.</span>
+      </div>
+    </div>
+
+    <div class="code-pane" id="tab-env">
+      <div class="code-block">
+<span class="cm"># .env — NUNCA commitear a GitHub</span>
+SECRET_KEY=<span class="str">$(openssl rand -hex 32)</span>
+<span class="cm"># → genera: a3f2b1c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1</span>
+
+ACCESS_TOKEN_EXPIRE_MINUTES=<span class="num">30</span>
+REFRESH_TOKEN_EXPIRE_DAYS=<span class="num">7</span>
+
+DATABASE_URL=postgresql+asyncpg://user:pass@localhost/cipher_db
+<span class="cm"># En producción: ssl=require</span>
+
+<span class="cm"># .gitignore — obligatorio</span>
+.env
+*.pyc
+__pycache__/
+.venv/
+
+<span class="cm"># app/core/config.py — Pydantic Settings</span>
+<span class="kw">from</span> pydantic_settings <span class="kw">import</span> BaseSettings
+
+<span class="kw">class</span> <span class="cls">Settings</span>(BaseSettings):
+    SECRET_KEY: <span class="cls">str</span>
+    ACCESS_TOKEN_EXPIRE_MINUTES: <span class="cls">int</span> = <span class="num">30</span>
+    DATABASE_URL: <span class="cls">str</span>
+
+    <span class="kw">class</span> <span class="cls">Config</span>:
+        env_file = <span class="str">".env"</span>
+
+settings = <span class="fn">Settings</span>()
+
+<span class="cm"># Generar SECRET_KEY segura:</span>
+$ python -c <span class="str">"import secrets; print(secrets.token_hex(32))"</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ ATAQUES CRIPTOGRÁFICOS ════ -->
+<section class="attacks-section" id="ataques">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 07 — amenazas</p>
+    <h2 class="sec-h2 fade-in">Ataques <em>criptográficos</em><br>que debes conocer</h2>
+
+    <div class="attacks-grid">
+      <div class="attack-card fade-in">
+        <div class="attack-num">01</div>
+        <span class="attack-severity sev-crit">Crítico</span>
+        <h3>Rainbow Table Attack</h3>
+        <p>Tablas precomputadas de millones de hashes. Buscan tu hash y encuentran la contraseña original. Funcionan contra MD5 y SHA sin salt. Por eso bcrypt agrega salt aleatorio.</p>
+        <div class="attack-defense">→ Defensa: bcrypt/argon2 con salt aleatorio por usuario</div>
+      </div>
+      <div class="attack-card fade-in">
+        <div class="attack-num">02</div>
+        <span class="attack-severity sev-crit">Crítico</span>
+        <h3>Brute Force + Credential Stuffing</h3>
+        <p>Probar millones de contraseñas por segundo. Con MD5, una GPU puede probar 10 billones/seg. bcrypt reduce esto a ~4,000/seg. El rate limiting en tu API es otra capa.</p>
+        <div class="attack-defense">→ Defensa: bcrypt cost≥12 + rate limiting + account lockout</div>
+      </div>
+      <div class="attack-card fade-in">
+        <div class="attack-num">03</div>
+        <span class="attack-severity sev-high">Alto</span>
+        <h3>JWT Algorithm Confusion</h3>
+        <p>Cambiar el header del JWT de HS256 a "none" o RS256. Si tu servidor acepta cualquier algoritmo, un atacante puede forjar tokens sin conocer la clave secreta.</p>
+        <div class="attack-defense">→ Defensa: algoritmo explícito en decode(), nunca aceptar "none"</div>
+      </div>
+      <div class="attack-card fade-in">
+        <div class="attack-num">04</div>
+        <span class="attack-severity sev-high">Alto</span>
+        <h3>Padding Oracle Attack</h3>
+        <p>Explotar mensajes de error de descifrado para deducir el texto plano. Afecta a implementaciones CBC mal hechas. AES-GCM (modo autenticado) elimina este vector.</p>
+        <div class="attack-defense">→ Defensa: usar AES-256-GCM, nunca AES-CBC sin MAC</div>
+      </div>
+      <div class="attack-card fade-in">
+        <div class="attack-num">05</div>
+        <span class="attack-severity sev-high">Alto</span>
+        <h3>Weak Secret Key (JWT)</h3>
+        <p>Un SECRET_KEY corto o predecible en tus JWTs. Con HS256, si alguien obtiene el token puede hacer brute force offline de la clave. "secret" o "password" son claves inválidas.</p>
+        <div class="attack-defense">→ Defensa: secrets.token_hex(32) — mínimo 256 bits de entropía</div>
+      </div>
+      <div class="attack-card fade-in">
+        <div class="attack-num">06</div>
+        <span class="attack-severity sev-high">Alto</span>
+        <h3>Quantum Computing (futuro)</h3>
+        <p>RSA-2048 y ECC son vulnerables al algoritmo de Shor en computadoras cuánticas suficientemente potentes. NIST ya está estandarizando algoritmos post-cuánticos (CRYSTALS-Kyber).</p>
+        <div class="attack-defense">→ Defensa futura: CRYSTALS-Kyber, CRYSTALS-Dilithium (NIST 2024)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ LOG ════ -->
+<section class="log-section">
+  <div class="log-entry">
+    <div class="log-date">ENTRADA #003 — CAPÍTULO 03 COMPLETADO</div>
+    <p>
+      La criptografía es lo que convierte una contraseña en texto plano en 60 caracteres de ruido irreversible. La revelación más importante: bcrypt no es "más seguro" que SHA-256 por ser más complejo — es más seguro porque está diseñado para ser lento. Esa es la idea entera. Velocidad es el enemigo cuando proteges contraseñas.
+    </p>
+    <p>
+      TLS combina lo mejor de ambos mundos: RSA/ECC para el intercambio de claves (resuelve el problema de distribución), y AES-256 para el resto de la conversación (velocidad). Mis contraseñas ahora van como bcrypt a PostgreSQL, mis sesiones como JWT firmado con HS256, y toda la comunicación cifrada con TLS 1.3. El siguiente paso es entender cómo un atacante intentaría romper esto.
+    </p>
+  </div>
+</section>
+
+<!-- ════ FOOTER ════ -->
+<footer>
+  <div class="footer-brand">CIPHER</div>
+  <div class="chapter-nav">
+    <a href="cybersec_chapter2.html" class="ch-link prev">
+      <span class="ch-label">← Anterior</span>
+      <span class="ch-title">02 — Redes & Protocolos</span>
+    </a>
+    <a href="#" class="ch-link">
+      <span class="ch-label">Próximo →</span>
+      <span class="ch-title">04 — Ethical Hacking</span>
+    </a>
+  </div>
+</footer>
+<div class="footer-copy">CIPHER DOC — Capítulo 03: Criptografía · bcrypt + JWT + TLS · Construido con Claude Pro</div>
+
+<script>
+// ── Hero canvas: rotating cipher wheel
+const canvas = document.getElementById('hero-canvas');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+
+let angle = 0;
+function drawHero(){
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const cx = canvas.width * 0.72, cy = canvas.height * 0.45;
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&!?';
+
+  // outer ring (plain)
+  for(let i = 0; i < 26; i++){
+    const a = (i / 26) * Math.PI * 2 + angle * 0.3;
+    const r = Math.min(canvas.width, canvas.height) * 0.32;
+    const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+    ctx.font = `${Math.min(14, canvas.width * 0.012)}px 'Share Tech Mono'`;
+    ctx.fillStyle = `rgba(181,123,255,0.4)`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(String.fromCharCode(65 + i), x, y);
+  }
+
+  // inner ring (cipher, rotated)
+  for(let i = 0; i < 26; i++){
+    const a = (i / 26) * Math.PI * 2 - angle * 0.5;
+    const r = Math.min(canvas.width, canvas.height) * 0.22;
+    const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+    ctx.fillStyle = `rgba(181,123,255,0.25)`;
+    ctx.fillText(String.fromCharCode(65 + ((i + 7) % 26)), x, y);
+  }
+
+  // connection lines
+  for(let i = 0; i < 6; i++){
+    const a1 = (i / 26) * Math.PI * 2 + angle * 0.3;
+    const a2 = ((i + 7) % 26 / 26) * Math.PI * 2 - angle * 0.5;
+    const r1 = Math.min(canvas.width, canvas.height) * 0.32;
+    const r2 = Math.min(canvas.width, canvas.height) * 0.22;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(a1) * r1, cy + Math.sin(a1) * r1);
+    ctx.lineTo(cx + Math.cos(a2) * r2, cy + Math.sin(a2) * r2);
+    ctx.strokeStyle = `rgba(181,123,255,0.08)`;
+    ctx.lineWidth = 0.5;
+    ctx.stroke();
+  }
+
+  // center text
+  ctx.font = `bold ${Math.min(16, canvas.width * 0.014)}px 'Share Tech Mono'`;
+  ctx.fillStyle = 'rgba(181,123,255,0.15)';
+  ctx.fillText('⚿ CIPHER', cx, cy);
+
+  angle += 0.005;
+  requestAnimationFrame(drawHero);
+}
+drawHero();
+
+// ── Caesar cipher
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const alphaEl = document.getElementById('caesar-alphabet');
+const shiftRange = document.getElementById('shift-range');
+const shiftVal = document.getElementById('shift-val');
+const caesarIn = document.getElementById('caesar-in');
+
+function buildAlphabet(shift){
+  alphaEl.innerHTML = '';
+  const upper = caesarIn.value.toUpperCase();
+  const activeChars = new Set([...upper].filter(c => alphabet.includes(c)));
+
+  alphabet.split('').forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'alpha-pair' + (activeChars.has(c) ? ' active' : '');
+    const shifted = alphabet[(alphabet.indexOf(c) + shift) % 26];
+    div.innerHTML = `<div class="alpha-plain">${c}</div><div class="alpha-cipher">${shifted}</div>`;
+    alphaEl.appendChild(div);
+  });
+}
+
+function updateCaesar(){
+  const shift = parseInt(shiftRange.value);
+  shiftVal.textContent = shift;
+  const input = caesarIn.value.toUpperCase();
+  let result = '';
+  for(const ch of input){
+    if(alphabet.includes(ch)) result += alphabet[(alphabet.indexOf(ch) + shift) % 26];
+    else result += ch;
+  }
+  document.getElementById('caesar-plain').textContent = input;
+  document.getElementById('caesar-cipher').textContent = result;
+  buildAlphabet(shift);
+}
+
+shiftRange.addEventListener('input', updateCaesar);
+caesarIn.addEventListener('input', updateCaesar);
+updateCaesar();
+
+// ── Hash interactive (Web Crypto API)
+async function sha256(msg){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function sha1(msg){
+  const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(msg));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+// Simple MD5 (pure JS, for educational display)
+function md5(s){
+  function safeAdd(x,y){let lsw=(x&0xFFFF)+(y&0xFFFF);let msw=(x>>16)+(y>>16)+(lsw>>16);return(msw<<16)|(lsw&0xFFFF)}
+  function rol(n,c){return(n<<c)|(n>>>(32-c))}
+  function cmn(q,a,b,x,s,t){return safeAdd(rol(safeAdd(safeAdd(a,q),safeAdd(x,t)),s),b)}
+  function ff(a,b,c,d,x,s,t){return cmn((b&c)|((~b)&d),a,b,x,s,t)}
+  function gg(a,b,c,d,x,s,t){return cmn((b&d)|(c&(~d)),a,b,x,s,t)}
+  function hh(a,b,c,d,x,s,t){return cmn(b^c^d,a,b,x,s,t)}
+  function ii(a,b,c,d,x,s,t){return cmn(c^(b|(~d)),a,b,x,s,t)}
+  let bs=s.length*8,x=[],i;
+  for(i=0;i<bs;i+=8) x[i>>5]|=(s.charCodeAt(i/8)&0xFF)<<(i%32);
+  x[bs>>5]|=0x80<<(bs%32);x[(((bs+64)>>>9)<<4)+14]=bs;
+  let a=1732584193,b=-271733879,c=-1732584194,d=271733878;
+  for(i=0;i<x.length;i+=16){
+    let oa=a,ob=b,oc=c,od=d;
+    a=ff(a,b,c,d,x[i+0],7,-680876936);d=ff(d,a,b,c,x[i+1],12,-389564586);c=ff(c,d,a,b,x[i+2],17,606105819);b=ff(b,c,d,a,x[i+3],22,-1044525330);
+    a=ff(a,b,c,d,x[i+4],7,-176418897);d=ff(d,a,b,c,x[i+5],12,1200080426);c=ff(c,d,a,b,x[i+6],17,-1473231341);b=ff(b,c,d,a,x[i+7],22,-45705983);
+    a=ff(a,b,c,d,x[i+8],7,1770035416);d=ff(d,a,b,c,x[i+9],12,-1958414417);c=ff(c,d,a,b,x[i+10],17,-42063);b=ff(b,c,d,a,x[i+11],22,-1990404162);
+    a=ff(a,b,c,d,x[i+12],7,1804603682);d=ff(d,a,b,c,x[i+13],12,-40341101);c=ff(c,d,a,b,x[i+14],17,-1502002290);b=ff(b,c,d,a,x[i+15],22,1236535329);
+    a=gg(a,b,c,d,x[i+1],5,-165796510);d=gg(d,a,b,c,x[i+6],9,-1069501632);c=gg(c,d,a,b,x[i+11],14,643717713);b=gg(b,c,d,a,x[i+0],20,-373897302);
+    a=gg(a,b,c,d,x[i+5],5,-701558691);d=gg(d,a,b,c,x[i+10],9,38016083);c=gg(c,d,a,b,x[i+15],14,-660478335);b=gg(b,c,d,a,x[i+4],20,-405537848);
+    a=gg(a,b,c,d,x[i+9],5,568446438);d=gg(d,a,b,c,x[i+14],9,-1019803690);c=gg(c,d,a,b,x[i+3],14,-187363961);b=gg(b,c,d,a,x[i+8],20,1163531501);
+    a=gg(a,b,c,d,x[i+13],5,-1444681467);d=gg(d,a,b,c,x[i+2],9,-51403784);c=gg(c,d,a,b,x[i+7],14,1735328473);b=gg(b,c,d,a,x[i+12],20,-1926607734);
+    a=hh(a,b,c,d,x[i+5],4,-378558);d=hh(d,a,b,c,x[i+8],11,-2022574463);c=hh(c,d,a,b,x[i+11],16,1839030562);b=hh(b,c,d,a,x[i+14],23,-35309556);
+    a=hh(a,b,c,d,x[i+1],4,-1530992060);d=hh(d,a,b,c,x[i+4],11,1272893353);c=hh(c,d,a,b,x[i+7],16,-155497632);b=hh(b,c,d,a,x[i+10],23,-1094730640);
+    a=hh(a,b,c,d,x[i+13],4,681279174);d=hh(d,a,b,c,x[i+0],11,-358537222);c=hh(c,d,a,b,x[i+3],16,-722521979);b=hh(b,c,d,a,x[i+6],23,76029189);
+    a=hh(a,b,c,d,x[i+9],4,-640364487);d=hh(d,a,b,c,x[i+12],11,-421815835);c=hh(c,d,a,b,x[i+15],16,530742520);b=hh(b,c,d,a,x[i+2],23,-995338651);
+    a=ii(a,b,c,d,x[i+0],6,-198630844);d=ii(d,a,b,c,x[i+7],10,1126891415);c=ii(c,d,a,b,x[i+14],15,-1416354905);b=ii(b,c,d,a,x[i+5],21,-57434055);
+    a=ii(a,b,c,d,x[i+12],6,1700485571);d=ii(d,a,b,c,x[i+3],10,-1894986606);c=ii(c,d,a,b,x[i+10],15,-1051523);b=ii(b,c,d,a,x[i+1],21,-2054922799);
+    a=ii(a,b,c,d,x[i+8],6,1873313359);d=ii(d,a,b,c,x[i+15],10,-30611744);c=ii(c,d,a,b,x[i+6],15,-1560198380);b=ii(b,c,d,a,x[i+13],21,1309151649);
+    a=ii(a,b,c,d,x[i+4],6,-145523070);d=ii(d,a,b,c,x[i+11],10,-1120210379);c=ii(c,d,a,b,x[i+2],15,718787259);b=ii(b,c,d,a,x[i+9],21,-343485551);
+    a=safeAdd(a,oa);b=safeAdd(b,ob);c=safeAdd(c,oc);d=safeAdd(d,od);
+  }
+  function hex(n){let s='';for(let j=0;j<4;j++){s+=('0'+(n>>(j*8+4)&0x0F).toString(16)).slice(-1)+('0'+(n>>(j*8)&0x0F).toString(16)).slice(-1);}return s;}
+  return hex(a)+hex(b)+hex(c)+hex(d);
+}
+
+let prevHash = '';
+async function updateHashes(){
+  const val = document.getElementById('hash-input').value;
+  const h256 = await sha256(val);
+  const h1 = await sha1(val);
+  const hmd5 = md5(val);
+  document.getElementById('hash-sha256').textContent = h256;
+  document.getElementById('hash-sha1').textContent = h1;
+  document.getElementById('hash-md5').textContent = hmd5;
+
+  if(prevHash && prevHash !== h256){
+    const changed = [...h256].filter((c,i)=>c!==prevHash[i]).length;
+    document.getElementById('avalanche-note').textContent =
+      `⚡ Efecto avalancha: cambiaste ~${Math.round(changed/64*100)}% de los bits del hash (${changed}/64 caracteres hex diferentes). Un solo cambio de caractér = todo cambia.`;
+  }
+  prevHash = h256;
+}
+document.getElementById('hash-input').addEventListener('input', updateHashes);
+updateHashes();
+
+// ── bcrypt cost slider
+const costRange = document.getElementById('cost-range');
+const costVal = document.getElementById('cost-val');
+const costTime = document.getElementById('cost-time');
+const timeMap = {4:'~1ms',6:'~5ms',8:'~20ms',10:'~60ms',12:'~250ms',14:'~1s',16:'~4s',18:'~15s',20:'~60s'};
+costRange.addEventListener('input', ()=>{
+  const v = parseInt(costRange.value);
+  costVal.textContent = v;
+  const nearest = [4,6,8,10,12,14,16,18,20].reduce((a,b)=>Math.abs(b-v)<Math.abs(a-v)?b:a);
+  costTime.textContent = timeMap[nearest] || '~' + Math.round(0.06 * Math.pow(2, v-10) * 1000)/1000 + 's';
+});
+
+// ── Code tabs
+document.querySelectorAll('.code-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.code-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.code-pane').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-'+tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Scroll animations
+const obs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+},{threshold:0.08,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.fade-in').forEach((el,i)=>{
+  el.style.transitionDelay = `${(i%5)*0.07}s`;
+  obs.observe(el);
+});
+</script>
+</body>
+</html>
