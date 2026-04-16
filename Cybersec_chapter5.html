@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIPHER — Cap. 05: Backend Real</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #050507;
+    --teal: #00d4aa;
+    --teal-dim: rgba(0,212,170,0.08);
+    --docker: #2496ed;
+    --postgres: #336791;
+    --python: #ffd43b;
+    --green: #00ff9d;
+    --amber: #ffb347;
+    --red: #ff3f3f;
+    --blue: #4fc3f7;
+    --white: #e8e6df;
+    --gray: #4a4a5a;
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Bebas Neue', sans-serif;
+    --body: 'Crimson Pro', Georgia, serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--black);color:var(--white);font-family:var(--body);font-weight:300;line-height:1.7;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,170,0.008) 2px,rgba(0,212,170,0.008) 4px);pointer-events:none;z-index:9999}
+
+  /* NAV */
+  nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:1.2rem 3rem;background:linear-gradient(to bottom,rgba(5,5,7,0.98),transparent);border-bottom:1px solid rgba(0,212,170,0.07)}
+  .nav-logo{font-family:var(--display);font-size:1.8rem;letter-spacing:0.3em;color:var(--teal);text-decoration:none}
+  .nav-logo span{color:var(--white)}
+  .nav-links{display:flex;gap:2rem;list-style:none}
+  .nav-links a{font-family:var(--mono);font-size:0.68rem;color:var(--gray);text-decoration:none;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s}
+  .nav-links a:hover{color:var(--teal)}
+  .nav-prev{font-family:var(--mono);font-size:0.65rem;color:var(--gray);text-decoration:none;transition:color 0.2s}
+  .nav-prev:hover{color:var(--white)}
+
+  /* HERO */
+  .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:8rem 3rem 5rem;position:relative;overflow:hidden}
+  #hero-canvas{position:absolute;inset:0;z-index:0}
+  .hero-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(to top,var(--black) 40%,rgba(5,5,7,0.3) 100%)}
+  .hero-content{position:relative;z-index:2}
+  .chapter-tag{font-family:var(--mono);font-size:0.65rem;color:var(--teal);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem}
+  .chapter-tag::after{content:'';flex:0 0 40px;height:1px;background:var(--teal)}
+  .hero h1{font-family:var(--display);font-size:clamp(3.5rem,10vw,10rem);line-height:0.9;letter-spacing:0.02em;color:var(--white)}
+  .hero h1 .t{color:var(--teal)}
+  .hero h1 .d{color:#2496ed}
+  .hero-cols{display:grid;grid-template-columns:1fr 1fr;gap:4rem;margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.05)}
+  .hero-desc{font-size:1.1rem;color:rgba(232,230,223,0.5);line-height:1.85;font-style:italic}
+  .tech-badges{display:flex;flex-wrap:wrap;gap:0.6rem;align-content:flex-start}
+  .tech-badge{font-family:var(--mono);font-size:0.68rem;padding:0.4rem 0.9rem;border:1px solid;letter-spacing:0.08em;display:flex;align-items:center;gap:0.4rem}
+  .tb-docker{border-color:rgba(36,150,237,0.4);color:#2496ed;background:rgba(36,150,237,0.06)}
+  .tb-python{border-color:rgba(255,212,59,0.35);color:var(--python);background:rgba(255,212,59,0.05)}
+  .tb-pg{border-color:rgba(51,103,145,0.5);color:#7eb8da;background:rgba(51,103,145,0.06)}
+  .tb-fastapi{border-color:rgba(0,212,170,0.35);color:var(--teal);background:rgba(0,212,170,0.05)}
+  .tb-alembic{border-color:rgba(181,123,255,0.35);color:#b57bff;background:rgba(181,123,255,0.05)}
+  .tb-poetry{border-color:rgba(255,179,71,0.3);color:var(--amber);background:rgba(255,179,71,0.04)}
+
+  /* SHARED */
+  .section{padding:8rem 3rem;position:relative}
+  .section-inner{max-width:1100px;margin:0 auto}
+  .sec-label{font-family:var(--mono);font-size:0.6rem;color:var(--teal);letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem}
+  .sec-h2{font-family:var(--display);font-size:clamp(2.5rem,5vw,5rem);letter-spacing:0.04em;line-height:1.05;color:var(--white)}
+  .sec-h2 em{font-style:normal;color:var(--teal)}
+  .sec-sub{font-size:1.05rem;color:rgba(232,230,223,0.4);font-style:italic;margin-top:0.8rem;max-width:620px}
+  .fade-in{opacity:0;transform:translateY(16px);transition:opacity 0.6s,transform 0.6s}
+  .fade-in.visible{opacity:1;transform:translateY(0)}
+
+  /* ── DOCKER CONCEPT ── */
+  .docker-concept{margin-top:4rem;display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start}
+  .concept-col h3{font-family:var(--display);font-size:2rem;letter-spacing:0.05em;color:var(--white);margin-bottom:1rem}
+  .concept-col p{font-size:1rem;color:rgba(232,230,223,0.55);line-height:1.8;margin-bottom:1rem}
+  .analogy-box{border:1px solid rgba(0,212,170,0.15);padding:1.5rem;background:rgba(0,212,170,0.03);margin-top:1rem}
+  .analogy-box .analogy-label{font-family:var(--mono);font-size:0.6rem;color:var(--teal);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.8rem}
+  .analogy-box p{font-size:0.95rem;color:rgba(232,230,223,0.5);line-height:1.7;margin-bottom:0}
+
+  /* Docker vs VM visual */
+  .docker-vs{display:grid;grid-template-columns:1fr 60px 1fr;gap:0;margin-top:2rem;align-items:start}
+  .vm-stack,.docker-stack{display:flex;flex-direction:column;gap:2px}
+  .stack-layer{padding:0.7rem 1rem;text-align:center;font-family:var(--mono);font-size:0.68rem;letter-spacing:0.08em}
+  .l-hw{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:var(--gray)}
+  .l-os{background:rgba(255,179,71,0.06);border:1px solid rgba(255,179,71,0.12);color:var(--amber)}
+  .l-hyp{background:rgba(255,63,63,0.05);border:1px solid rgba(255,63,63,0.1);color:rgba(232,230,223,0.4);font-size:0.6rem}
+  .l-gos{background:rgba(255,179,71,0.04);border:1px solid rgba(255,179,71,0.08);color:rgba(255,179,71,0.5);font-size:0.62rem}
+  .l-app{background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.15);color:var(--teal)}
+  .l-container{background:rgba(36,150,237,0.06);border:1px solid rgba(36,150,237,0.15);color:#2496ed;font-size:0.62rem}
+  .l-engine{background:rgba(36,150,237,0.04);border:1px solid rgba(36,150,237,0.1);color:rgba(36,150,237,0.6);font-size:0.62rem}
+  .vs-center{display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:1.5rem;color:var(--gray);padding-top:4rem}
+  .stack-title{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;text-align:center;margin-bottom:0.8rem}
+  .vm-title{color:rgba(255,63,63,0.6)}
+  .docker-title{color:#2496ed}
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch-section{padding:8rem 3rem;background:linear-gradient(to bottom,transparent,rgba(0,212,170,0.01),transparent)}
+  .arch-svg-wrap{margin-top:4rem;width:100%}
+
+  /* ── FILE TREE ── */
+  .filetree-section{padding:8rem 3rem}
+  .filetree{background:rgba(5,5,7,0.9);border:1px solid rgba(0,212,170,0.12);padding:2rem;font-family:var(--mono);font-size:0.8rem;line-height:2.1;overflow-x:auto;margin-top:4rem;position:relative}
+  .filetree::before{content:'cipher-api/ — estructura del proyecto';position:absolute;top:-0.5rem;left:1.5rem;font-family:var(--mono);font-size:0.55rem;color:var(--teal);letter-spacing:0.2em;background:var(--black);padding:0 0.6rem}
+  .ft-dir{color:var(--teal)}
+  .ft-file{color:var(--white)}
+  .ft-comment{color:var(--gray);font-size:0.7rem;font-style:italic}
+  .ft-docker{color:#2496ed}
+  .ft-config{color:var(--amber)}
+  .ft-py{color:var(--python)}
+  .ft-sql{color:#7eb8da}
+  .ft-test{color:#b57bff}
+
+  /* ── CODE SYSTEM ── */
+  .code-system{padding:8rem 3rem}
+  .file-tabs-wrap{margin-top:4rem}
+  .file-tabs{display:flex;flex-wrap:wrap;gap:0;border-bottom:1px solid rgba(255,255,255,0.06)}
+  .file-tab{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;padding:0.7rem 1.2rem;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;transition:color 0.2s,border-color 0.2s;white-space:nowrap}
+  .file-tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+  .file-tab:hover{color:var(--white)}
+  .file-tab .tab-icon{margin-right:0.4rem;font-size:0.75rem}
+  .file-pane{display:none}
+  .file-pane.active{display:block}
+  .code-block{background:rgba(5,5,7,0.96);border:1px solid rgba(255,255,255,0.06);border-top:none;padding:2rem;font-family:var(--mono);font-size:0.77rem;line-height:1.95;overflow-x:auto;max-height:580px;overflow-y:auto}
+  .code-block::-webkit-scrollbar{width:4px;height:4px}
+  .code-block::-webkit-scrollbar-track{background:transparent}
+  .code-block::-webkit-scrollbar-thumb{background:rgba(0,212,170,0.2);border-radius:2px}
+  .kw{color:#c792ea}.fn{color:var(--amber)}.str{color:var(--green)}.cm{color:var(--gray);font-style:italic}.dec{color:var(--blue)}.cls{color:#82aaff}.num{color:var(--red)}.op{color:rgba(232,230,223,0.4)}.tl{color:var(--teal)}.dk{color:#2496ed}.pg{color:#7eb8da}
+
+  /* ── RUN FLOW ── */
+  .run-section{padding:8rem 3rem}
+  .run-flow{margin-top:4rem;display:flex;flex-direction:column;gap:0}
+  .run-step{display:grid;grid-template-columns:56px 1fr;align-items:stretch;gap:0}
+  .run-num-col{display:flex;flex-direction:column;align-items:center;padding-top:1.2rem}
+  .run-num{width:36px;height:36px;border:1px solid rgba(0,212,170,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:0.7rem;color:var(--teal);flex-shrink:0}
+  .run-connector{flex:1;width:1px;background:rgba(0,212,170,0.1);margin-top:0.4rem}
+  .run-step:last-child .run-connector{display:none}
+  .run-content{padding:0 0 2.5rem 1.5rem}
+  .run-title{font-family:var(--mono);font-size:0.8rem;color:var(--white);letter-spacing:0.08em;margin-bottom:0.5rem}
+  .run-desc{font-size:0.95rem;color:rgba(232,230,223,0.5);line-height:1.65;margin-bottom:0.8rem}
+  .run-cmd{background:rgba(5,5,7,0.9);border:1px solid rgba(0,212,170,0.12);padding:0.8rem 1.2rem;font-family:var(--mono);font-size:0.75rem;color:var(--teal)}
+  .run-cmd .prompt{color:var(--gray)}
+  .run-cmd .cmd{color:var(--white)}
+  .run-cmd .comment{color:var(--gray);font-style:italic;display:block;margin-top:0.2rem;font-size:0.68rem}
+  .run-output{background:rgba(0,212,170,0.03);border:1px solid rgba(0,212,170,0.08);border-top:none;padding:0.8rem 1.2rem;font-family:var(--mono);font-size:0.7rem;color:rgba(232,230,223,0.4);line-height:1.7}
+
+  /* ── SERVICES MAP ── */
+  .services-section{padding:8rem 3rem;background:linear-gradient(to bottom,transparent,rgba(36,150,237,0.01),transparent)}
+  .services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(0,212,170,0.06);margin-top:4rem}
+  .service-card{background:var(--black);padding:2.5rem;position:relative;overflow:hidden;transition:background 0.3s}
+  .service-card:hover{background:rgba(0,212,170,0.02)}
+  .service-logo{font-family:var(--display);font-size:2.8rem;line-height:1;margin-bottom:0.8rem}
+  .service-name{font-family:var(--mono);font-size:0.8rem;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.5rem}
+  .service-port{font-family:var(--mono);font-size:0.65rem;color:var(--gray);margin-bottom:1rem;letter-spacing:0.05em}
+  .service-desc{font-size:0.9rem;color:rgba(232,230,223,0.5);line-height:1.65}
+  .service-vars{margin-top:1.2rem;display:flex;flex-direction:column;gap:0.3rem}
+  .env-var{font-family:var(--mono);font-size:0.65rem;display:flex;gap:0.5rem;color:var(--gray)}
+  .env-key{color:var(--amber)}
+  .service-card.sd .service-name{color:#2496ed}
+  .service-card.sf .service-name{color:var(--teal)}
+  .service-card.sp .service-name{color:#7eb8da}
+
+  /* ── MIGRATION FLOW ── */
+  .migration-section{padding:8rem 3rem}
+  .migration-visual{margin-top:4rem;display:flex;flex-direction:column;gap:0}
+  .mig-step{display:grid;grid-template-columns:200px 1fr;gap:0;border:1px solid rgba(255,255,255,0.04);border-top:none;transition:background 0.2s}
+  .mig-step:first-child{border-top:1px solid rgba(255,255,255,0.04)}
+  .mig-step:hover{background:rgba(0,212,170,0.01)}
+  .mig-label{padding:1.5rem;border-right:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;justify-content:center;gap:0.3rem}
+  .mig-cmd-label{font-family:var(--mono);font-size:0.65rem;color:var(--teal);letter-spacing:0.1em;text-transform:uppercase}
+  .mig-cmd-text{font-family:var(--mono);font-size:0.72rem;color:var(--amber)}
+  .mig-content{padding:1.5rem 2rem;font-size:0.9rem;color:rgba(232,230,223,0.5);line-height:1.65}
+  .mig-content strong{color:var(--white);font-weight:400}
+
+  /* ── HEALTH DASHBOARD ── */
+  .health-section{padding:8rem 3rem;background:linear-gradient(to bottom,transparent,rgba(0,212,170,0.01),transparent)}
+  .health-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:4rem}
+  .health-panel{border:1px solid rgba(0,212,170,0.1);overflow:hidden}
+  .health-head{background:rgba(0,212,170,0.04);border-bottom:1px solid rgba(0,212,170,0.08);padding:0.8rem 1.2rem;display:flex;align-items:center;justify-content:space-between}
+  .health-title{font-family:var(--mono);font-size:0.65rem;color:var(--teal);letter-spacing:0.15em;text-transform:uppercase}
+  .health-status{font-family:var(--mono);font-size:0.6rem;padding:0.15rem 0.5rem;background:rgba(0,255,157,0.08);border:1px solid rgba(0,255,157,0.2);color:var(--green)}
+  .health-body{padding:1.5rem;font-family:var(--mono);font-size:0.75rem;line-height:2}
+  .health-key{color:var(--amber)}
+  .health-val-ok{color:var(--green)}
+  .health-val-warn{color:var(--amber)}
+  .health-val{color:rgba(232,230,223,0.6)}
+  .health-sep{border-top:1px solid rgba(255,255,255,0.04);margin:0.5rem 0}
+
+  /* ── ENV SECURITY ── */
+  .env-section{padding:8rem 3rem}
+  .env-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:rgba(255,255,255,0.04);margin-top:4rem}
+  .env-col{background:var(--black);padding:2.5rem}
+  .env-col-title{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.6rem}
+  .bad-title{color:var(--red)}.good-title{color:var(--green)}
+  .env-file{font-family:var(--mono);font-size:0.74rem;line-height:2;padding:1.2rem;border:1px solid rgba(255,255,255,0.06);background:rgba(5,5,7,0.8)}
+  .ev{color:var(--amber)}.ev-val{color:var(--green)}.ev-danger{color:var(--red)}.ev-cm{color:var(--gray);font-style:italic}
+
+  /* ── CHECKLIST ── */
+  .checklist-section{padding:8rem 3rem}
+  .checklist{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:4rem}
+  .check-group h3{font-family:var(--mono);font-size:0.7rem;color:var(--teal);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:1px solid rgba(0,212,170,0.1)}
+  .check-item{display:flex;align-items:flex-start;gap:0.8rem;padding:0.6rem 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.9rem;color:rgba(232,230,223,0.55);line-height:1.4}
+  .check-item .chk{flex-shrink:0;width:18px;height:18px;border:1px solid rgba(0,212,170,0.3);display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:var(--teal);margin-top:0.1rem;cursor:pointer;transition:background 0.2s,border-color 0.2s}
+  .check-item .chk.done{background:rgba(0,212,170,0.15);border-color:var(--teal)}
+  .check-item .chk.done::after{content:'✓'}
+  .check-item:hover .chk{border-color:var(--teal)}
+
+  /* LOG */
+  .log-section{padding:5rem 3rem;border-top:1px solid rgba(255,255,255,0.04)}
+  .log-entry{max-width:800px;margin:3rem auto 0;background:rgba(0,212,170,0.02);border:1px solid rgba(0,212,170,0.1);padding:3rem;position:relative}
+  .log-entry::before{content:'ENTRADA DE APRENDIZAJE // CAPÍTULO 05';font-family:var(--mono);font-size:0.55rem;color:var(--teal);letter-spacing:0.25em;position:absolute;top:-0.5rem;left:2rem;background:var(--black);padding:0 0.8rem}
+  .log-date{font-family:var(--mono);font-size:0.65rem;color:var(--gray);margin-bottom:1.5rem}
+  .log-entry p{font-size:1.05rem;color:rgba(232,230,223,0.65);line-height:1.85;font-style:italic}
+  .log-entry p+p{margin-top:1rem}
+
+  /* FOOTER */
+  footer{padding:4rem 3rem;border-top:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center}
+  .footer-brand{font-family:var(--display);font-size:1.5rem;letter-spacing:0.3em;color:rgba(0,212,170,0.3)}
+  .chapter-nav{display:flex;gap:3rem}
+  .ch-link{display:flex;flex-direction:column;gap:0.3rem;text-decoration:none}
+  .ch-label{font-family:var(--mono);font-size:0.6rem;color:var(--gray);letter-spacing:0.2em;text-transform:uppercase}
+  .ch-title{font-family:var(--display);font-size:1.1rem;letter-spacing:0.1em;color:var(--white);transition:color 0.2s}
+  .ch-link:hover .ch-title{color:var(--teal)}
+  .ch-link.prev .ch-title{color:rgba(232,230,223,0.3)}
+  .footer-copy{font-family:var(--mono);font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-align:center;padding:1.5rem 3rem;border-top:1px solid rgba(255,255,255,0.03)}
+
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  @keyframes pulse{0%,100%{opacity:0.6}50%{opacity:1}}
+
+  @media(max-width:900px){
+    nav{padding:1rem 1.5rem}.nav-links{display:none}
+    .section,.arch-section,.filetree-section,.code-system,.run-section,.services-section,.migration-section,.health-section,.env-section,.checklist-section{padding:5rem 1.5rem}
+    .hero-cols,.docker-concept,.docker-vs,.health-grid,.env-grid,.checklist{grid-template-columns:1fr}
+    .services-grid{grid-template-columns:1fr}
+    .mig-step{grid-template-columns:1fr}
+    .mig-label{border-right:none;border-bottom:1px solid rgba(255,255,255,0.04)}
+    footer{flex-direction:column;gap:2rem;align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">CIPHER<span>DOC</span></a>
+  <ul class="nav-links">
+    <li><a href="#docker">Docker</a></li>
+    <li><a href="#arquitectura">Arquitectura</a></li>
+    <li><a href="#codigo">Código</a></li>
+    <li><a href="#levantar">Levantar</a></li>
+    <li><a href="#migraciones">Migraciones</a></li>
+  </ul>
+  <a href="cybersec_chapter4.html" class="nav-prev">← Cap. 04</a>
+</nav>
+
+<!-- ════ HERO ════ -->
+<section class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="chapter-tag">Capítulo 05 — Del código a producción</p>
+    <h1>
+      <span class="d">DOCKER</span><br>
+      <span class="t">+</span> BACKEND<br>
+      <span style="font-size:0.45em;letter-spacing:0.1em;color:rgba(232,230,223,0.2)">REAL · FUNCIONANDO · SEGURO</span>
+    </h1>
+    <div class="hero-cols">
+      <p class="hero-desc">
+        Hoy el código deja de vivir solo en tu máquina. Docker containeriza todo el stack — FastAPI, PostgreSQL, Redis — de forma que funciona igual en tu laptop, en el CI y en producción. Sin "en mi máquina funciona".
+      </p>
+      <div class="tech-badges">
+        <span class="tech-badge tb-docker">🐳 Docker 24+</span>
+        <span class="tech-badge tb-docker">🐙 Docker Compose</span>
+        <span class="tech-badge tb-fastapi">⚡ FastAPI 0.110</span>
+        <span class="tech-badge tb-python">🐍 Python 3.11</span>
+        <span class="tech-badge tb-pg">🐘 PostgreSQL 16</span>
+        <span class="tech-badge tb-alembic">🔁 Alembic</span>
+        <span class="tech-badge tb-poetry">📦 Poetry</span>
+        <span class="tech-badge tb-pg" style="border-color:rgba(255,63,63,0.3);color:#ff7070;background:rgba(255,63,63,0.04)">🔴 Redis 7</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ QUÉ ES DOCKER ════ -->
+<section class="section" id="docker">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 01 — fundamentos</p>
+    <h2 class="sec-h2 fade-in">Docker: <em>contenedores</em>,<br>no máquinas virtuales</h2>
+    <p class="sec-sub fade-in">La diferencia importa. Contenedores comparten el kernel del host — son más ligeros, más rápidos, y arrancan en milisegundos.</p>
+
+    <div class="docker-concept fade-in">
+      <div class="concept-col">
+        <h3>¿Qué problema resuelve?</h3>
+        <p>Tu FastAPI necesita Python 3.11, ciertas librerías, configuración específica de sistema. En otra máquina, otra versión, otro sistema — falla. Docker empaqueta <em>todo</em> en un contenedor portable.</p>
+        <p>Un <strong style="color:var(--white)">Dockerfile</strong> describe exactamente qué hay dentro. Un <strong style="color:var(--white)">docker-compose.yml</strong> orquesta múltiples contenedores juntos. Un comando levanta el stack completo.</p>
+        <div class="analogy-box">
+          <div class="analogy-label">Analogía</div>
+          <p>Piensa en Docker como un <strong style="color:var(--teal)">contenedor de barco</strong>. No importa qué haya dentro — fruta, electrónicos, ropa. El barco (servidor) maneja todos igual. El contenido (tu app) siempre viaja con todo lo que necesita para funcionar.</p>
+        </div>
+      </div>
+      <div class="concept-col">
+        <div class="docker-vs">
+          <div>
+            <div class="stack-title vm-title">Máquina Virtual</div>
+            <div class="vm-stack">
+              <div class="stack-layer l-hw">Hardware físico</div>
+              <div class="stack-layer l-os">Sistema operativo Host</div>
+              <div class="stack-layer l-hyp">Hypervisor (VMware / VirtualBox)</div>
+              <div class="stack-layer l-gos" style="margin-top:2px">Guest OS #1 (Ubuntu 2GB)</div>
+              <div class="stack-layer l-app">Tu App</div>
+              <div class="stack-layer l-gos" style="opacity:0.5">Guest OS #2 (Ubuntu 2GB)</div>
+              <div class="stack-layer l-app" style="opacity:0.5">Otra App</div>
+            </div>
+            <div style="font-family:var(--mono);font-size:0.6rem;color:var(--red);text-align:center;margin-top:0.8rem">~6GB RAM · ~2 min arranque</div>
+          </div>
+          <div class="vs-center">VS</div>
+          <div>
+            <div class="stack-title docker-title">Docker</div>
+            <div class="docker-stack">
+              <div class="stack-layer l-hw">Hardware físico</div>
+              <div class="stack-layer l-os">Sistema operativo Host</div>
+              <div class="stack-layer l-engine">Docker Engine (comparte kernel)</div>
+              <div class="stack-layer l-container" style="margin-top:2px">Container: FastAPI</div>
+              <div class="stack-layer l-container">Container: PostgreSQL</div>
+              <div class="stack-layer l-container">Container: Redis</div>
+            </div>
+            <div style="font-family:var(--mono);font-size:0.6rem;color:var(--green);text-align:center;margin-top:0.8rem">~200MB RAM · ~200ms arranque</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conceptos clave -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(0,212,170,0.06);margin-top:4rem" class="fade-in">
+      <div style="background:var(--black);padding:2rem">
+        <div style="font-family:var(--display);font-size:1.8rem;color:var(--teal);margin-bottom:0.5rem">IMAGE</div>
+        <div style="font-family:var(--mono);font-size:0.62rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.8rem">Plantilla inmutable</div>
+        <p style="font-size:0.9rem;color:rgba(232,230,223,0.45);line-height:1.6">Blueprint de solo lectura. Como una clase en Python. Del que se crean contenedores.</p>
+        <div style="font-family:var(--mono);font-size:0.65rem;color:var(--teal);margin-top:0.8rem">python:3.11-slim</div>
+      </div>
+      <div style="background:var(--black);padding:2rem">
+        <div style="font-family:var(--display);font-size:1.8rem;color:#2496ed;margin-bottom:0.5rem">CONTAINER</div>
+        <div style="font-family:var(--mono);font-size:0.62rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.8rem">Instancia en ejecución</div>
+        <p style="font-size:0.9rem;color:rgba(232,230,223,0.45);line-height:1.6">Una imagen corriendo. Como un objeto instanciado de una clase. Tiene estado propio.</p>
+        <div style="font-family:var(--mono);font-size:0.65rem;color:#2496ed;margin-top:0.8rem">cipher-api-app-1</div>
+      </div>
+      <div style="background:var(--black);padding:2rem">
+        <div style="font-family:var(--display);font-size:1.8rem;color:var(--amber);margin-bottom:0.5rem">VOLUME</div>
+        <div style="font-family:var(--mono);font-size:0.62rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.8rem">Persistencia de datos</div>
+        <p style="font-size:0.9rem;color:rgba(232,230,223,0.45);line-height:1.6">Los contenedores son efímeros. Un volume persiste los datos de PostgreSQL cuando el container se reinicia.</p>
+        <div style="font-family:var(--mono);font-size:0.65rem;color:var(--amber);margin-top:0.8rem">postgres_data:/var/lib/postgresql</div>
+      </div>
+      <div style="background:var(--black);padding:2rem">
+        <div style="font-family:var(--display);font-size:1.8rem;color:#b57bff;margin-bottom:0.5rem">NETWORK</div>
+        <div style="font-family:var(--mono);font-size:0.62rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.8rem">Red privada interna</div>
+        <p style="font-size:0.9rem;color:rgba(232,230,223,0.45);line-height:1.6">Contenedores se hablan por nombre. FastAPI alcanza PostgreSQL como <code style="color:#b57bff">db:5432</code>, no localhost.</p>
+        <div style="font-family:var(--mono);font-size:0.65rem;color:#b57bff;margin-top:0.8rem">cipher-network (bridge)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ ARQUITECTURA ════ -->
+<section class="arch-section" id="arquitectura">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 02 — diseño del sistema</p>
+    <h2 class="sec-h2 fade-in">Arquitectura<br><em>completa</em> del stack</h2>
+    <p class="sec-sub fade-in">Tres contenedores, una red privada, un volume para datos. Así se ve el sistema completo antes de escribir una línea.</p>
+  </div>
+
+  <div class="arch-svg-wrap fade-in">
+    <svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;border:1px solid rgba(0,212,170,0.07);background:rgba(5,5,7,0.9)">
+      <defs>
+        <pattern id="g2" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M40 0L0 0 0 40" fill="none" stroke="rgba(0,212,170,0.035)" stroke-width="0.5"/>
+        </pattern>
+        <marker id="arr-teal" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 z" fill="rgba(0,212,170,0.6)"/>
+        </marker>
+        <marker id="arr-blue" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 z" fill="rgba(36,150,237,0.6)"/>
+        </marker>
+        <marker id="arr-gray" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 z" fill="rgba(74,74,90,0.8)"/>
+        </marker>
+        <marker id="arr-amber" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L7,3.5 z" fill="rgba(255,179,71,0.6)"/>
+        </marker>
+      </defs>
+      <rect width="960" height="560" fill="url(#g2)"/>
+
+      <!-- INTERNET zone -->
+      <rect x="20" y="20" width="120" height="520" fill="rgba(255,255,255,0.01)" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="3,4" rx="2"/>
+      <text x="80" y="42" text-anchor="middle" font-family="Share Tech Mono" font-size="8.5" fill="rgba(255,255,255,0.2)" letter-spacing="2">INTERNET</text>
+
+      <!-- Docker network zone -->
+      <rect x="200" y="20" width="740" height="520" fill="rgba(36,150,237,0.015)" stroke="rgba(36,150,237,0.12)" stroke-width="1.5" stroke-dasharray="5,4" rx="4"/>
+      <text x="570" y="44" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="rgba(36,150,237,0.35)" letter-spacing="3">cipher-network (Docker internal bridge)</text>
+
+      <!-- Client -->
+      <circle cx="80" cy="180" r="30" fill="rgba(232,230,223,0.02)" stroke="rgba(232,230,223,0.15)" stroke-width="1"/>
+      <text x="80" y="175" text-anchor="middle" font-size="20">🖥</text>
+      <text x="80" y="194" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="rgba(232,230,223,0.3)">CLIENT</text>
+      <text x="80" y="207" text-anchor="middle" font-family="Share Tech Mono" font-size="7" fill="rgba(232,230,223,0.15)">:443 / :80</text>
+
+      <!-- NGINX container -->
+      <rect x="220" y="130" width="150" height="90" rx="3" fill="rgba(255,179,71,0.04)" stroke="rgba(255,179,71,0.3)" stroke-width="1.5"/>
+      <text x="235" y="160" font-family="Share Tech Mono" font-size="10" fill="rgba(255,179,71,0.8)" letter-spacing="1">🔀 NGINX</text>
+      <text x="235" y="178" font-family="Share Tech Mono" font-size="8" fill="rgba(255,179,71,0.4)">Reverse proxy</text>
+      <text x="235" y="194" font-family="Share Tech Mono" font-size="7.5" fill="rgba(255,179,71,0.35)">TLS · Rate limit</text>
+      <text x="235" y="210" font-family="Share Tech Mono" font-size="7.5" fill="rgba(255,179,71,0.35)">ports: 80, 443</text>
+      <!-- optional badge -->
+      <rect x="332" y="122" width="46" height="14" rx="1" fill="rgba(255,179,71,0.06)" stroke="rgba(255,179,71,0.2)" stroke-width="0.5"/>
+      <text x="355" y="133" text-anchor="middle" font-family="Share Tech Mono" font-size="6.5" fill="rgba(255,179,71,0.6)">opcional</text>
+
+      <!-- FastAPI container — main -->
+      <rect x="430" y="100" width="190" height="120" rx="3" fill="rgba(0,212,170,0.05)" stroke="rgba(0,212,170,0.45)" stroke-width="2"/>
+      <text x="450" y="130" font-family="Share Tech Mono" font-size="11" fill="rgba(0,212,170,0.95)" letter-spacing="1">⚡ FASTAPI</text>
+      <text x="450" y="150" font-family="Share Tech Mono" font-size="8" fill="rgba(0,212,170,0.45)">Uvicorn ASGI server</text>
+      <text x="450" y="168" font-family="Share Tech Mono" font-size="7.5" fill="rgba(0,212,170,0.4)">port: 8000 (internal)</text>
+      <text x="450" y="184" font-family="Share Tech Mono" font-size="7.5" fill="rgba(0,212,170,0.4)">workers: 4</text>
+      <text x="450" y="200" font-family="Share Tech Mono" font-size="7.5" fill="rgba(0,212,170,0.4)">Python 3.11-slim</text>
+      <!-- Attack vector badges -->
+      <rect x="432" y="92" width="56" height="12" rx="1" fill="rgba(255,63,63,0.1)" stroke="rgba(255,63,63,0.25)" stroke-width="0.5"/>
+      <text x="460" y="102" text-anchor="middle" font-family="Share Tech Mono" font-size="6" fill="rgba(255,63,63,0.8)">→ validates JWT</text>
+      <rect x="496" y="92" width="62" height="12" rx="1" fill="rgba(255,63,63,0.1)" stroke="rgba(255,63,63,0.25)" stroke-width="0.5"/>
+      <text x="527" y="102" text-anchor="middle" font-family="Share Tech Mono" font-size="6" fill="rgba(255,63,63,0.8)">→ Pydantic schema</text>
+
+      <!-- PostgreSQL container -->
+      <rect x="700" y="80" width="185" height="105" rx="3" fill="rgba(51,103,145,0.06)" stroke="rgba(51,103,145,0.45)" stroke-width="1.5"/>
+      <text x="718" y="113" font-family="Share Tech Mono" font-size="11" fill="rgba(126,184,218,0.9)" letter-spacing="1">🐘 POSTGRES</text>
+      <text x="718" y="132" font-family="Share Tech Mono" font-size="8" fill="rgba(126,184,218,0.4)">PostgreSQL 16</text>
+      <text x="718" y="150" font-family="Share Tech Mono" font-size="7.5" fill="rgba(126,184,218,0.4)">port: 5432 (internal only)</text>
+      <text x="718" y="168" font-family="Share Tech Mono" font-size="7.5" fill="rgba(126,184,218,0.4)">db: cipher_db</text>
+
+      <!-- Volume PostgreSQL -->
+      <rect x="720" y="220" width="145" height="50" rx="2" fill="rgba(255,179,71,0.03)" stroke="rgba(255,179,71,0.2)" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="793" y="243" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="rgba(255,179,71,0.5)">📦 postgres_data</text>
+      <text x="793" y="260" text-anchor="middle" font-family="Share Tech Mono" font-size="7.5" fill="rgba(255,179,71,0.3)">volume (persiste reinicios)</text>
+
+      <!-- Redis container -->
+      <rect x="700" y="310" width="185" height="90" rx="3" fill="rgba(255,63,63,0.04)" stroke="rgba(255,63,63,0.25)" stroke-width="1.5"/>
+      <text x="718" y="342" font-family="Share Tech Mono" font-size="11" fill="rgba(255,100,100,0.8)" letter-spacing="1">🔴 REDIS</text>
+      <text x="718" y="360" font-family="Share Tech Mono" font-size="8" fill="rgba(255,100,100,0.35)">Redis 7 · port: 6379</text>
+      <text x="718" y="378" font-family="Share Tech Mono" font-size="7.5" fill="rgba(255,100,100,0.3)">Sessions · Rate limit data</text>
+      <text x="718" y="394" font-family="Share Tech Mono" font-size="7.5" fill="rgba(255,100,100,0.3)">Cache de queries</text>
+
+      <!-- Alembic (part of FastAPI image) -->
+      <rect x="430" y="260" width="190" height="60" rx="2" fill="rgba(181,123,255,0.04)" stroke="rgba(181,123,255,0.2)" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="450" y="285" font-family="Share Tech Mono" font-size="9" fill="rgba(181,123,255,0.7)">🔁 Alembic migrations</text>
+      <text x="450" y="302" font-family="Share Tech Mono" font-size="7.5" fill="rgba(181,123,255,0.35)">corre antes de iniciar la app</text>
+
+      <!-- CONNECTIONS -->
+      <!-- client → nginx -->
+      <path d="M110 180 L220 180" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" marker-end="url(#arr-gray)"/>
+      <text x="155" y="172" font-family="Share Tech Mono" font-size="7" fill="rgba(255,255,255,0.2)" text-anchor="middle">HTTPS</text>
+
+      <!-- nginx → fastapi -->
+      <path d="M370 180 L430 180" stroke="rgba(255,179,71,0.4)" stroke-width="1.5" marker-end="url(#arr-amber)"/>
+      <text x="400" y="172" font-family="Share Tech Mono" font-size="7" fill="rgba(255,179,71,0.4)" text-anchor="middle">HTTP</text>
+
+      <!-- fastapi → postgres -->
+      <path d="M620 150 L700 150" stroke="rgba(0,212,170,0.5)" stroke-width="1.5" marker-end="url(#arr-teal)"/>
+      <text x="660" y="141" font-family="Share Tech Mono" font-size="7" fill="rgba(0,212,170,0.4)" text-anchor="middle">SQLAlchemy</text>
+
+      <!-- fastapi → redis -->
+      <path d="M590 220 L590 355 L700 355" stroke="rgba(0,212,170,0.25)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-teal)"/>
+
+      <!-- postgres → volume -->
+      <path d="M793 185 L793 220" stroke="rgba(255,179,71,0.3)" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr-amber)"/>
+
+      <!-- .env badge -->
+      <rect x="430" y="350" width="130" height="45" rx="2" fill="rgba(0,255,157,0.03)" stroke="rgba(0,255,157,0.15)" stroke-width="1"/>
+      <text x="450" y="371" font-family="Share Tech Mono" font-size="9" fill="rgba(0,255,157,0.6)">🔐 .env</text>
+      <text x="450" y="388" font-family="Share Tech Mono" font-size="7.5" fill="rgba(0,255,157,0.3)">secrets → todos los containers</text>
+
+      <!-- Health check -->
+      <rect x="220" y="310" width="150" height="75" rx="2" fill="rgba(0,255,157,0.02)" stroke="rgba(0,255,157,0.1)" stroke-width="1" stroke-dasharray="3,3"/>
+      <text x="295" y="337" text-anchor="middle" font-family="Share Tech Mono" font-size="9" fill="rgba(0,255,157,0.5)">❤ Health Checks</text>
+      <text x="235" y="357" font-family="Share Tech Mono" font-size="7.5" fill="rgba(0,255,157,0.3)">GET /health → 200 OK</text>
+      <text x="235" y="374" font-family="Share Tech Mono" font-size="7.5" fill="rgba(0,255,157,0.3)">DB ping · Redis ping</text>
+
+      <!-- Legend -->
+      <rect x="20" y="470" width="920" height="70" rx="2" fill="rgba(255,255,255,0.01)" stroke="rgba(255,255,255,0.04)"/>
+      <text x="40" y="493" font-family="Share Tech Mono" font-size="8" fill="rgba(0,212,170,0.5)" letter-spacing="1">PUERTOS EXPUESTOS AL HOST:</text>
+      <text x="40" y="512" font-family="Share Tech Mono" font-size="8" fill="rgba(255,179,71,0.5)">Nginx: 80, 443 → público</text>
+      <text x="230" y="512" font-family="Share Tech Mono" font-size="8" fill="rgba(0,212,170,0.5)">FastAPI: 8000 → solo desarrollo</text>
+      <text x="460" y="512" font-family="Share Tech Mono" font-size="8" fill="rgba(255,63,63,0.4)">PostgreSQL 5432 → NUNCA público</text>
+      <text x="680" y="512" font-family="Share Tech Mono" font-size="8" fill="rgba(255,63,63,0.4)">Redis 6379 → NUNCA público</text>
+      <text x="40" y="528" font-family="Share Tech Mono" font-size="7.5" fill="rgba(255,255,255,0.15)">⟵ todos los containers se comunican por nombre interno dentro de cipher-network</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ════ ESTRUCTURA DE ARCHIVOS ════ -->
+<section class="filetree-section" id="estructura">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 03 — estructura del proyecto</p>
+    <h2 class="sec-h2 fade-in">Cada archivo<br><em>en su lugar</em></h2>
+    <p class="sec-sub fade-in">Esta es la estructura exacta que vas a crear. Cada carpeta tiene una responsabilidad clara.</p>
+
+    <div class="filetree fade-in">
+<span class="ft-dir">cipher-api/</span>
+├── <span class="ft-docker">Dockerfile</span>                    <span class="ft-comment"># imagen de tu FastAPI</span>
+├── <span class="ft-docker">docker-compose.yml</span>            <span class="ft-comment"># orquesta todos los servicios</span>
+├── <span class="ft-docker">docker-compose.prod.yml</span>       <span class="ft-comment"># overrides para producción</span>
+├── <span class="ft-config">.env</span>                           <span class="ft-comment"># variables de entorno (NO commitear)</span>
+├── <span class="ft-config">.env.example</span>                  <span class="ft-comment"># plantilla pública sin valores</span>
+├── <span class="ft-config">.gitignore</span>                     <span class="ft-comment"># incluye .env, __pycache__, .venv</span>
+├── <span class="ft-config">pyproject.toml</span>                 <span class="ft-comment"># Poetry: dependencias y metadata</span>
+├── <span class="ft-config">poetry.lock</span>                    <span class="ft-comment"># versiones exactas bloqueadas</span>
+│
+├── <span class="ft-dir">app/</span>
+│   ├── <span class="ft-py">main.py</span>                    <span class="ft-comment"># FastAPI app instance, middleware, routers</span>
+│   ├── <span class="ft-py">dependencies.py</span>            <span class="ft-comment"># DB session, current_user injection</span>
+│   │
+│   ├── <span class="ft-dir">core/</span>
+│   │   ├── <span class="ft-py">config.py</span>              <span class="ft-comment"># Pydantic Settings (lee .env)</span>
+│   │   ├── <span class="ft-py">security.py</span>            <span class="ft-comment"># bcrypt + JWT functions</span>
+│   │   └── <span class="ft-py">logging.py</span>             <span class="ft-comment"># loguru setup</span>
+│   │
+│   ├── <span class="ft-dir">db/</span>
+│   │   ├── <span class="ft-py">base.py</span>                <span class="ft-comment"># SQLAlchemy Base declarative</span>
+│   │   ├── <span class="ft-py">session.py</span>             <span class="ft-comment"># async engine + session factory</span>
+│   │   └── <span class="ft-py">redis.py</span>               <span class="ft-comment"># Redis client async</span>
+│   │
+│   ├── <span class="ft-dir">models/</span>                        <span class="ft-comment"># SQLAlchemy ORM models → tablas PostgreSQL</span>
+│   │   ├── <span class="ft-py">user.py</span>                <span class="ft-comment"># User, Role</span>
+│   │   └── <span class="ft-py">__init__.py</span>            <span class="ft-comment"># importa todos para Alembic</span>
+│   │
+│   ├── <span class="ft-dir">schemas/</span>                       <span class="ft-comment"># Pydantic schemas: validación + serialización</span>
+│   │   ├── <span class="ft-py">user.py</span>                <span class="ft-comment"># UserCreate, UserResponse, UserUpdate</span>
+│   │   └── <span class="ft-py">auth.py</span>                <span class="ft-comment"># TokenResponse, LoginRequest</span>
+│   │
+│   ├── <span class="ft-dir">routers/</span>                       <span class="ft-comment"># APIRouter: endpoints agrupados</span>
+│   │   ├── <span class="ft-py">auth.py</span>                <span class="ft-comment"># /login, /register, /refresh</span>
+│   │   ├── <span class="ft-py">users.py</span>               <span class="ft-comment"># CRUD de usuarios</span>
+│   │   └── <span class="ft-py">health.py</span>              <span class="ft-comment"># /health con checks de DB y Redis</span>
+│   │
+│   ├── <span class="ft-dir">services/</span>                      <span class="ft-comment"># lógica de negocio (sin HTTP)</span>
+│   │   └── <span class="ft-py">user_service.py</span>
+│   │
+│   └── <span class="ft-dir">middleware/</span>
+│       └── <span class="ft-py">security.py</span>            <span class="ft-comment"># security headers middleware</span>
+│
+├── <span class="ft-dir">alembic/</span>                           <span class="ft-comment"># migraciones de base de datos</span>
+│   ├── <span class="ft-sql">env.py</span>                         <span class="ft-comment"># configuración async de Alembic</span>
+│   ├── <span class="ft-sql">alembic.ini</span>
+│   └── <span class="ft-dir">versions/</span>
+│       └── <span class="ft-sql">001_create_users_table.py</span>  <span class="ft-comment"># primera migración</span>
+│
+├── <span class="ft-dir">tests/</span>
+│   ├── <span class="ft-test">conftest.py</span>                    <span class="ft-comment"># fixtures: TestClient, DB de prueba</span>
+│   ├── <span class="ft-dir">unit/</span>
+│   └── <span class="ft-dir">security/</span>                      <span class="ft-comment"># los tests del Cap.04</span>
+│
+└── <span class="ft-dir">nginx/</span>
+    ├── <span class="ft-config">nginx.conf</span>                     <span class="ft-comment"># configuración de proxy</span>
+    └── <span class="ft-config">ssl/</span>                           <span class="ft-comment"># certificados TLS</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════ CÓDIGO: TODOS LOS ARCHIVOS ════ -->
+<section class="code-system" id="codigo">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 04 — el código completo</p>
+    <h2 class="sec-h2 fade-in">Cada archivo<br><em>desde cero</em></h2>
+    <p class="sec-sub fade-in">Código real. Funcional. Cópialo, entiéndelo, modifícalo. Este es tu punto de partida.</p>
+
+    <div class="file-tabs-wrap fade-in">
+      <div class="file-tabs">
+        <div class="file-tab active" data-ftab="dockerfile"><span class="tab-icon">🐳</span>Dockerfile</div>
+        <div class="file-tab" data-ftab="compose"><span class="tab-icon">🐙</span>docker-compose.yml</div>
+        <div class="file-tab" data-ftab="main"><span class="tab-icon">⚡</span>main.py</div>
+        <div class="file-tab" data-ftab="config"><span class="tab-icon">⚙</span>core/config.py</div>
+        <div class="file-tab" data-ftab="session"><span class="tab-icon">🐘</span>db/session.py</div>
+        <div class="file-tab" data-ftab="models"><span class="tab-icon">🗃</span>models/user.py</div>
+        <div class="file-tab" data-ftab="schemas"><span class="tab-icon">📐</span>schemas/user.py</div>
+        <div class="file-tab" data-ftab="routers"><span class="tab-icon">🔀</span>routers/auth.py</div>
+        <div class="file-tab" data-ftab="health"><span class="tab-icon">❤</span>routers/health.py</div>
+        <div class="file-tab" data-ftab="alembic"><span class="tab-icon">🔁</span>alembic/env.py</div>
+      </div>
+
+      <div class="file-pane active" id="ftab-dockerfile">
+        <div class="code-block">
+<span class="cm"># Dockerfile — imagen de producción optimizada</span>
+<span class="cm"># Multi-stage: build stage separa dependencias del runtime</span>
+
+<span class="cm">## ── Stage 1: dependencias con Poetry ──</span>
+<span class="dk">FROM</span> <span class="str">python:3.11-slim</span> <span class="dk">AS</span> builder
+
+<span class="cm"># Instalar Poetry</span>
+<span class="dk">ENV</span> POETRY_NO_INTERACTION=<span class="num">1</span> \
+    POETRY_VENV_IN_PROJECT=<span class="num">1</span> \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
+
+<span class="dk">RUN</span> pip install poetry==<span class="num">1.8.3</span>
+
+<span class="dk">WORKDIR</span> /app
+
+<span class="cm"># Copiar solo archivos de dependencias primero (cache layer)</span>
+<span class="dk">COPY</span> pyproject.toml poetry.lock ./
+
+<span class="cm"># Instalar dependencias sin el proyecto mismo</span>
+<span class="dk">RUN</span> poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR
+
+<span class="cm">## ── Stage 2: runtime final ──</span>
+<span class="dk">FROM</span> <span class="str">python:3.11-slim</span> <span class="dk">AS</span> runtime
+
+<span class="cm"># Seguridad: usuario no-root</span>
+<span class="dk">RUN</span> groupadd --gid <span class="num">1001</span> appgroup && \
+    useradd --uid <span class="num">1001</span> --gid appgroup --no-create-home appuser
+
+<span class="dk">WORKDIR</span> /app
+
+<span class="cm"># Copiar venv del stage anterior</span>
+<span class="dk">COPY</span> --from=builder /app/.venv /app/.venv
+
+<span class="cm"># Copiar código fuente</span>
+<span class="dk">COPY</span> ./app ./app
+<span class="dk">COPY</span> ./alembic ./alembic
+<span class="dk">COPY</span> alembic.ini .
+
+<span class="cm"># Activar venv en PATH</span>
+<span class="dk">ENV</span> PATH="/app/.venv/bin:$PATH"
+
+<span class="cm"># Variables de entorno de seguridad</span>
+<span class="dk">ENV</span> PYTHONDONTWRITEBYTECODE=<span class="num">1</span> \
+    PYTHONUNBUFFERED=<span class="num">1</span> \
+    PYTHONPATH=/app
+
+<span class="cm"># Cambiar a usuario sin privilegios</span>
+<span class="dk">USER</span> appuser
+
+<span class="cm"># Exponer puerto interno</span>
+<span class="dk">EXPOSE</span> <span class="num">8000</span>
+
+<span class="cm"># Health check interno</span>
+<span class="dk">HEALTHCHECK</span> --interval=30s --timeout=10s --retries=3 \
+    <span class="dk">CMD</span> python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+
+<span class="cm"># Comando de inicio</span>
+<span class="dk">CMD</span> ["uvicorn", "app.main:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8000", \
+     "--workers", "4", \
+     "--proxy-headers"]
+        </div>
+      </div>
+
+      <div class="file-pane" id="ftab-compose">
+        <div class="code-block">
+<span class="cm"># docker-compose.yml — orquestación completa</span>
+<span class="cm"># Uso: docker compose up -d</span>
+
+<span class="fn">services</span>:
+
+  <span class="cm">## ── PostgreSQL ──</span>
+  <span class="fn">db</span>:
+    <span class="kw">image</span>: <span class="str">postgres:16-alpine</span>
+    <span class="kw">container_name</span>: cipher_db
+    <span class="kw">restart</span>: unless-stopped
+    <span class="kw">environment</span>:
+      POSTGRES_DB: <span class="str">${DB_NAME}</span>
+      POSTGRES_USER: <span class="str">${DB_USER}</span>
+      POSTGRES_PASSWORD: <span class="str">${DB_PASSWORD}</span>
+    <span class="kw">volumes</span>:
+      - postgres_data:/var/lib/postgresql/data   <span class="cm"># datos persistentes</span>
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql  <span class="cm"># init opcional</span>
+    <span class="kw">ports</span>:
+      - <span class="str">"127.0.0.1:5432:5432"</span>  <span class="cm"># solo localhost, nunca 0.0.0.0</span>
+    <span class="kw">networks</span>:
+      - cipher-network
+    <span class="kw">healthcheck</span>:
+      <span class="kw">test</span>: [<span class="str">"CMD-SHELL"</span>, <span class="str">"pg_isready -U ${DB_USER} -d ${DB_NAME}"</span>]
+      <span class="kw">interval</span>: 10s
+      <span class="kw">timeout</span>: 5s
+      <span class="kw">retries</span>: 5
+
+  <span class="cm">## ── Redis ──</span>
+  <span class="fn">redis</span>:
+    <span class="kw">image</span>: <span class="str">redis:7-alpine</span>
+    <span class="kw">container_name</span>: cipher_redis
+    <span class="kw">restart</span>: unless-stopped
+    <span class="kw">command</span>: redis-server --requirepass <span class="str">${REDIS_PASSWORD}</span> --maxmemory 256mb
+    <span class="kw">ports</span>:
+      - <span class="str">"127.0.0.1:6379:6379"</span>  <span class="cm"># solo localhost</span>
+    <span class="kw">networks</span>:
+      - cipher-network
+    <span class="kw">healthcheck</span>:
+      <span class="kw">test</span>: [<span class="str">"CMD"</span>, <span class="str">"redis-cli"</span>, <span class="str">"--no-auth-warning"</span>, <span class="str">"-a"</span>, <span class="str">"${REDIS_PASSWORD}"</span>, <span class="str">"ping"</span>]
+      <span class="kw">interval</span>: 10s
+
+  <span class="cm">## ── FastAPI App ──</span>
+  <span class="fn">app</span>:
+    <span class="kw">build</span>:
+      <span class="kw">context</span>: .
+      <span class="kw">dockerfile</span>: Dockerfile
+      <span class="kw">target</span>: runtime
+    <span class="kw">container_name</span>: cipher_app
+    <span class="kw">restart</span>: unless-stopped
+    <span class="kw">env_file</span>: .env          <span class="cm"># carga todas las variables</span>
+    <span class="kw">ports</span>:
+      - <span class="str">"127.0.0.1:8000:8000"</span>  <span class="cm"># dev: acceso directo · prod: solo nginx</span>
+    <span class="kw">depends_on</span>:
+      <span class="kw">db</span>:
+        <span class="kw">condition</span>: service_healthy  <span class="cm"># espera que postgres esté listo</span>
+      <span class="kw">redis</span>:
+        <span class="kw">condition</span>: service_healthy
+    <span class="kw">volumes</span>:
+      - ./app:/app/app  <span class="cm"># hot reload en dev (eliminar en prod)</span>
+    <span class="kw">networks</span>:
+      - cipher-network
+    <span class="kw">command</span>: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+<span class="cm">## ── Volumes y Networks ──</span>
+<span class="fn">volumes</span>:
+  <span class="kw">postgres_data</span>:
+    <span class="kw">driver</span>: local
+
+<span class="fn">networks</span>:
+  <span class="kw">cipher-network</span>:
+    <span class="kw">driver</span>: bridge
+        </div>
+      </div>
+
+      <div class="file-pane" id="ftab-main">
+        <div class="code-block">
+<span class="cm"># app/main.py — FastAPI application factory</span>
+<span class="kw">from</span> contextlib <span class="kw">import</span> asynccontextmanager
+<span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
+<span class="kw">from</span> fastapi.middleware.cors <span class="kw">import</span> CORSMiddleware
+<span class="kw">from</span> fastapi.middleware.trustedhost <span class="kw">import</span> TrustedHostMiddleware
+<span class="kw">from</span> loguru <span class="kw">import</span> logger
+
+<span class="kw">from</span> app.core.config <span class="kw">import</span> settings
+<span class="kw">from</span> app.db.session <span class="kw">import</span> engine
+<span class="kw">from</span> app.db.redis <span class="kw">import</span> init_redis, close_redis
+<span class="kw">from</span> app.middleware.security <span class="kw">import</span> SecurityHeadersMiddleware
+<span class="kw">from</span> app.routers <span class="kw">import</span> auth, users, health
+
+
+<span class="dec">@asynccontextmanager</span>
+<span class="kw">async def</span> <span class="fn">lifespan</span>(app: FastAPI):
+    <span class="cm">"""Startup y shutdown del ciclo de vida de la app."""</span>
+    <span class="cm"># ── STARTUP</span>
+    logger.<span class="fn">info</span>(<span class="str">"Starting CipherDoc API..."</span>)
+    <span class="kw">await</span> <span class="fn">init_redis</span>()
+    logger.<span class="fn">info</span>(<span class="str">"Redis connected ✓"</span>)
+    logger.<span class="fn">info</span>(<span class="str">f"Environment: {settings.ENVIRONMENT}"</span>)
+    <span class="kw">yield</span>
+    <span class="cm"># ── SHUTDOWN</span>
+    <span class="kw">await</span> <span class="fn">close_redis</span>()
+    <span class="kw">await</span> engine.<span class="fn">dispose</span>()
+    logger.<span class="fn">info</span>(<span class="str">"Shutdown complete."</span>)
+
+
+<span class="kw">def</span> <span class="fn">create_app</span>() -> FastAPI:
+    <span class="kw">is_prod</span> = settings.ENVIRONMENT == <span class="str">"production"</span>
+
+    app = <span class="fn">FastAPI</span>(
+        title=<span class="str">"CipherDoc API"</span>,
+        version=<span class="str">"0.1.0"</span>,
+        description=<span class="str">"Backend del documental CIPHER"</span>,
+        <span class="cm"># Deshabilitar docs en producción (Cap.04 lesson)</span>
+        docs_url=<span class="kw">None if</span> is_prod <span class="kw">else</span> <span class="str">"/docs"</span>,
+        redoc_url=<span class="kw">None if</span> is_prod <span class="kw">else</span> <span class="str">"/redoc"</span>,
+        openapi_url=<span class="kw">None if</span> is_prod <span class="kw">else</span> <span class="str">"/openapi.json"</span>,
+        lifespan=lifespan,
+    )
+
+    <span class="cm"># ── Middleware (orden es importante: primero se ejecuta último)</span>
+    app.<span class="fn">add_middleware</span>(SecurityHeadersMiddleware)          <span class="cm"># Cap.02</span>
+    app.<span class="fn">add_middleware</span>(TrustedHostMiddleware,
+        allowed_hosts=settings.ALLOWED_HOSTS)
+    app.<span class="fn">add_middleware</span>(CORSMiddleware,
+        allow_origins=settings.CORS_ORIGINS,
+        allow_credentials=<span class="kw">True</span>,
+        allow_methods=[<span class="str">"GET"</span>, <span class="str">"POST"</span>, <span class="str">"PUT"</span>, <span class="str">"PATCH"</span>, <span class="str">"DELETE"</span>],
+        allow_headers=[<span class="str">"Authorization"</span>, <span class="str">"Content-Type"</span>],
+    )
+
+    <span class="cm"># ── Routers</span>
+    app.<span class="fn">include_router</span>(health.router)                    <span class="cm"># /health</span>
+    app.<span class="fn">include_router</span>(auth.router,  prefix=<span class="str">"/api/v1"</span>)   <span class="cm"># /api/v1/auth/*</span>
+    app.<span class="fn">include_router</span>(users.router, prefix=<span class="str">"/api/v1"</span>)   <span class="cm"># /api/v1/users/*</span>
+
+    <span class="kw">return</span> app
+
+
+app = <span class="fn">create_app</span>()
+        </div>
+      </div>
+
+      <div class="file-pane" id="ftab-config">
+        <div class="code-block">
+<span class="cm"># app/core/config.py — configuración centralizada</span>
+<span class="kw">from</span> pydantic_settings <span class="kw">import</span> BaseSettings, SettingsConfigDict
+<span class="kw">from</span> pydantic <span class="kw">import</span> PostgresDsn, RedisDsn, field_validator
+<span class="kw">from</span> typing <span class="kw">import</span> Literal
+<span class="kw">import</span> secrets
+
+
+<span class="kw">class</span> <span class="cls">Settings</span>(BaseSettings):
+    <span class="cm"># ── App</span>
+    ENVIRONMENT: <span class="cls">Literal</span>[<span class="str">"development"</span>, <span class="str">"staging"</span>, <span class="str">"production"</span>] = <span class="str">"development"</span>
+    DEBUG: <span class="cls">bool</span> = <span class="kw">False</span>
+    PROJECT_NAME: <span class="cls">str</span> = <span class="str">"CipherDoc API"</span>
+    VERSION: <span class="cls">str</span> = <span class="str">"0.1.0"</span>
+
+    <span class="cm"># ── Security (Cap.03)</span>
+    SECRET_KEY: <span class="cls">str</span> = <span class="fn">secrets.token_hex</span>(<span class="num">32</span>)  <span class="cm"># override con .env</span>
+    ACCESS_TOKEN_EXPIRE_MINUTES: <span class="cls">int</span> = <span class="num">30</span>
+    REFRESH_TOKEN_EXPIRE_DAYS: <span class="cls">int</span> = <span class="num">7</span>
+    ALGORITHM: <span class="cls">str</span> = <span class="str">"HS256"</span>
+    BCRYPT_ROUNDS: <span class="cls">int</span> = <span class="num">12</span>
+
+    <span class="cm"># ── Database</span>
+    DB_HOST: <span class="cls">str</span> = <span class="str">"db"</span>          <span class="cm"># nombre del servicio en docker-compose</span>
+    DB_PORT: <span class="cls">int</span> = <span class="num">5432</span>
+    DB_NAME: <span class="cls">str</span> = <span class="str">"cipher_db"</span>
+    DB_USER: <span class="cls">str</span> = <span class="str">"cipher_user"</span>
+    DB_PASSWORD: <span class="cls">str</span>
+    DB_POOL_SIZE: <span class="cls">int</span> = <span class="num">10</span>
+    DB_MAX_OVERFLOW: <span class="cls">int</span> = <span class="num">20</span>
+
+    <span class="dec">@property</span>
+    <span class="kw">def</span> <span class="fn">DATABASE_URL</span>(<span class="kw">self</span>) -> <span class="cls">str</span>:
+        <span class="kw">return</span> (
+            <span class="fn">f</span><span class="str">"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}"</span>
+            <span class="fn">f</span><span class="str">"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"</span>
+        )
+
+    <span class="cm"># ── Redis</span>
+    REDIS_HOST: <span class="cls">str</span> = <span class="str">"redis"</span>    <span class="cm"># nombre del servicio docker</span>
+    REDIS_PORT: <span class="cls">int</span> = <span class="num">6379</span>
+    REDIS_PASSWORD: <span class="cls">str</span> = <span class="str">""</span>
+
+    <span class="cm"># ── CORS y Hosts</span>
+    ALLOWED_HOSTS: <span class="cls">list</span>[<span class="cls">str</span>] = [<span class="str">"*"</span>]
+    CORS_ORIGINS: <span class="cls">list</span>[<span class="cls">str</span>] = [<span class="str">"http://localhost:3000"</span>]
+
+    model_config = <span class="fn">SettingsConfigDict</span>(
+        env_file=<span class="str">".env"</span>,
+        env_file_encoding=<span class="str">"utf-8"</span>,
+        case_sensitive=<span class="kw">True</span>,
+    )
+
+
+settings = <span class="fn">Settings</span>()
+        </div>
+      </div>
+
+      <div class="file-pane" id="ftab-session">
+        <div class="code-block">
+<span class="cm"># app/db/session.py — conexión async a PostgreSQL</span>
+<span class="kw">from</span> sqlalchemy.ext.asyncio <span class="kw">import</span> (
+    AsyncSession, create_async_engine, async_sessionmaker
+)
+<span class="kw">from</span> sqlalchemy.pool <span class="kw">import</span> NullPool
+<span class="kw">from</span> app.core.config <span class="kw">import</span> settings
+
+<span class="cm"># Motor async — una instancia para toda la app</span>
+engine = <span class="fn">create_async_engine</span>(
+    settings.DATABASE_URL,
+    pool_size=settings.DB_POOL_SIZE,
+    max_overflow=settings.DB_MAX_OVERFLOW,
+    pool_pre_ping=<span class="kw">True</span>,    <span class="cm"># verifica conexiones antes de usar</span>
+    echo=settings.DEBUG,    <span class="cm"># loguea SQL en dev</span>
+)
+
+<span class="cm"># Factory de sesiones</span>
+AsyncSessionLocal = <span class="fn">async_sessionmaker</span>(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=<span class="kw">False</span>,  <span class="cm"># no expirar objetos después de commit</span>
+    autoflush=<span class="kw">False</span>,
+)
+
+<span class="cm"># Dependency para inyectar en endpoints</span>
+<span class="kw">async def</span> <span class="fn">get_db</span>() -> AsyncSession:
+    <span class="cm">"""Yield una sesión de DB. Se cierra automáticamente."""</span>
+    <span class="kw">async with</span> <span class="fn">AsyncSessionLocal</span>() <span class="kw">as</span> session:
+        <span class="kw">try</span>:
+            <span class="kw">yield</span> session
+            <span class="kw">await</span> session.<span class="fn">commit</span>()
+        <span class="kw">except</span> Exception:
+            <span class="kw">await</span> session.<span class="fn">rollback</span>()
+            <span class="kw">raise</span>
+
+<span class="cm"># app/db/redis.py — cliente Redis async</span>
+<span class="kw">import</span> redis.asyncio <span class="kw">as</span> aioredis
+<span class="kw">from</span> app.core.config <span class="kw">import</span> settings
+
+redis_client: aioredis.Redis | <span class="kw">None</span> = <span class="kw">None</span>
+
+<span class="kw">async def</span> <span class="fn">init_redis</span>():
+    <span class="kw">global</span> redis_client
+    redis_client = <span class="kw">await</span> aioredis.<span class="fn">from_url</span>(
+        <span class="fn">f</span><span class="str">"redis://:{settings.REDIS_PASSWORD}@{settings.REDIS_HOST}:{settings.REDIS_PORT}"</span>,
+        decode_responses=<span class="kw">True</span>,
+        encoding=<span class="str">"utf-8"</span>,
+    )
+
+<span class="kw">async def</span> <span class="fn">get_redis</span>() -> aioredis.Redis:
+    <span class="kw">return</span> redis_client
+
+<span class="kw">async def</span> <span class="fn">close_redis</span>():
+    <span class="kw">if</span> redis_client:
+        <span class="kw">await</span> redis_client.<span class="fn">aclose</span>()
+        </div>
+      </div>
+
+      <div class="file-pane" id="ftab-models">
+        <div class="code-block">
+<span class="cm"># app/models/user.py — modelo SQLAlchemy → tabla PostgreSQL</span>
+<span class="kw">from</span> sqlalchemy <span class="kw">import</span> (
+    Column, Integer, String, Boolean, DateTime,
+    text, Index
+)
+<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> DeclarativeBase
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime, timezone
+
+
+<span class="kw">class</span> <span class="cls">Base</span>(DeclarativeBase):
+    <span class="kw">pass</span>
+
+
+<span class="kw">class</span> <span class="cls">User</span>(Base):
+    __tablename__ = <span class="str">"users"</span>
+    __table_args__ = (
+        Index(<span class="str">"ix_users_email"</span>, <span class="str">"email"</span>, unique=<span class="kw">True</span>),
+        Index(<span class="str">"ix_users_username"</span>, <span class="str">"username"</span>, unique=<span class="kw">True</span>),
+        {<span class="str">"comment"</span>: <span class="str">"Tabla principal de usuarios del sistema"</span>},
+    )
+
+    id = <span class="fn">Column</span>(<span class="cls">Integer</span>, primary_key=<span class="kw">True</span>, autoincrement=<span class="kw">True</span>)
+    email = <span class="fn">Column</span>(<span class="cls">String</span>(<span class="num">255</span>), nullable=<span class="kw">False</span>)
+    username = <span class="fn">Column</span>(<span class="cls">String</span>(<span class="num">50</span>), nullable=<span class="kw">False</span>)
+
+    <span class="cm"># Nunca "password" — siempre "hashed_password" (Cap.03)</span>
+    hashed_password = <span class="fn">Column</span>(<span class="cls">String</span>(<span class="num">72</span>), nullable=<span class="kw">False</span>)
+    <span class="cm"># bcrypt: $2b$12$[22chars salt][31chars hash] = 60 chars</span>
+    <span class="cm"># String(72) con margen de seguridad</span>
+
+    is_active = <span class="fn">Column</span>(<span class="cls">Boolean</span>, default=<span class="kw">True</span>, nullable=<span class="kw">False</span>)
+    is_verified = <span class="fn">Column</span>(<span class="cls">Boolean</span>, default=<span class="kw">False</span>, nullable=<span class="kw">False</span>)
+    is_admin = <span class="fn">Column</span>(<span class="cls">Boolean</span>, default=<span class="kw">False</span>, nullable=<span class="kw">False</span>)
+
+    created_at = <span class="fn">Column</span>(
+        <span class="cls">DateTime</span>(timezone=<span class="kw">True</span>),
+        server_default=<span class="fn">text</span>(<span class="str">"NOW()"</span>),
+        nullable=<span class="kw">False</span>
+    )
+    updated_at = <span class="fn">Column</span>(
+        <span class="cls">DateTime</span>(timezone=<span class="kw">True</span>),
+        server_default=<span class="fn">text</span>(<span class="str">"NOW()"</span>),
+        onupdate=<span class="kw">lambda</span>: <span class="fn">datetime.now</span>(timezone.utc)
+    )
+    last_login = <span class="fn">Column</span>(<span class="cls">DateTime</span>(timezone=<span class="kw">True</span>), nullable=<span class="kw">True</span>)
+
+    <span class="kw">def</span> <span class="fn">__repr__</span>(<span class="kw">self</span>):
+        <span class="kw">return</span> <span class="fn">f</span><span class="str">"&lt;User id={self.id} email={self.email}&gt;"</span>
+
+<span class="cm"># La tabla resultante en PostgreSQL:</span>
+<span class="cm"># \d users</span>
+<span class="cm"># Column           | Type                  | Nullable</span>
+<span class="cm"># id               | integer               | not null</span>
+<span class="cm"># email            | character varying(255)| not null</span>
+<span class="cm"># username         | character varying(50) | not null</span>
+<span class="cm"># hashed_password  | character varying(72) | not null</span>
+<span class="cm"># is_active        | boolean               | not null</span>
+<span class="cm"># created_at       | timestamptz           | not null</span>
+        </div>
+      </div>
+
+      <div class="file-pane" id="ftab-schemas">
+        <div class="code-block">
+<span class="cm"># app/schemas/user.py — Pydantic: validación + serialización</span>
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, EmailStr, Field, field_validator
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+<span class="kw">import</span> re
+
+
+<span class="kw">class</span> <span class="cls">UserCreate</span>(BaseModel):
+    <span class="cm">"""Schema para crear usuario. Valida antes de llegar al servicio."""</span>
+    email: EmailStr                          <span class="cm"># valida formato email</span>
+    username: <span class="cls">str</span> = <span class="fn">Field</span>(min_length=<span class="num">3</span>, max_length=<span class="num">50</span>,
+                          pattern=<span class="str">r"^[a-zA-Z0-9_-]+$"</span>)
+    password: <span class="cls">str</span> = <span class="fn">Field</span>(min_length=<span class="num">8</span>, max_length=<span class="num">128</span>)
+
+    <span class="dec">@field_validator</span>(<span class="str">"password"</span>)
+    <span class="dec">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">validate_password_strength</span>(cls, v: <span class="cls">str</span>) -> <span class="cls">str</span>:
+        <span class="cm">"""Contraseña debe tener mayúscula, número y símbolo."""</span>
+        <span class="kw">if not</span> re.<span class="fn">search</span>(<span class="str">r"[A-Z]"</span>, v):
+            <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"Necesita al menos una mayúscula"</span>)
+        <span class="kw">if not</span> re.<span class="fn">search</span>(<span class="str">r"\d"</span>, v):
+            <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"Necesita al menos un número"</span>)
+        <span class="kw">if not</span> re.<span class="fn">search</span>(<span class="str">r"[!@#$%^&*]"</span>, v):
+            <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"Necesita al menos un símbolo"</span>)
+        <span class="kw">return</span> v
+
+
+<span class="kw">class</span> <span class="cls">UserResponse</span>(BaseModel):
+    <span class="cm">"""Lo que devuelve la API. NUNCA incluye hashed_password."""</span>
+    id: <span class="cls">int</span>
+    email: <span class="cls">str</span>
+    username: <span class="cls">str</span>
+    is_active: <span class="cls">bool</span>
+    is_admin: <span class="cls">bool</span>
+    created_at: datetime
+
+    model_config = {<span class="str">"from_attributes"</span>: <span class="kw">True</span>}  <span class="cm"># leer desde ORM</span>
+
+
+<span class="kw">class</span> <span class="cls">UserUpdate</span>(BaseModel):
+    <span class="cm">"""Actualización parcial — todos los campos opcionales."""</span>
+    username: <span class="cls">str</span> | <span class="kw">None</span> = <span class="fn">Field</span>(<span class="kw">None</span>, min_length=<span class="num">3</span>, max_length=<span class="num">50</span>)
+    email: EmailStr | <span class="kw">None</span> = <span class="kw">None</span>
+
+<span class="cm"># app/schemas/auth.py</span>
+<span class="kw">class</span> <span class="cls">TokenResponse</span>(BaseModel):
+    access_token: <span class="cls">str</span>
+    refresh_token: <span class="cls">str</span>
+    token_type: <span class="cls">str</span> = <span class="str">"bearer"</span>
+    expires_in: <span class="cls">int</span>  <span class="cm"># segundos</span>
+        </div>
+      </div>
+
+      <div class="file-pane" id="ftab-routers">
+        <div class="code-block">
+<span class="cm"># app/routers/auth.py — endpoints de autenticación</span>
+<span class="kw">from</span> fastapi <span class="kw">import</span> APIRouter, Depends, HTTPException, status
+<span class="kw">from</span> fastapi.security <span class="kw">import</span> OAuth2PasswordRequestForm
+<span class="kw">from</span> sqlalchemy.ext.asyncio <span class="kw">import</span> AsyncSession
+<span class="kw">from</span> slowapi <span class="kw">import</span> Limiter
+<span class="kw">from</span> slowapi.util <span class="kw">import</span> get_remote_address
+<span class="kw">from</span> datetime <span class="kw">import</span> timedelta
+
+<span class="kw">from</span> app.dependencies <span class="kw">import</span> get_db
+<span class="kw">from</span> app.schemas.user <span class="kw">import</span> UserCreate, UserResponse
+<span class="kw">from</span> app.schemas.auth <span class="kw">import</span> TokenResponse
+<span class="kw">from</span> app.services.user_service <span class="kw">import</span> UserService
+<span class="kw">from</span> app.core.security <span class="kw">import</span> verify_password, create_access_token
+<span class="kw">from</span> app.core.config <span class="kw">import</span> settings
+
+router = <span class="fn">APIRouter</span>(prefix=<span class="str">"/auth"</span>, tags=[<span class="str">"auth"</span>])
+limiter = <span class="fn">Limiter</span>(key_func=get_remote_address)
+
+
+<span class="dec">@router.post</span>(<span class="str">"/register"</span>, response_model=UserResponse, status_code=<span class="num">201</span>)
+<span class="dec">@limiter.limit</span>(<span class="str">"3/hour"</span>)   <span class="cm"># anti-spam (Cap.04)</span>
+<span class="kw">async def</span> <span class="fn">register</span>(
+    user_data: UserCreate,
+    db: AsyncSession = <span class="fn">Depends</span>(get_db),
+):
+    svc = <span class="fn">UserService</span>(db)
+    <span class="cm"># Verificar duplicados</span>
+    <span class="kw">if await</span> svc.<span class="fn">get_by_email</span>(user_data.email):
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=<span class="str">"El email ya está registrado"</span>
+        )
+    <span class="kw">return await</span> svc.<span class="fn">create_user</span>(user_data)
+
+
+<span class="dec">@router.post</span>(<span class="str">"/login"</span>, response_model=TokenResponse)
+<span class="dec">@limiter.limit</span>(<span class="str">"5/minute"</span>)  <span class="cm"># brute force protection</span>
+<span class="kw">async def</span> <span class="fn">login</span>(
+    credentials: OAuth2PasswordRequestForm = <span class="fn">Depends</span>(),
+    db: AsyncSession = <span class="fn">Depends</span>(get_db),
+):
+    svc = <span class="fn">UserService</span>(db)
+    user = <span class="kw">await</span> svc.<span class="fn">get_by_email</span>(credentials.username)
+
+    <span class="cm"># Verificar user Y password (mismo tiempo para evitar timing attack)</span>
+    <span class="kw">if not</span> user <span class="kw">or not</span> <span class="fn">verify_password</span>(credentials.password, user.hashed_password):
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=<span class="str">"Credenciales inválidas"</span>,  <span class="cm"># no revelar cuál falló</span>
+            headers={<span class="str">"WWW-Authenticate"</span>: <span class="str">"Bearer"</span>},
+        )
+
+    expire = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    token = <span class="fn">create_access_token</span>(
+        data={<span class="str">"sub"</span>: <span class="fn">str</span>(user.id)},
+        expires_delta=<span class="fn">timedelta</span>(minutes=expire)
+    )
+
+    <span class="kw">return</span> <span class="fn">TokenResponse</span>(
+        access_token=token,
+        refresh_token=<span class="str">"..."</span>,  <span class="cm"># implementación completa en repo</span>
+        expires_in=expire * <span class="num">60</span>
+    )
+        </div>
+      </div>
+
+      <div class="file-pane" id="ftab-health">
+        <div class="code-block">
+<span class="cm"># app/routers/health.py — endpoint de salud del sistema</span>
+<span class="kw">from</span> fastapi <span class="kw">import</span> APIRouter, Depends
+<span class="kw">from</span> sqlalchemy.ext.asyncio <span class="kw">import</span> AsyncSession
+<span class="kw">from</span> sqlalchemy <span class="kw">import</span> text
+<span class="kw">import</span> time, platform, sys
+
+<span class="kw">from</span> app.dependencies <span class="kw">import</span> get_db
+<span class="kw">from</span> app.db.redis <span class="kw">import</span> get_redis
+<span class="kw">from</span> app.core.config <span class="kw">import</span> settings
+
+router = <span class="fn">APIRouter</span>(tags=[<span class="str">"health"</span>])
+
+START_TIME = <span class="fn">time.time</span>()
+
+
+<span class="dec">@router.get</span>(<span class="str">"/health"</span>)
+<span class="kw">async def</span> <span class="fn">health_check</span>(
+    db: AsyncSession = <span class="fn">Depends</span>(get_db),
+    redis = <span class="fn">Depends</span>(get_redis),
+):
+    <span class="cm">"""Health check completo. Usado por Docker y load balancers."""</span>
+    checks = {}
+
+    <span class="cm"># ── DB check</span>
+    <span class="kw">try</span>:
+        <span class="kw">await</span> db.<span class="fn">execute</span>(<span class="fn">text</span>(<span class="str">"SELECT 1"</span>))
+        checks[<span class="str">"database"</span>] = <span class="str">"ok"</span>
+    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+        checks[<span class="str">"database"</span>] = <span class="fn">f</span><span class="str">"error: {str(e)}"</span>
+
+    <span class="cm"># ── Redis check</span>
+    <span class="kw">try</span>:
+        <span class="kw">await</span> redis.<span class="fn">ping</span>()
+        checks[<span class="str">"redis"</span>] = <span class="str">"ok"</span>
+    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+        checks[<span class="str">"redis"</span>] = <span class="fn">f</span><span class="str">"error: {str(e)}"</span>
+
+    overall = <span class="str">"healthy"</span> <span class="kw">if all</span>(v == <span class="str">"ok"</span> <span class="kw">for</span> v <span class="kw">in</span> checks.<span class="fn">values</span>()) <span class="kw">else</span> <span class="str">"degraded"</span>
+
+    <span class="kw">return</span> {
+        <span class="str">"status"</span>: overall,
+        <span class="str">"version"</span>: settings.VERSION,
+        <span class="str">"environment"</span>: settings.ENVIRONMENT,
+        <span class="str">"uptime_seconds"</span>: <span class="fn">round</span>(<span class="fn">time.time</span>() - START_TIME, <span class="num">2</span>),
+        <span class="str">"checks"</span>: checks,
+        <span class="cm"># No revelar info del sistema en producción</span>
+        **(
+            {<span class="str">"python"</span>: sys.version, <span class="str">"platform"</span>: platform.system()}
+            <span class="kw">if</span> settings.DEBUG <span class="kw">else</span> {}
+        ),
+    }
+        </div>
+      </div>
+
+      <div class="file-pane" id="ftab-alembic">
+        <div class="code-block">
+<span class="cm"># alembic/env.py — configuración async para migraciones</span>
+<span class="kw">import</span> asyncio
+<span class="kw">from</span> logging.config <span class="kw">import</span> fileConfig
+<span class="kw">from</span> sqlalchemy.ext.asyncio <span class="kw">import</span> create_async_engine
+<span class="kw">from</span> alembic <span class="kw">import</span> context
+
+<span class="kw">from</span> app.core.config <span class="kw">import</span> settings
+<span class="kw">from</span> app.models <span class="kw">import</span> Base  <span class="cm"># importa todos los modelos</span>
+
+config = context.<span class="fn">config</span>
+<span class="kw">if</span> config.config_file_name <span class="kw">is not None</span>:
+    <span class="fn">fileConfig</span>(config.config_file_name)
+
+target_metadata = Base.metadata  <span class="cm"># detecta cambios en modelos</span>
+
+
+<span class="kw">async def</span> <span class="fn">run_migrations_online</span>():
+    engine = <span class="fn">create_async_engine</span>(settings.DATABASE_URL)
+    <span class="kw">async with</span> engine.<span class="fn">connect</span>() <span class="kw">as</span> conn:
+        <span class="kw">await</span> conn.<span class="fn">run_sync</span>(context.configure,
+            connection=conn,
+            target_metadata=target_metadata,
+            compare_type=<span class="kw">True</span>,  <span class="cm"># detecta cambios de tipo</span>
+        )
+        <span class="kw">async with</span> conn.<span class="fn">begin</span>():
+            <span class="kw">await</span> conn.<span class="fn">run_sync</span>(context.run_migrations)
+    <span class="kw">await</span> engine.<span class="fn">dispose</span>()
+
+<span class="fn">asyncio.run</span>(<span class="fn">run_migrations_online</span>())
+
+<span class="cm"># alembic/versions/001_create_users_table.py (generado)</span>
+<span class="cm"># Generar con: alembic revision --autogenerate -m "create users table"</span>
+<span class="cm"># Aplicar con:  alembic upgrade head</span>
+<span class="cm"># Revertir con: alembic downgrade -1</span>
+<span class="cm"># Ver historia: alembic history --verbose</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ PASOS PARA LEVANTAR ════ -->
+<section class="run-section" id="levantar">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 05 — de cero a funcionando</p>
+    <h2 class="sec-h2 fade-in">10 comandos<br>para <em>levantar todo</em></h2>
+
+    <div class="run-flow fade-in">
+      <div class="run-step">
+        <div class="run-num-col"><div class="run-num">01</div><div class="run-connector"></div></div>
+        <div class="run-content">
+          <div class="run-title">Instalar Poetry y crear el proyecto</div>
+          <div class="run-desc">Poetry gestiona dependencias con versiones exactas bloqueadas. Mejor que pip solo.</div>
+          <div class="run-cmd">
+            <span class="prompt">$</span> <span class="cmd">curl -sSL https://install.python-poetry.org | python3 -</span>
+            <span class="comment"># Luego:</span>
+            <span class="prompt">$</span> <span class="cmd">mkdir cipher-api && cd cipher-api</span>
+            <span class="prompt">$</span> <span class="cmd">poetry new . --name app</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="run-step">
+        <div class="run-num-col"><div class="run-num">02</div><div class="run-connector"></div></div>
+        <div class="run-content">
+          <div class="run-title">Agregar dependencias</div>
+          <div class="run-desc">Una línea instala y agrega al pyproject.toml automáticamente.</div>
+          <div class="run-cmd">
+            <span class="prompt">$</span> <span class="cmd">poetry add fastapi uvicorn[standard] sqlalchemy[asyncio]</span>
+            <span class="prompt">$</span> <span class="cmd">poetry add asyncpg alembic pydantic-settings passlib[bcrypt]</span>
+            <span class="prompt">$</span> <span class="cmd">poetry add python-jose[cryptography] redis slowapi loguru</span>
+            <span class="prompt">$</span> <span class="cmd">poetry add --group dev pytest pytest-asyncio httpx</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="run-step">
+        <div class="run-num-col"><div class="run-num">03</div><div class="run-connector"></div></div>
+        <div class="run-content">
+          <div class="run-title">Crear el archivo .env</div>
+          <div class="run-desc">Genera la SECRET_KEY con Python — nunca la escribas a mano.</div>
+          <div class="run-cmd">
+            <span class="prompt">$</span> <span class="cmd">cp .env.example .env</span>
+            <span class="prompt">$</span> <span class="cmd">python -c "import secrets; print(secrets.token_hex(32))"</span>
+            <span class="comment"># Copia el output como SECRET_KEY en .env</span>
+          </div>
+          <div class="run-output">
+ENVIRONMENT=development<br>
+SECRET_KEY=a3f2b1c4d5e6f7a8b9c0d1e2f3a4b5c6...<br>
+DB_NAME=cipher_db<br>
+DB_USER=cipher_user<br>
+DB_PASSWORD=<span style="color:var(--amber)">tu_password_seguro_aqui</span><br>
+REDIS_PASSWORD=<span style="color:var(--amber)">otro_password_seguro</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="run-step">
+        <div class="run-num-col"><div class="run-num">04</div><div class="run-connector"></div></div>
+        <div class="run-content">
+          <div class="run-title">Construir las imágenes Docker</div>
+          <div class="run-desc">La primera vez tarda ~2 minutos descargando Python, instalando dependencias. Las siguientes veces usa cache.</div>
+          <div class="run-cmd">
+            <span class="prompt">$</span> <span class="cmd">docker compose build</span>
+          </div>
+          <div class="run-output">
+[+] Building 34.2s<br>
+ => [db] pulling from library/postgres:16-alpine &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✓<br>
+ => [redis] pulling from library/redis:7-alpine &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✓<br>
+ => [app] COPY pyproject.toml poetry.lock &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✓<br>
+ => [app] RUN poetry install --without dev &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✓<br>
+ => [app] COPY ./app ./app &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;✓
+          </div>
+        </div>
+      </div>
+
+      <div class="run-step">
+        <div class="run-num-col"><div class="run-num">05</div><div class="run-connector"></div></div>
+        <div class="run-content">
+          <div class="run-title">Inicializar Alembic y crear la primera migración</div>
+          <div class="run-desc">Alembic lee tus modelos SQLAlchemy y genera el SQL para crear las tablas. Automáticamente.</div>
+          <div class="run-cmd">
+            <span class="prompt">$</span> <span class="cmd">docker compose run --rm app alembic init alembic</span>
+            <span class="prompt">$</span> <span class="cmd">docker compose run --rm app alembic revision --autogenerate \</span>
+            <span class="cmd">&nbsp;&nbsp;&nbsp;-m "create users table"</span>
+          </div>
+          <div class="run-output">
+Generating /app/alembic/versions/001_create_users_table.py ... done<br>
+<span style="color:var(--teal)">→ Revisa el archivo generado antes de aplicar</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="run-step">
+        <div class="run-num-col"><div class="run-num">06</div><div class="run-connector"></div></div>
+        <div class="run-content">
+          <div class="run-title">Levantar todos los servicios</div>
+          <div class="run-desc">Un comando levanta PostgreSQL, Redis y FastAPI. Docker Compose espera que DB esté healthy antes de arrancar la app.</div>
+          <div class="run-cmd">
+            <span class="prompt">$</span> <span class="cmd">docker compose up -d</span>
+          </div>
+          <div class="run-output">
+[+] Running 3/3<br>
+ ✔ Container cipher_db &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Started &nbsp;&nbsp;&nbsp;2.1s<br>
+ ✔ Container cipher_redis &nbsp;&nbsp; Started &nbsp;&nbsp;&nbsp;1.8s<br>
+ ✔ Container cipher_app &nbsp;&nbsp;&nbsp;&nbsp; Started &nbsp;&nbsp;&nbsp;4.3s<br>
+<br>
+<span style="color:var(--teal)">INFO:     Uvicorn running on http://0.0.0.0:8000</span><br>
+<span style="color:var(--teal)">INFO:     Started reloader process using WatchFiles</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="run-step">
+        <div class="run-num-col"><div class="run-num">07</div><div class="run-connector"></div></div>
+        <div class="run-content">
+          <div class="run-title">Verificar que todo funciona</div>
+          <div class="run-desc">El endpoint /health verifica la conexión a DB y Redis en tiempo real.</div>
+          <div class="run-cmd">
+            <span class="prompt">$</span> <span class="cmd">curl http://localhost:8000/health | python3 -m json.tool</span>
+          </div>
+          <div class="run-output">
+{<br>
+&nbsp;&nbsp;"status": <span style="color:var(--green)">"healthy"</span>,<br>
+&nbsp;&nbsp;"version": "0.1.0",<br>
+&nbsp;&nbsp;"environment": "development",<br>
+&nbsp;&nbsp;"uptime_seconds": 12.4,<br>
+&nbsp;&nbsp;"checks": {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"database": <span style="color:var(--green)">"ok"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"redis": <span style="color:var(--green)">"ok"</span><br>
+&nbsp;&nbsp;}<br>
+}
+          </div>
+        </div>
+      </div>
+
+      <div class="run-step">
+        <div class="run-num-col"><div class="run-num">08</div><div class="run-connector"></div></div>
+        <div class="run-content">
+          <div class="run-title">Probar el registro y login</div>
+          <div class="run-desc">Tu primera request real contra tu API propia con PostgreSQL de verdad.</div>
+          <div class="run-cmd">
+            <span class="prompt">$</span> <span class="cmd">curl -X POST http://localhost:8000/api/v1/auth/register \</span>
+            <span class="cmd">&nbsp;&nbsp;-H "Content-Type: application/json" \</span>
+            <span class="cmd">&nbsp;&nbsp;-d '{"email":"yo@test.com","username":"cipher_dev","password":"Secret123!"}'</span>
+          </div>
+          <div class="run-output">
+{<br>
+&nbsp;&nbsp;"id": 1,<br>
+&nbsp;&nbsp;"email": "yo@test.com",<br>
+&nbsp;&nbsp;"username": "cipher_dev",<br>
+&nbsp;&nbsp;"is_active": true,<br>
+&nbsp;&nbsp;"is_admin": false,<br>
+&nbsp;&nbsp;"created_at": "2026-04-15T..."<br>
+}<br>
+<span style="color:var(--teal)">← password NUNCA aparece en la respuesta</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="run-step">
+        <div class="run-num-col"><div class="run-num">09</div><div class="run-connector"></div></div>
+        <div class="run-content">
+          <div class="run-title">Ver los logs en tiempo real</div>
+          <div class="run-desc">Seguir logs de todos los contenedores o solo uno.</div>
+          <div class="run-cmd">
+            <span class="prompt">$</span> <span class="cmd">docker compose logs -f app</span>
+            <span class="comment"># Solo FastAPI · -f = follow (tiempo real)</span>
+            <span class="prompt">$</span> <span class="cmd">docker compose logs -f db</span>
+            <span class="comment"># Solo PostgreSQL</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="run-step">
+        <div class="run-num-col"><div class="run-num">10</div><div class="run-connector"></div></div>
+        <div class="run-content">
+          <div class="run-title">Comandos esenciales del día a día</div>
+          <div class="run-desc">Los comandos que usarás en cada sesión de desarrollo.</div>
+          <div class="run-cmd">
+            <span class="prompt">$</span> <span class="cmd">docker compose up -d</span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# levantar todo</span>
+            <span class="prompt">$</span> <span class="cmd">docker compose down</span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# parar todo</span>
+            <span class="prompt">$</span> <span class="cmd">docker compose down -v</span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# parar + borrar volumes (reset DB)</span>
+            <span class="prompt">$</span> <span class="cmd">docker compose restart app</span><span class="comment">&nbsp;&nbsp;&nbsp;&nbsp;# reiniciar solo FastAPI</span>
+            <span class="prompt">$</span> <span class="cmd">docker compose exec app bash</span><span class="comment">&nbsp;&nbsp;# shell dentro del container</span>
+            <span class="prompt">$</span> <span class="cmd">docker compose exec db psql -U cipher_user cipher_db</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ MIGRACIONES ════ -->
+<section class="migration-section" id="migraciones">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 06 — control de esquema</p>
+    <h2 class="sec-h2 fade-in">Alembic: tu DB<br><em>nunca más a mano</em></h2>
+    <p class="sec-sub fade-in">Cada cambio en tus modelos SQLAlchemy se convierte en una migración versionada. Como Git, pero para la base de datos.</p>
+
+    <div class="migration-visual fade-in">
+      <div class="mig-step">
+        <div class="mig-label">
+          <div class="mig-cmd-label">Cuando</div>
+          <div class="mig-cmd-text">cambias un modelo</div>
+        </div>
+        <div class="mig-content">Añades <strong>is_verified</strong> al modelo <code style="color:var(--teal)">User</code>. Alembic detecta el cambio automáticamente comparando el modelo con el estado actual de la DB.</div>
+      </div>
+      <div class="mig-step">
+        <div class="mig-label">
+          <div class="mig-cmd-label">Comando</div>
+          <div class="mig-cmd-text">autogenerate</div>
+        </div>
+        <div class="mig-content">
+          <code style="color:var(--amber)">alembic revision --autogenerate -m "add is_verified to users"</code><br>
+          Genera automáticamente el archivo de migración con el SQL para <strong>upgrade</strong> (aplicar) y <strong>downgrade</strong> (revertir).
+        </div>
+      </div>
+      <div class="mig-step">
+        <div class="mig-label">
+          <div class="mig-cmd-label">Revisa</div>
+          <div class="mig-cmd-text">el SQL generado</div>
+        </div>
+        <div class="mig-content">
+          Siempre revisa el archivo antes de aplicar. Alembic a veces necesita ajustes para casos complejos como renombrar columnas o constraints.
+        </div>
+      </div>
+      <div class="mig-step">
+        <div class="mig-label">
+          <div class="mig-cmd-label">Aplica</div>
+          <div class="mig-cmd-text">upgrade head</div>
+        </div>
+        <div class="mig-content">
+          <code style="color:var(--teal)">alembic upgrade head</code> — aplica todas las migraciones pendientes en orden. En docker-compose, esto corre automáticamente al iniciar la app.
+        </div>
+      </div>
+      <div class="mig-step">
+        <div class="mig-label">
+          <div class="mig-cmd-label">Si algo falla</div>
+          <div class="mig-cmd-text">downgrade</div>
+        </div>
+        <div class="mig-content">
+          <code style="color:var(--red)">alembic downgrade -1</code> revierte la última migración. <code style="color:var(--red)">alembic downgrade base</code> vuelve al estado inicial. Git para tu DB.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ ENV SECURITY ════ -->
+<section class="env-section" id="env">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 07 — variables de entorno</p>
+    <h2 class="sec-h2 fade-in">El <em>.env</em> correcto<br>vs el peligroso</h2>
+    <p class="sec-sub fade-in">Un .env comprometido = sistema comprometido. Estas son las diferencias que importan.</p>
+
+    <div class="env-grid fade-in">
+      <div class="env-col">
+        <div class="env-col-title bad-title">✗ Peligroso — errores comunes</div>
+        <div class="env-file">
+<span class="ev-cm"># ❌ Secretos débiles</span>
+<span class="ev">SECRET_KEY</span>=<span class="ev-danger">mysecret</span>
+<span class="ev">DB_PASSWORD</span>=<span class="ev-danger">password</span>
+<span class="ev">REDIS_PASSWORD</span>=<span class="ev-danger">1234</span>
+
+<span class="ev-cm"># ❌ Commitear .env a git</span>
+<span class="ev-danger"># .gitignore SIN .env</span>
+
+<span class="ev-cm"># ❌ Modo debug en producción</span>
+<span class="ev">DEBUG</span>=<span class="ev-danger">True</span>
+<span class="ev">ENVIRONMENT</span>=<span class="ev-danger">production</span>
+
+<span class="ev-cm"># ❌ DB expuesta al internet</span>
+<span class="ev-danger">DB_HOST=0.0.0.0  # acceso externo!</span>
+
+<span class="ev-cm"># ❌ CORS abierto en producción</span>
+<span class="ev">CORS_ORIGINS</span>=<span class="ev-danger">["*"]</span>
+        </div>
+      </div>
+      <div class="env-col">
+        <div class="env-col-title good-title">✓ Seguro — mejores prácticas</div>
+        <div class="env-file">
+<span class="ev-cm"># ✓ Secretos generados criptográficamente</span>
+<span class="ev">SECRET_KEY</span>=<span class="ev-val">a3f2b1c4d5e6f7a8b9c0d1e2f3a4b5c6...</span>
+<span class="ev">DB_PASSWORD</span>=<span class="ev-val">Xk9#mP2$nL7@qR4!</span>
+<span class="ev">REDIS_PASSWORD</span>=<span class="ev-val">Yt6^bN3*wQ8&vJ5~</span>
+
+<span class="ev-cm"># ✓ .gitignore incluye .env</span>
+<span class="ev-val">.env en .gitignore ← siempre</span>
+
+<span class="ev-cm"># ✓ Debug desactivado en producción</span>
+<span class="ev">DEBUG</span>=<span class="ev-val">False</span>
+<span class="ev">ENVIRONMENT</span>=<span class="ev-val">production</span>
+
+<span class="ev-cm"># ✓ DB solo accesible internamente</span>
+<span class="ev">DB_HOST</span>=<span class="ev-val">db</span>  <span class="ev-cm"># nombre del container</span>
+
+<span class="ev-cm"># ✓ CORS específico</span>
+<span class="ev">CORS_ORIGINS</span>=<span class="ev-val">["https://tudominio.com"]</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:2rem;border:1px solid rgba(0,212,170,0.12);padding:1.5rem;background:rgba(0,212,170,0.02);font-family:var(--mono);font-size:0.72rem;line-height:1.8;color:rgba(232,230,223,0.6)" class="fade-in">
+      <span style="color:var(--teal)">REGLA DE ORO:</span> El .env.example se commitea a Git con todos los keys pero SIN valores. El .env real nunca toca Git. En producción (Render/Railway/DigitalOcean), configuras las variables directamente en el panel del proveedor — sin archivos .env en el servidor.
+    </div>
+  </div>
+</section>
+
+<!-- ════ HEALTH DASHBOARD ════ -->
+<section class="health-section">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 08 — monitoreo</p>
+    <h2 class="sec-h2 fade-in">Tu stack en<br><em>tiempo real</em></h2>
+    <p class="sec-sub fade-in">Lo que verías en el dashboard de tu API una vez levantada. Cada dato viene de un endpoint real.</p>
+
+    <div class="health-grid fade-in">
+      <div class="health-panel">
+        <div class="health-head">
+          <span class="health-title">GET /health</span>
+          <span class="health-status">● HEALTHY</span>
+        </div>
+        <div class="health-body">
+          <div><span class="health-key">status</span>: <span class="health-val-ok">"healthy"</span></div>
+          <div><span class="health-key">version</span>: <span class="health-val">"0.1.0"</span></div>
+          <div><span class="health-key">environment</span>: <span class="health-val">"development"</span></div>
+          <div><span class="health-key">uptime_seconds</span>: <span class="health-val-ok">3847.2</span></div>
+          <div class="health-sep"></div>
+          <div><span class="health-key">checks.database</span>: <span class="health-val-ok">"ok"</span></div>
+          <div><span class="health-key">checks.redis</span>: <span class="health-val-ok">"ok"</span></div>
+        </div>
+      </div>
+
+      <div class="health-panel">
+        <div class="health-head">
+          <span class="health-title">docker compose ps</span>
+          <span class="health-status">3/3 RUNNING</span>
+        </div>
+        <div class="health-body">
+          <div><span class="health-key">cipher_db</span>: <span class="health-val-ok">healthy</span> <span class="health-val">(postgres:16)</span></div>
+          <div><span class="health-key">cipher_redis</span>: <span class="health-val-ok">healthy</span> <span class="health-val">(redis:7)</span></div>
+          <div><span class="health-key">cipher_app</span>: <span class="health-val-ok">running</span> <span class="health-val">(python:3.11)</span></div>
+          <div class="health-sep"></div>
+          <div><span class="health-key">port 8000</span>: <span class="health-val-ok">0.0.0.0 → container</span></div>
+          <div><span class="health-key">port 5432</span>: <span class="health-val-warn">127.0.0.1 only ✓</span></div>
+          <div><span class="health-key">port 6379</span>: <span class="health-val-warn">127.0.0.1 only ✓</span></div>
+        </div>
+      </div>
+
+      <div class="health-panel">
+        <div class="health-head">
+          <span class="health-title">PostgreSQL stats</span>
+          <span class="health-status">● CONNECTED</span>
+        </div>
+        <div class="health-body">
+          <div><span class="health-key">db</span>: <span class="health-val">cipher_db</span></div>
+          <div><span class="health-key">tables</span>: <span class="health-val-ok">users, alembic_version</span></div>
+          <div><span class="health-key">connections</span>: <span class="health-val">3 / 100</span></div>
+          <div><span class="health-key">pool_size</span>: <span class="health-val">10</span></div>
+          <div class="health-sep"></div>
+          <div><span class="health-key">last migration</span>: <span class="health-val-ok">001_create_users</span></div>
+          <div><span class="health-key">migration status</span>: <span class="health-val-ok">up to date ✓</span></div>
+        </div>
+      </div>
+
+      <div class="health-panel">
+        <div class="health-head">
+          <span class="health-title">Alembic history</span>
+          <span class="health-status">HEAD</span>
+        </div>
+        <div class="health-body">
+          <div><span class="health-key" style="color:var(--green)">001</span> <span class="health-val">create_users_table</span> <span class="health-val-ok">← head</span></div>
+          <div class="health-sep"></div>
+          <div style="font-family:var(--mono);font-size:0.65rem;color:var(--gray)">→ next: agregar campos</div>
+          <div style="font-family:var(--mono);font-size:0.65rem;color:var(--gray)">→ 002_add_posts_table</div>
+          <div style="font-family:var(--mono);font-size:0.65rem;color:var(--gray)">→ 003_add_refresh_tokens</div>
+          <div class="health-sep"></div>
+          <div><span class="health-key">cmd</span>: <span style="color:var(--amber);font-size:0.7rem">alembic history -v</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ CHECKLIST ════ -->
+<section class="checklist-section">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// sección 09 — antes de hacer deploy</p>
+    <h2 class="sec-h2 fade-in">Checklist de<br><em>producción</em></h2>
+    <p class="sec-sub fade-in">Haz click en cada item al completarlo. Tu stack no sale a producción sin esto.</p>
+
+    <div class="checklist fade-in">
+      <div class="check-group">
+        <h3>Docker & Infraestructura</h3>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> Imagen con usuario no-root (appuser)</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> Multi-stage Dockerfile (build ≠ runtime)</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> PostgreSQL solo en 127.0.0.1 (no 0.0.0.0)</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> Redis solo en 127.0.0.1</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> Healthchecks en todos los servicios</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> Volume para datos de PostgreSQL</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> restart: unless-stopped en todos</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> .env en .gitignore verificado</div>
+      </div>
+      <div class="check-group">
+        <h3>FastAPI & Seguridad</h3>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> docs_url=None en producción</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> SECRET_KEY de 256+ bits (secrets.token_hex)</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> bcrypt rounds ≥ 12</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> JWT con expiración + algoritmo explícito</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> Rate limiting en /auth/* endpoints</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> Security headers middleware activo</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> CORS_ORIGINS específico (no *)</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div> Alembic migrations aplicadas (upgrade head)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOG -->
+<section class="log-section">
+  <div class="log-entry">
+    <div class="log-date">ENTRADA #005 — CAPÍTULO 05 COMPLETADO</div>
+    <p>
+      Hoy el stack dejó de ser teoría. Con un solo <code style="color:var(--teal)">docker compose up -d</code>, FastAPI, PostgreSQL y Redis están corriendo, hablándose por una red privada interna, con datos que persisten en volúmenes y health checks que confirman que todo está vivo. Lo más revelador: los puertos 5432 y 6379 solo son accesibles desde mi máquina — desde internet, no existen.
+    </p>
+    <p>
+      Poetry lockea las versiones exactas. Alembic versiona el esquema de la DB como Git versiona el código. Pydantic valida que ningún input malformado llegue al servicio. La contraseña que el usuario escribe nunca se guarda — lo que llega a PostgreSQL es el hash bcrypt de 60 caracteres. La base está. Ahora toca iterar.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-brand">CIPHER</div>
+  <div class="chapter-nav">
+    <a href="cybersec_chapter4.html" class="ch-link prev">
+      <span class="ch-label">← Anterior</span>
+      <span class="ch-title">04 — Ethical Hacking</span>
+    </a>
+    <a href="#" class="ch-link">
+      <span class="ch-label">Próximo →</span>
+      <span class="ch-title">06 — Deploy & CI/CD</span>
+    </a>
+  </div>
+</footer>
+<div class="footer-copy">CIPHER DOC — Capítulo 05: Docker + FastAPI + PostgreSQL · Stack real funcionando · Construido con Claude Pro</div>
+
+<script>
+// ── Hero: container blocks floating
+const canvas = document.getElementById('hero-canvas');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+resize(); addEventListener('resize', () => { resize(); initBlocks(); });
+
+const COLORS = ['rgba(0,212,170,', 'rgba(36,150,237,', 'rgba(51,103,145,', 'rgba(255,212,59,'];
+const LABELS = ['FastAPI', 'PostgreSQL', 'Redis', 'Docker', 'Python', 'Alembic', 'Uvicorn', 'Poetry'];
+let blocks = [];
+
+function initBlocks(){
+  blocks = Array.from({length: 18}, (_, i) => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    w: 80 + Math.random() * 80,
+    h: 30 + Math.random() * 20,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.2,
+    color: COLORS[i % COLORS.length],
+    label: LABELS[i % LABELS.length],
+    alpha: 0.06 + Math.random() * 0.1,
+  }));
+}
+initBlocks();
+
+function drawBlocks(){
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // grid
+  ctx.strokeStyle = 'rgba(0,212,170,0.03)';
+  ctx.lineWidth = 0.5;
+  for(let x = 0; x < canvas.width; x += 50){
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+  }
+  for(let y = 0; y < canvas.height; y += 50){
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  }
+
+  // draw blocks
+  blocks.forEach(b => {
+    ctx.fillStyle = b.color + b.alpha + ')';
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+    ctx.strokeStyle = b.color + (b.alpha * 3) + ')';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(b.x, b.y, b.w, b.h);
+
+    ctx.fillStyle = b.color + (b.alpha * 5) + ')';
+    ctx.font = '9px Share Tech Mono';
+    ctx.fillText(b.label, b.x + 8, b.y + 19);
+
+    // update
+    b.x += b.vx; b.y += b.vy;
+    if(b.x < -b.w) b.x = canvas.width;
+    if(b.x > canvas.width) b.x = -b.w;
+    if(b.y < -b.h) b.y = canvas.height;
+    if(b.y > canvas.height) b.y = -b.h;
+  });
+
+  requestAnimationFrame(drawBlocks);
+}
+drawBlocks();
+
+// ── File tabs
+document.querySelectorAll('.file-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.file-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.file-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('ftab-' + tab.dataset.ftab).classList.add('active');
+  });
+});
+
+// ── Scroll animations
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.06, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.fade-in').forEach((el, i) => {
+  el.style.transitionDelay = `${(i % 5) * 0.07}s`;
+  obs.observe(el);
+});
+</script>
+</body>
+</html>
