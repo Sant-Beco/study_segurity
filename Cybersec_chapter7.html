@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIPHER &#8212; Cap. 07: Monitoreo &amp; Respuesta a Incidentes</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#05060a;--cyan:#00cfff;--cyan2:rgba(0,207,255,0.08);
+  --green:#06d6a0;--red:#ef233c;--amber:#ffb347;--purple:#c77dff;
+  --orange:#ff6b35;--white:#eae8e0;--gray:#484860;
+  --mono:'Share Tech Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+  --body:'Crimson Pro',Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:var(--body);font-weight:300;line-height:1.7;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(
+  0deg,transparent,transparent 2px,rgba(0,207,255,0.006) 2px,rgba(0,207,255,0.006) 4px
+);pointer-events:none;z-index:9999}
+ 
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;
+  justify-content:space-between;padding:1.2rem 3rem;
+  background:linear-gradient(to bottom,rgba(5,6,10,0.98),transparent);
+  border-bottom:1px solid rgba(0,207,255,0.08)}
+.nav-logo{font-family:var(--display);font-size:1.8rem;letter-spacing:0.3em;color:var(--cyan);text-decoration:none}
+.nav-logo span{color:var(--white)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{font-family:var(--mono);font-size:0.68rem;color:var(--gray);text-decoration:none;
+  letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s}
+.nav-links a:hover{color:var(--cyan)}
+.nav-prev{font-family:var(--mono);font-size:0.65rem;color:var(--gray);text-decoration:none;transition:color 0.2s}
+.nav-prev:hover{color:var(--white)}
+ 
+/* HERO */
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;position:relative;overflow:hidden}
+.hero-left{display:flex;flex-direction:column;justify-content:flex-end;padding:8rem 3rem 5rem;
+  position:relative;z-index:2;background:linear-gradient(135deg,rgba(0,207,255,0.02),transparent 60%)}
+.hero-right{position:relative;overflow:hidden}
+#hero-canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-right-overlay{position:absolute;inset:0;background:linear-gradient(to right,var(--black) 0%,transparent 25%)}
+.chapter-tag{font-family:var(--mono);font-size:0.65rem;color:var(--cyan);letter-spacing:0.3em;
+  text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem}
+.chapter-tag::after{content:'';flex:0 0 40px;height:1px;background:var(--cyan)}
+.hero h1{font-family:var(--display);font-size:clamp(3.5rem,8.5vw,9rem);line-height:0.88;
+  letter-spacing:0.02em;color:var(--white)}
+.hero h1 .c{color:var(--cyan)}.hero h1 .r{color:var(--red)}
+.hero-sub{font-size:1.1rem;color:rgba(234,232,224,0.45);line-height:1.85;font-style:italic;
+  margin-top:1.5rem;max-width:480px}
+.hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-top:2rem}
+.hstat{border:1px solid rgba(0,207,255,0.15);padding:1rem 1.2rem;background:rgba(0,207,255,0.03)}
+.hstat-num{font-family:var(--display);font-size:2rem;line-height:1;letter-spacing:0.02em}
+.hstat-label{font-family:var(--mono);font-size:0.58rem;color:var(--gray);letter-spacing:0.12em;
+  text-transform:uppercase;margin-top:0.3rem}
+ 
+/* SHARED */
+.section{padding:8rem 3rem;position:relative}
+.section-inner{max-width:1100px;margin:0 auto}
+.sec-label{font-family:var(--mono);font-size:0.6rem;color:var(--cyan);letter-spacing:0.35em;
+  text-transform:uppercase;margin-bottom:1rem}
+.sec-h2{font-family:var(--display);font-size:clamp(2.5rem,5vw,5rem);letter-spacing:0.04em;
+  line-height:1.05;color:var(--white)}
+.sec-h2 em{font-style:normal;color:var(--cyan)}
+.sec-sub{font-size:1.05rem;color:rgba(234,232,224,0.4);font-style:italic;margin-top:0.8rem;max-width:620px}
+.fade-in{opacity:0;transform:translateY(16px);transition:opacity 0.6s,transform 0.6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+ 
+/* LOG STREAM TERMINAL */
+.terminal-wrap{margin-top:3rem;border:1px solid rgba(0,207,255,0.15);background:rgba(5,6,10,0.95);
+  overflow:hidden;box-shadow:0 0 60px rgba(0,207,255,0.04)}
+.term-head{background:rgba(0,207,255,0.05);border-bottom:1px solid rgba(0,207,255,0.1);
+  padding:0.7rem 1.2rem;display:flex;align-items:center;gap:0.6rem}
+.tdot{width:10px;height:10px;border-radius:50%}
+.tdot.r{background:#ff5f57}.tdot.y{background:#febc2e}.tdot.g{background:#28c840}
+.term-title{font-family:var(--mono);font-size:0.62rem;color:var(--gray);letter-spacing:0.1em;margin-left:0.5rem}
+.term-live{font-family:var(--mono);font-size:0.58rem;color:var(--green);margin-left:auto;
+  display:flex;align-items:center;gap:0.4rem}
+.term-live::before{content:'';width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite}
+.term-body{padding:1.5rem 2rem;font-family:var(--mono);font-size:0.75rem;line-height:2;height:320px;
+  overflow-y:auto;display:flex;flex-direction:column;gap:0}
+.term-body::-webkit-scrollbar{width:3px}
+.term-body::-webkit-scrollbar-thumb{background:rgba(0,207,255,0.2)}
+.log-line{display:flex;align-items:flex-start;gap:0.8rem;padding:0.15rem 0;animation:slideIn 0.3s ease}
+.log-time{color:var(--gray);flex-shrink:0;user-select:none}
+.log-level{flex-shrink:0;font-size:0.65rem;padding:0.05rem 0.3rem;letter-spacing:0.05em;min-width:48px;text-align:center}
+.ll-info{background:rgba(0,207,255,0.1);color:var(--cyan)}.ll-warn{background:rgba(255,179,71,0.1);color:var(--amber)}
+.ll-error{background:rgba(239,35,60,0.12);color:var(--red)}.ll-crit{background:rgba(239,35,60,0.2);color:var(--red)}
+.ll-ok{background:rgba(6,214,160,0.1);color:var(--green)}
+.log-msg{color:rgba(234,232,224,0.65)}
+.log-key{color:var(--cyan)}.log-val{color:rgba(234,232,224,0.85)}
+.log-highlight{color:var(--amber)}.log-danger{color:var(--red)}
+.term-controls{padding:0.8rem 1.5rem;border-top:1px solid rgba(0,207,255,0.08);
+  display:flex;gap:0.8rem;align-items:center;background:rgba(0,207,255,0.02)}
+.ctrl-btn{font-family:var(--mono);font-size:0.62rem;padding:0.3rem 0.9rem;cursor:pointer;
+  border:1px solid rgba(0,207,255,0.2);color:var(--cyan);background:transparent;
+  letter-spacing:0.1em;text-transform:uppercase;transition:all 0.2s}
+.ctrl-btn:hover{background:rgba(0,207,255,0.08)}
+.ctrl-btn.active{background:rgba(0,207,255,0.12);border-color:rgba(0,207,255,0.4)}
+.ctrl-filter{margin-left:auto;font-family:var(--mono);font-size:0.62rem;color:var(--gray)}
+ 
+/* ALERT RULES */
+.alert-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem;margin-top:4rem}
+.alert-card{border:1px solid rgba(255,255,255,0.05);padding:2rem;position:relative;
+  transition:border-color 0.3s;overflow:hidden}
+.alert-card:hover{border-color:rgba(0,207,255,0.15)}
+.alert-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.ac-crit::before{background:var(--red)}.ac-high::before{background:var(--amber)}
+.ac-med::before{background:var(--cyan)}.ac-info::before{background:var(--green)}
+.alert-sev{font-family:var(--mono);font-size:0.55rem;padding:0.15rem 0.4rem;
+  letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.8rem;display:inline-block}
+.as-c{background:rgba(239,35,60,0.1);border:1px solid rgba(239,35,60,0.25);color:var(--red)}
+.as-h{background:rgba(255,179,71,0.1);border:1px solid rgba(255,179,71,0.25);color:var(--amber)}
+.as-m{background:rgba(0,207,255,0.08);border:1px solid rgba(0,207,255,0.2);color:var(--cyan)}
+.as-i{background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.15);color:var(--green)}
+.alert-name{font-family:var(--mono);font-size:0.78rem;color:var(--white);letter-spacing:0.08em;
+  margin-bottom:0.4rem}
+.alert-condition{font-family:var(--mono);font-size:0.68rem;color:var(--amber);margin-bottom:0.8rem;
+  padding:0.4rem 0.8rem;background:rgba(255,179,71,0.05);border:1px solid rgba(255,179,71,0.1)}
+.alert-desc{font-size:0.9rem;color:rgba(234,232,224,0.45);line-height:1.6}
+.alert-action{margin-top:0.8rem;font-family:var(--mono);font-size:0.65rem;color:var(--cyan)}
+ 
+/* INCIDENT TIMELINE */
+.incident-timeline{margin-top:4rem;position:relative}
+.incident-timeline::before{content:'';position:absolute;left:120px;top:0;bottom:0;
+  width:1px;background:linear-gradient(to bottom,transparent,rgba(239,35,60,0.3) 5%,rgba(239,35,60,0.3) 95%,transparent)}
+.incident-row{display:grid;grid-template-columns:120px 1fr;margin-bottom:0;position:relative}
+.inc-time{font-family:var(--mono);font-size:0.65rem;text-align:right;padding-right:1.5rem;
+  padding-top:1.2rem;color:var(--gray)}
+.inc-time.t-impact{color:var(--red)}
+.inc-time.t-detect{color:var(--amber)}
+.inc-time.t-resolve{color:var(--green)}
+.inc-content{border:1px solid rgba(255,255,255,0.04);border-top:none;padding:1.2rem 1.5rem;
+  position:relative;transition:background 0.2s}
+.incident-row:first-child .inc-content{border-top:1px solid rgba(255,255,255,0.04)}
+.incident-row:hover .inc-content{background:rgba(0,207,255,0.01)}
+.inc-content::before{content:'';position:absolute;left:-5px;top:1.2rem;
+  width:9px;height:9px;border-radius:50%;border:1px solid;background:var(--black)}
+.phase-impact .inc-content::before{border-color:var(--red);box-shadow:0 0 8px rgba(239,35,60,0.4)}
+.phase-detect .inc-content::before{border-color:var(--amber)}
+.phase-contain .inc-content::before{border-color:var(--cyan)}
+.phase-analyze .inc-content::before{border-color:var(--purple)}
+.phase-resolve .inc-content::before{border-color:var(--green);background:var(--green);
+  box-shadow:0 0 8px rgba(6,214,160,0.4)}
+.phase-learn .inc-content::before{border-color:var(--cyan)}
+.inc-phase{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;
+  margin-bottom:0.3rem}
+.phase-impact .inc-phase{color:var(--red)}.phase-detect .inc-phase{color:var(--amber)}
+.phase-contain .inc-phase{color:var(--cyan)}.phase-analyze .inc-phase{color:var(--purple)}
+.phase-resolve .inc-phase{color:var(--green)}.phase-learn .inc-phase{color:var(--cyan)}
+.inc-title{font-family:var(--mono);font-size:0.78rem;color:var(--white);margin-bottom:0.4rem;letter-spacing:0.04em}
+.inc-desc{font-size:0.9rem;color:rgba(234,232,224,0.5);line-height:1.6}
+.inc-cmd{margin-top:0.6rem;font-family:var(--mono);font-size:0.68rem;color:var(--cyan);
+  background:rgba(0,207,255,0.04);border:1px solid rgba(0,207,255,0.1);
+  padding:0.5rem 0.8rem;line-height:1.7}
+ 
+/* SENTRY ANATOMY */
+.sentry-anatomy{margin-top:4rem;border:1px solid rgba(199,125,255,0.15);overflow:hidden}
+.sentry-head{background:rgba(199,125,255,0.05);border-bottom:1px solid rgba(199,125,255,0.1);
+  padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.sentry-title{font-family:var(--mono);font-size:0.7rem;color:var(--purple);letter-spacing:0.15em;text-transform:uppercase}
+.sentry-body{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.sentry-col{padding:2rem}
+.sentry-col+.sentry-col{border-left:1px solid rgba(199,125,255,0.08)}
+.sentry-field{margin-bottom:1rem}
+.sf-label{font-family:var(--mono);font-size:0.58rem;color:var(--gray);letter-spacing:0.15em;
+  text-transform:uppercase;display:block;margin-bottom:0.3rem}
+.sf-value{font-family:var(--mono);font-size:0.78rem;line-height:1.6}
+.sfv-error{color:var(--red)}.sfv-path{color:var(--cyan)}.sfv-user{color:var(--purple)}
+.sfv-neutral{color:rgba(234,232,224,0.6)}.sfv-ok{color:var(--green)}
+.stacktrace{background:rgba(5,6,10,0.8);border:1px solid rgba(255,255,255,0.06);
+  padding:1rem;font-family:var(--mono);font-size:0.68rem;line-height:1.8;overflow-x:auto;margin-top:0.5rem}
+.st-file{color:var(--cyan)}.st-line{color:var(--amber)}.st-code{color:rgba(234,232,224,0.5)}
+.st-highlight{color:var(--white);font-weight:bold}
+ 
+/* METRICS DASHBOARD */
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:rgba(0,207,255,0.06);margin-top:4rem}
+.metric-card{background:var(--black);padding:2rem;text-align:center;transition:background 0.3s}
+.metric-card:hover{background:rgba(0,207,255,0.02)}
+.metric-val{font-family:var(--display);font-size:2.5rem;line-height:1;margin-bottom:0.4rem}
+.mv-good{color:var(--green)}.mv-warn{color:var(--amber)}.mv-bad{color:var(--red)}.mv-neutral{color:var(--cyan)}
+.metric-label{font-family:var(--mono);font-size:0.58rem;color:var(--gray);letter-spacing:0.12em;text-transform:uppercase}
+.metric-trend{font-family:var(--mono);font-size:0.65rem;margin-top:0.4rem}
+.mt-up{color:var(--red)}.mt-down{color:var(--green)}.mt-stable{color:var(--gray)}
+ 
+/* RUNBOOK */
+.runbook-section{background:linear-gradient(to bottom,transparent,rgba(239,35,60,0.01),transparent)}
+.runbook-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.5rem;margin-top:4rem}
+.runbook-card{border:1px solid rgba(255,255,255,0.05);padding:2rem;position:relative;
+  overflow:hidden;transition:border-color 0.3s}
+.runbook-card:hover{border-color:rgba(0,207,255,0.15)}
+.runbook-num{font-family:var(--display);font-size:3.5rem;color:rgba(0,207,255,0.06);
+  position:absolute;top:0.5rem;right:1rem;line-height:1}
+.runbook-tag{font-family:var(--mono);font-size:0.55rem;padding:0.15rem 0.5rem;
+  letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.8rem;display:inline-block}
+.rt-crit{background:rgba(239,35,60,0.1);border:1px solid rgba(239,35,60,0.25);color:var(--red)}
+.rt-perf{background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.2);color:var(--amber)}
+.rt-sec{background:rgba(0,207,255,0.06);border:1px solid rgba(0,207,255,0.2);color:var(--cyan)}
+.runbook-title{font-family:var(--mono);font-size:0.78rem;color:var(--white);
+  letter-spacing:0.08em;margin-bottom:0.6rem}
+.runbook-steps{display:flex;flex-direction:column;gap:0.3rem}
+.rb-step{font-family:var(--mono);font-size:0.65rem;color:rgba(234,232,224,0.45);
+  display:flex;align-items:flex-start;gap:0.5rem;line-height:1.5}
+.rb-n{color:var(--cyan);flex-shrink:0}
+ 
+/* CODE */
+.code-tabs{display:flex;flex-wrap:wrap;gap:0;margin-top:4rem;border-bottom:1px solid rgba(255,255,255,0.06)}
+.code-tab{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;
+  padding:0.7rem 1.2rem;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;
+  transition:all 0.2s;white-space:nowrap}
+.code-tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.code-tab:hover{color:var(--white)}
+.code-pane{display:none}.code-pane.active{display:block}
+.code-block{background:rgba(5,6,10,0.97);border:1px solid rgba(255,255,255,0.06);border-top:none;
+  padding:2rem;font-family:var(--mono);font-size:0.76rem;line-height:1.95;overflow-x:auto;
+  max-height:560px;overflow-y:auto}
+.code-block::-webkit-scrollbar{width:3px;height:3px}
+.code-block::-webkit-scrollbar-thumb{background:rgba(0,207,255,0.2);border-radius:2px}
+.code-block pre{margin:0;white-space:pre-wrap;word-break:break-word}
+.kw{color:#c792ea}.fn{color:#ffb347}.str{color:#06d6a0}.cm{color:#484860;font-style:italic}
+.dec{color:#4cc9f0}.cls{color:#82aaff}.num{color:#ef233c}.gd{color:#06d6a0}.cy{color:#00cfff}
+ 
+/* POSTMORTEM */
+.pm-template{margin-top:4rem;border:1px solid rgba(0,207,255,0.12);overflow:hidden}
+.pm-head{background:rgba(0,207,255,0.04);border-bottom:1px solid rgba(0,207,255,0.1);
+  padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.pm-title{font-family:var(--mono);font-size:0.7rem;color:var(--cyan);letter-spacing:0.15em;text-transform:uppercase}
+.pm-body{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.pm-col{padding:2rem}
+.pm-col+.pm-col{border-left:1px solid rgba(0,207,255,0.06)}
+.pm-section{margin-bottom:1.5rem}
+.pm-section-title{font-family:var(--mono);font-size:0.62rem;color:var(--cyan);
+  letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.6rem;
+  padding-bottom:0.4rem;border-bottom:1px solid rgba(0,207,255,0.08)}
+.pm-content{font-size:0.9rem;color:rgba(234,232,224,0.5);line-height:1.7}
+.pm-content strong{color:var(--white);font-weight:400}
+.pm-metric{font-family:var(--mono);font-size:0.72rem;color:var(--amber)}
+ 
+/* LOG & FOOTER */
+.log-section{padding:5rem 3rem;border-top:1px solid rgba(255,255,255,0.04)}
+.log-entry{max-width:800px;margin:3rem auto 0;background:rgba(0,207,255,0.02);
+  border:1px solid rgba(0,207,255,0.1);padding:3rem;position:relative}
+.log-entry::before{content:'ENTRADA DE APRENDIZAJE // CAPcdTULO 08';font-family:var(--mono);
+  font-size:0.55rem;color:var(--cyan);letter-spacing:0.25em;position:absolute;
+  top:-0.5rem;left:2rem;background:var(--black);padding:0 0.8rem}
+.log-date{font-family:var(--mono);font-size:0.65rem;color:var(--gray);margin-bottom:1.5rem}
+.log-entry p{font-size:1.05rem;color:rgba(234,232,224,0.65);line-height:1.85;font-style:italic}
+.log-entry p+p{margin-top:1rem}
+footer{padding:4rem 3rem;border-top:1px solid rgba(255,255,255,0.04);
+  display:flex;justify-content:space-between;align-items:center}
+.footer-brand{font-family:var(--display);font-size:1.5rem;letter-spacing:0.3em;color:rgba(0,207,255,0.3)}
+.chapter-nav{display:flex;gap:3rem}
+.ch-link{display:flex;flex-direction:column;gap:0.3rem;text-decoration:none}
+.ch-label{font-family:var(--mono);font-size:0.6rem;color:var(--gray);letter-spacing:0.2em;text-transform:uppercase}
+.ch-title{font-family:var(--display);font-size:1.1rem;letter-spacing:0.1em;color:var(--white);transition:color 0.2s}
+.ch-link:hover .ch-title{color:var(--cyan)}
+.ch-link.prev .ch-title{color:rgba(234,232,224,0.3)}
+.footer-copy{font-family:var(--mono);font-size:0.6rem;color:var(--gray);
+  letter-spacing:0.1em;text-align:center;padding:1.5rem 3rem;border-top:1px solid rgba(255,255,255,0.03)}
+ 
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+ 
+@media(max-width:900px){
+  nav{padding:1rem 1.5rem}.nav-links{display:none}
+  .hero{grid-template-columns:1fr;min-height:auto}.hero-right{display:none}
+  .hero-left{padding:6rem 1.5rem 4rem}
+  .section{padding:5rem 1.5rem}
+  .alert-grid,.runbook-cards,.metrics-grid{grid-template-columns:1fr}
+  .sentry-body,.pm-body{grid-template-columns:1fr}
+  .sentry-col+.sentry-col,.pm-col+.pm-col{border-left:none;border-top:1px solid rgba(199,125,255,0.08)}
+  footer{flex-direction:column;gap:2rem;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+ 
+<nav>
+  <a href="#" class="nav-logo">CIPHER<span>DOC</span></a>
+  <ul class="nav-links">
+    <li><a href="#logs">Logs</a></li>
+    <li><a href="#alertas">Alertas</a></li>
+    <li><a href="#incidente">Incidente</a></li>
+    <li><a href="#sentry">Sentry</a></li>
+    <li><a href="#postmortem">Postmortem</a></li>
+  </ul>
+  <a href="cybersec_chapter6.html" class="nav-prev">&#8592; Cap. 07</a>
+</nav>
+ 
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <p class="chapter-tag">Cap&#237;tulo 07 &#8212; Cuando algo explota</p>
+    <h1>
+      <span class="c">MONITOREO</span><br>
+      <span class="r">&amp;</span> RESPUESTA<br>
+      <span style="font-size:0.35em;letter-spacing:0.1em;color:rgba(234,232,224,0.18)">INCIDENTES &#183; FORENSE &#183; POSTMORTEM</span>
+    </h1>
+    <p class="hero-sub">
+      No es cuesti&#243;n de si algo falla en producci&#243;n &#8212; es cuesti&#243;n de cu&#225;ndo.
+      La diferencia entre un incidente grave y uno trivial es cu&#225;nto tardas en detectarlo,
+      entenderlo y contenerlo. Hoy construyes ese sistema.
+    </p>
+    <div class="hero-stats">
+      <div class="hstat">
+        <div class="hstat-num" style="color:var(--red)">277</div>
+        <div class="hstat-label">D&#237;as promedio para detectar una brecha (2024)</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-num" style="color:var(--amber)">4.5M</div>
+        <div class="hstat-label">USD costo promedio por brecha de datos</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-num" style="color:var(--cyan)">15 min</div>
+        <div class="hstat-label">Tu objetivo de MTTD con este sistema</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-num" style="color:var(--green)">0</div>
+        <div class="hstat-label">Postmortems con blame &#8212; solo aprendizaje</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-right-overlay"></div>
+  </div>
+</section>
+ 
+<!-- LOG STREAM EN VIVO -->
+<section class="section" id="logs">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 01 &#8212; observabilidad</p>
+    <h2 class="sec-h2 fade-in">El stream de logs<br><em>en tiempo real</em></h2>
+    <p class="sec-sub fade-in">Esto es lo que ver&#225;s en producci&#243;n. Cada l&#237;nea es un evento. Aprende a leer el patr&#243;n antes de que se convierta en un incidente.</p>
+ 
+    <div class="terminal-wrap fade-in">
+      <div class="term-head">
+        <div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div>
+        <span class="term-title">cipher-api &#8212; production logs &#8212; docker compose logs -f app</span>
+        <span class="term-live" id="stream-status">EN VIVO</span>
+      </div>
+      <div class="term-body" id="log-stream"></div>
+      <div class="term-controls">
+        <button class="ctrl-btn active" id="btn-play" onclick="toggleStream()">&#9646;&#9646; PAUSA</button>
+        <button class="ctrl-btn" onclick="clearLogs()">&#10005; LIMPIAR</button>
+        <button class="ctrl-btn" onclick="injectAttack()">&#128163; SIMULAR ATAQUE</button>
+        <span class="ctrl-filter">Filtrando: ALL</span>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- M&#201;TRICAS DASHBOARD -->
+<section class="section" style="background:linear-gradient(to bottom,transparent,rgba(0,207,255,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 02 &#8212; m&#233;tricas</p>
+    <h2 class="sec-h2 fade-in">Dashboard de<br><em>salud del sistema</em></h2>
+    <p class="sec-sub fade-in">N&#250;meros en tiempo real. Cada m&#233;trica fuera del rango normal puede ser la primera se&#241;al de un incidente.</p>
+    <div class="metrics-grid fade-in">
+      <div class="metric-card">
+        <div class="metric-val mv-good" id="m-uptime">99.8%</div>
+        <div class="metric-label">Uptime &#183; 30d</div>
+        <div class="metric-trend mt-stable">&#8594; Estable</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val mv-good" id="m-p95">87ms</div>
+        <div class="metric-label">Latencia P95</div>
+        <div class="metric-trend mt-down">&#8595; &#8209;12ms</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val mv-warn" id="m-err">0.4%</div>
+        <div class="metric-label">Error Rate</div>
+        <div class="metric-trend mt-up">&#8593; +0.1%</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val mv-neutral" id="m-rps">142</div>
+        <div class="metric-label">Requests / seg</div>
+        <div class="metric-trend mt-up">&#8593; pico actual</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val mv-good" id="m-db">12ms</div>
+        <div class="metric-label">DB Query Avg</div>
+        <div class="metric-trend mt-stable">&#8594; Normal</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val mv-good" id="m-redis">1.2ms</div>
+        <div class="metric-label">Redis Latencia</div>
+        <div class="metric-trend mt-stable">&#8594; Normal</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val mv-warn" id="m-cpu">68%</div>
+        <div class="metric-label">CPU Usage</div>
+        <div class="metric-trend mt-up">&#8593; Subiendo</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val mv-good" id="m-mem">312MB</div>
+        <div class="metric-label">RAM &#183; 512MB total</div>
+        <div class="metric-trend mt-stable">&#8594; 61%</div>
+      </div>
+    </div>
+    <div style="margin-top:2rem;font-family:var(--mono);font-size:0.68rem;color:rgba(234,232,224,0.35);text-align:center" class="fade-in">
+      Las m&#233;tricas se actualizan cada 3s &#183; Datos simulados para este documental
+    </div>
+  </div>
+</section>
+ 
+<!-- REGLAS DE ALERTA -->
+<section class="section" id="alertas">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 03 &#8212; alertas</p>
+    <h2 class="sec-h2 fade-in">Cu&#225;ndo debe<br><em>sonar el alarm</em></h2>
+    <p class="sec-sub fade-in">Alertas demasiado sensibles crean ruido. Muy permisivas dejan pasar incidentes. Estos umbrales son el punto de equilibrio para una API FastAPI en producci&#243;n.</p>
+    <div class="alert-grid">
+      <div class="alert-card ac-crit fade-in">
+        <span class="alert-sev as-c">CR&#205;TICO</span>
+        <div class="alert-name">Health check fallido</div>
+        <div class="alert-condition">GET /health != 200 durante &gt; 2 minutos</div>
+        <div class="alert-desc">El sistema est&#225; ca&#237;do o degradado. PostgreSQL o Redis no responden. Acci&#243;n inmediata requerida.</div>
+        <div class="alert-action">&#8594; PagerDuty + Slack #incidents + email</div>
+      </div>
+      <div class="alert-card ac-crit fade-in">
+        <span class="alert-sev as-c">CR&#205;TICO</span>
+        <div class="alert-name">Error 500 rate alta</div>
+        <div class="alert-condition">HTTP 5xx &gt; 5% del total de requests en 5 min</div>
+        <div class="alert-desc">El servidor est&#225; lanzando excepciones no controladas en masa. Posible bug desplegado o DB sobrecargada.</div>
+        <div class="alert-action">&#8594; Sentry captura + alerta Slack #incidents</div>
+      </div>
+      <div class="alert-card ac-high fade-in">
+        <span class="alert-sev as-h">ALTO</span>
+        <div class="alert-name">Brute force detectado</div>
+        <div class="alert-condition">&gt; 10 intentos de login fallidos desde una IP en 5 min</div>
+        <div class="alert-desc">Posible ataque automatizado contra cuentas de usuario. El sistema de lockout ya est&#225; activo pero hay que investigar el origen.</div>
+        <div class="alert-action">&#8594; Slack #security + log forense de la IP</div>
+      </div>
+      <div class="alert-card ac-high fade-in">
+        <span class="alert-sev as-h">ALTO</span>
+        <div class="alert-name">Latencia P95 elevada</div>
+        <div class="alert-condition">P95 &gt; 2000ms por m&#225;s de 10 minutos</div>
+        <div class="alert-desc">Las queries est&#225;n tardando demasiado. Posible falta de &#237;ndices, connection pool saturado, o carga inesperada.</div>
+        <div class="alert-action">&#8594; Slack #ops + revisar slow query log</div>
+      </div>
+      <div class="alert-card ac-med fade-in">
+        <span class="alert-sev as-m">MEDIO</span>
+        <div class="alert-name">CPU sostenida alta</div>
+        <div class="alert-condition">CPU &gt; 85% por m&#225;s de 15 minutos</div>
+        <div class="alert-desc">Carga inusual. Puede ser tr&#225;fico leg&#237;timo (escalar) o un proceso en bucle infinito (investigar).</div>
+        <div class="alert-action">&#8594; Slack #ops + revisar m&#233;tricas de requests</div>
+      </div>
+      <div class="alert-card ac-med fade-in">
+        <span class="alert-sev as-m">MEDIO</span>
+        <div class="alert-name">Certificado TLS por expirar</div>
+        <div class="alert-condition">Certificado expira en &lt; 30 d&#237;as</div>
+        <div class="alert-desc">Let&#39;s Encrypt renueva autom&#225;ticamente, pero si la renovaci&#243;n falla, HTTPS cae en 30 d&#237;as. Verificar que certbot est&#225; corriendo.</div>
+        <div class="alert-action">&#8594; Email semanal + revisar certbot</div>
+      </div>
+      <div class="alert-card ac-med fade-in">
+        <span class="alert-sev as-m">MEDIO</span>
+        <div class="alert-name">CVE detectado en dependencias</div>
+        <div class="alert-condition">pip-audit encuentra vulnerabilidad HIGH o CRITICAL</div>
+        <div class="alert-desc">Una librer&#237;a tiene una vulnerabilidad conocida. Urgente si es CRITICAL, importante si es HIGH.</div>
+        <div class="alert-action">&#8594; GitHub Issue + Slack #security</div>
+      </div>
+      <div class="alert-card ac-med fade-in">
+        <span class="alert-sev as-i">INFO</span>
+        <div class="alert-name">Deploy completado</div>
+        <div class="alert-condition">Push a main con CI/CD exitoso</div>
+        <div class="alert-desc">Notificaci&#243;n informativa. Confirma que el deploy fue exitoso y el health check est&#225; verde post-deploy.</div>
+        <div class="alert-action">&#8594; Slack #deploys</div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- ANATOMIA DE UN INCIDENTE -->
+<section class="section" id="incidente">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 04 &#8212; respuesta</p>
+    <h2 class="sec-h2 fade-in">Anat&#243;m&#237;a de un<br><em>incidente real</em></h2>
+    <p class="sec-sub fade-in">Escenario: ataque de SQL injection detectado en producci&#243;n a las 03:47. Seis fases, acciones concretas en cada una.</p>
+ 
+    <div class="incident-timeline fade-in">
+      <div class="incident-row phase-impact">
+        <div class="inc-time t-impact">03:47</div>
+        <div class="inc-content">
+          <div class="inc-phase">Fase 1 &#8212; Impacto</div>
+          <div class="inc-title">Sentry captura 47 errores 500 en 3 minutos</div>
+          <div class="inc-desc">Stack trace apunta a sqlalchemy.exc.ProgrammingError en el endpoint GET /api/v1/search. Sentry env&#237;a alerta instant&#225;nea a Slack #incidents. El on-call recibe notificaci&#243;n.</div>
+          <div class="inc-cmd">MTTD (Mean Time To Detect): 3 minutos &#8592; Sentry funciona</div>
+        </div>
+      </div>
+      <div class="incident-row phase-detect">
+        <div class="inc-time t-detect">03:52</div>
+        <div class="inc-content">
+          <div class="inc-phase">Fase 2 &#8212; Evaluaci&#243;n</div>
+          <div class="inc-title">Analizar scope del incidente</div>
+          <div class="inc-desc">Revisar logs de los &#250;ltimos 10 minutos. Verificar si hay exfiltraci&#243;n de datos (queries SELECT masivas). Evaluar si la brecha est&#225; activa o cerrada. Determinar si escalar.</div>
+          <div class="inc-cmd">$ docker compose logs app --since="2024-04-25T03:40:00" | grep -i "sql\|error\|injection"</div>
+        </div>
+      </div>
+      <div class="incident-row phase-contain">
+        <div class="inc-time">03:55</div>
+        <div class="inc-content">
+          <div class="inc-phase">Fase 3 &#8212; Contenci&#243;n</div>
+          <div class="inc-title">Bloquear el vector de ataque activo</div>
+          <div class="inc-desc">Identificar la IP atacante en los logs. Bloquear en nginx inmediatamente. Si es necesario, deshabilitar el endpoint vulnerable temporalmente mientras se aplica el parche.</div>
+          <div class="inc-cmd">$ docker compose exec nginx nginx -s reload &amp;&amp; echo "IP bloqueada"
+# Opcional: deshabilitar endpoint
+# Comentar la ruta en router y redeploy</div>
+        </div>
+      </div>
+      <div class="incident-row phase-analyze">
+        <div class="inc-time">04:10</div>
+        <div class="inc-content">
+          <div class="inc-phase">Fase 4 &#8212; An&#225;lisis forense</div>
+          <div class="inc-title">Entender exactamente qu&#233; pas&#243;</div>
+          <div class="inc-desc">Extraer logs completos del per&#237;odo. Reproducir el payload en entorno de desarrollo. Verificar el c&#243;digo vulnerable. Determinar si hay datos comprometidos y cu&#225;les.</div>
+          <div class="inc-cmd"># Buscar queries anómalas en PostgreSQL
+$ docker compose exec db psql -U cipher_user -c   "SELECT query, calls, total_exec_time FROM pg_stat_statements ORDER BY calls DESC LIMIT 20;"</div>
+        </div>
+      </div>
+      <div class="incident-row phase-resolve">
+        <div class="inc-time t-resolve">05:30</div>
+        <div class="inc-content">
+          <div class="inc-phase">Fase 5 &#8212; Resoluci&#243;n</div>
+          <div class="inc-title">Parche, tests y redeploy</div>
+          <div class="inc-desc">Corregir el c&#243;digo vulnerable (usar ORM parametrizado). Escribir un test que reproduzca el ataque y verifique que el parche funciona. Desplegar con pipeline completo.</div>
+          <div class="inc-cmd"># El test que previene que vuelva a pasar:
+# pytest tests/security/test_sql_injection.py -v</div>
+        </div>
+      </div>
+      <div class="incident-row phase-learn">
+        <div class="inc-time">09:00</div>
+        <div class="inc-content">
+          <div class="inc-phase">Fase 6 &#8212; Aprendizaje</div>
+          <div class="inc-title">Postmortem sin blame &#8212; ¿C&#243;mo prevenimos el pr&#243;ximo?</div>
+          <div class="inc-desc">Documentar el incidente, el impacto real, las acciones tomadas y las mejoras del sistema. El postmortem no busca culpables &#8212; busca fallos en el proceso que permit&#237; que el bug llegara a producci&#243;n.</div>
+          <div class="inc-cmd">MTTR (Mean Time To Recover): 1h 43min &#8592; objetivo: &lt; 1h</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- SENTRY ANATOMY -->
+<section class="section" id="sentry" style="background:linear-gradient(to bottom,transparent,rgba(199,125,255,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 05 &#8212; error tracking</p>
+    <h2 class="sec-h2 fade-in">Sentry &#8212; cada error<br><em>con contexto completo</em></h2>
+    <p class="sec-sub fade-in">Esto es lo que ver&#225;s en Sentry cuando algo explota en producci&#243;n. Cada campo te dice algo &#250;til.</p>
+ 
+    <div class="sentry-anatomy fade-in">
+      <div class="sentry-head">
+        <span class="sentry-title">&#128680; Sentry Issue &#8212; sqlalchemy.exc.ProgrammingError</span>
+        <span style="font-family:var(--mono);font-size:0.65rem;color:var(--amber)">UNRESOLVED &#183; 47 events &#183; 3 usuarios afectados</span>
+      </div>
+      <div class="sentry-body">
+        <div class="sentry-col">
+          <div class="sentry-field">
+            <span class="sf-label">Excepci&#243;n</span>
+            <div class="sf-value sfv-error">sqlalchemy.exc.ProgrammingError</div>
+            <div class="sf-value sfv-neutral" style="font-size:0.68rem;margin-top:0.3rem">
+              (psycopg2.errors.SyntaxError) syntax error at or near &ldquo;OR&rdquo;
+            </div>
+          </div>
+          <div class="sentry-field">
+            <span class="sf-label">Request</span>
+            <div class="sf-value sfv-path">GET /api/v1/search?q=%27+OR+%271%27%3D%271</div>
+          </div>
+          <div class="sentry-field">
+            <span class="sf-label">Usuario (anonimizado)</span>
+            <div class="sf-value sfv-user">user_id: N/A (sin autenticar)</div>
+          </div>
+          <div class="sentry-field">
+            <span class="sf-label">IP</span>
+            <div class="sf-value sfv-error">203.0.113.47 &#8212; detectada 47 veces en 3 min</div>
+          </div>
+          <div class="sentry-field">
+            <span class="sf-label">Environment / Release</span>
+            <div class="sf-value sfv-neutral">production / a3f2b1c (hace 2 d&#237;as)</div>
+          </div>
+        </div>
+        <div class="sentry-col">
+          <div class="sentry-field">
+            <span class="sf-label">Stack Trace</span>
+            <div class="stacktrace">
+              <div><span class="st-file">app/routers/users.py</span>, <span class="st-line">line 42</span></div>
+              <div class="st-code">&nbsp;&nbsp;result = await db.execute(text(raw))</div>
+              <div style="margin-top:0.4rem"><span class="st-file">app/routers/users.py</span>, <span class="st-line">line 38</span></div>
+              <div class="st-highlight">&nbsp;&nbsp;raw = f"SELECT * FROM users WHERE name='{q}'"</div>
+              <div style="margin-top:0.4rem"><span class="st-file">sqlalchemy/engine/base.py</span>, <span class="st-line">line 1345</span></div>
+              <div class="st-code">&nbsp;&nbsp;self._execute_clauseelement(...)</div>
+            </div>
+          </div>
+          <div class="sentry-field">
+            <span class="sf-label">Soluci&#243;n sugerida</span>
+            <div class="sf-value sfv-ok" style="font-size:0.8rem">
+              Usar ORM parametrizado en lugar de f-string en text(). Ver Cap&#237;tulo 06 &#8212; AppSec.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- RUNBOOKS -->
+<section class="section runbook-section">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 06 &#8212; procedimientos</p>
+    <h2 class="sec-h2 fade-in">Runbooks &#8212; qu&#233; hacer<br><em>cuando suena la alarma</em></h2>
+    <p class="sec-sub fade-in">Procedimientos documentados que cualquier miembro del equipo puede ejecutar a las 3am sin pensar demasiado.</p>
+    <div class="runbook-cards">
+      <div class="runbook-card fade-in">
+        <div class="runbook-num">R1</div>
+        <span class="runbook-tag rt-crit">Ca&#237;da total</span>
+        <div class="runbook-title">API no responde (/health = timeout)</div>
+        <div class="runbook-steps">
+          <div class="rb-step"><span class="rb-n">1.</span> docker compose ps &#8594; ver estado contenedores</div>
+          <div class="rb-step"><span class="rb-n">2.</span> docker compose logs --tail=50 app &#8594; &#250;ltimo error</div>
+          <div class="rb-step"><span class="rb-n">3.</span> Si OOM: docker compose restart app</div>
+          <div class="rb-step"><span class="rb-n">4.</span> Si DB ca&#237;da: docker compose restart db</div>
+          <div class="rb-step"><span class="rb-n">5.</span> Si persiste: rollback al &#250;ltimo deploy estable</div>
+          <div class="rb-step"><span class="rb-n">6.</span> Notificar en Slack #incidents con ETA</div>
+        </div>
+      </div>
+      <div class="runbook-card fade-in">
+        <div class="runbook-num">R2</div>
+        <span class="runbook-tag rt-perf">Lentitud</span>
+        <div class="runbook-title">Latencia P95 &gt; 2s (sistema lento)</div>
+        <div class="runbook-steps">
+          <div class="rb-step"><span class="rb-n">1.</span> Verificar CPU y RAM en Render dashboard</div>
+          <div class="rb-step"><span class="rb-n">2.</span> pg_stat_statements &#8594; queries m&#225;s lentas</div>
+          <div class="rb-step"><span class="rb-n">3.</span> Ver conexiones activas a PostgreSQL</div>
+          <div class="rb-step"><span class="rb-n">4.</span> Si connection pool lleno: reiniciar app</div>
+          <div class="rb-step"><span class="rb-n">5.</span> Si queries lentas: analizar con EXPLAIN ANALYZE</div>
+          <div class="rb-step"><span class="rb-n">6.</span> Si carga leg&#237;tima: escalar workers</div>
+        </div>
+      </div>
+      <div class="runbook-card fade-in">
+        <div class="runbook-num">R3</div>
+        <span class="runbook-tag rt-sec">Seguridad</span>
+        <div class="runbook-title">Posible brecha de seguridad activa</div>
+        <div class="runbook-steps">
+          <div class="rb-step"><span class="rb-n">1.</span> NO eliminar logs &#8212; son evidencia forense</div>
+          <div class="rb-step"><span class="rb-n">2.</span> Bloquear IP atacante en nginx inmediatamente</div>
+          <div class="rb-step"><span class="rb-n">3.</span> Revocar todos los JWT activos (rotar SECRET_KEY)</div>
+          <div class="rb-step"><span class="rb-n">4.</span> Evaluar si hay datos comprometidos</div>
+          <div class="rb-step"><span class="rb-n">5.</span> Si hay PII expuesto: notificar usuarios afectados</div>
+          <div class="rb-step"><span class="rb-n">6.</span> Postmortem obligatorio en 24-48h</div>
+        </div>
+      </div>
+      <div class="runbook-card fade-in">
+        <div class="runbook-num">R4</div>
+        <span class="runbook-tag rt-crit">Base de datos</span>
+        <div class="runbook-title">PostgreSQL no responde o corrompido</div>
+        <div class="runbook-steps">
+          <div class="rb-n" style="color:var(--cyan)">1.</div>
+          <div class="rb-step"><span class="rb-n">1.</span> docker compose exec db pg_isready -U cipher_user</div>
+          <div class="rb-step"><span class="rb-n">2.</span> Verificar espacio en disco del volume</div>
+          <div class="rb-step"><span class="rb-n">3.</span> docker compose logs db &#8594; ver errores PostgreSQL</div>
+          <div class="rb-step"><span class="rb-n">4.</span> Restaurar desde &#250;ltimo backup autom&#225;tico (Render)</div>
+          <div class="rb-step"><span class="rb-n">5.</span> Re-ejecutar alembic upgrade head</div>
+          <div class="rb-step"><span class="rb-n">6.</span> Verificar integridad de datos cr&#237;ticos</div>
+        </div>
+      </div>
+      <div class="runbook-card fade-in">
+        <div class="runbook-num">R5</div>
+        <span class="runbook-tag rt-perf">Deploy</span>
+        <div class="runbook-title">Deploy roto &#8212; health check falla post-deploy</div>
+        <div class="runbook-steps">
+          <div class="rb-step"><span class="rb-n">1.</span> Render hace rollback autom&#225;tico si health falla</div>
+          <div class="rb-step"><span class="rb-n">2.</span> Si no: Render Dashboard &gt; Deploys &gt; Rollback</div>
+          <div class="rb-step"><span class="rb-n">3.</span> Si migraci&#243;n fa&#241;&#243;: alembic downgrade -1</div>
+          <div class="rb-step"><span class="rb-n">4.</span> Reproducir el fallo en staging antes de re-intentar</div>
+          <div class="rb-step"><span class="rb-n">5.</span> Agregar test que cubra el caso fallido</div>
+        </div>
+      </div>
+      <div class="runbook-card fade-in">
+        <div class="runbook-num">R6</div>
+        <span class="runbook-tag rt-sec">Credenciales</span>
+        <div class="runbook-title">Secret key o credencial comprometida</div>
+        <div class="runbook-steps">
+          <div class="rb-step"><span class="rb-n">1.</span> Revocar inmediatamente en el proveedor</div>
+          <div class="rb-step"><span class="rb-n">2.</span> Generar nuevo valor &#8212; python secrets.token_hex(32)</div>
+          <div class="rb-step"><span class="rb-n">3.</span> Actualizar en Render/Railway Environment</div>
+          <div class="rb-step"><span class="rb-n">4.</span> Reiniciar todos los servicios</div>
+          <div class="rb-step"><span class="rb-n">5.</span> Si SECRET_KEY: todos los JWT quedan inv&#225;lidos</div>
+          <div class="rb-step"><span class="rb-n">6.</span> Auditar qui&#233;n ten&#237;a acceso a la credencial</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- C&#211;DIGO -->
+<section class="section" id="codigo">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 07 &#8212; implementaci&#243;n</p>
+    <h2 class="sec-h2 fade-in">El c&#243;digo<br><em>de observabilidad</em></h2>
+ 
+    <div class="code-tabs fade-in">
+      <div class="code-tab active" data-ct="loguru">logging_config.py</div>
+      <div class="code-tab" data-ct="sentry">sentry_config.py</div>
+      <div class="code-tab" data-ct="alerts">alerts.py</div>
+      <div class="code-tab" data-ct="incident">incident_response.sh</div>
+      <div class="code-tab" data-ct="bruteforce">brute_force.py</div>
+    </div>
+ 
+    <div class="code-pane active" id="ct-loguru">
+      <div class="code-block"><pre># app/core/logging_config.py — logging de producción con loguru
+<span class="kw">from</span> loguru <span class="kw">import</span> logger
+<span class="kw">from</span> fastapi <span class="kw">import</span> Request
+<span class="kw">import</span> sys, os, json, time
+ 
+<span class="kw">def</span> <span class="fn">setup_logging</span>():
+    logger.remove()
+ 
+    <span class="cm"># JSON estructurado a stdout — Docker + Render lo captura</span>
+    logger.add(
+        sys.stdout,
+        format=<span class="str">"{time:YYYY-MM-DD HH:mm:ss.SSS} | {level:<8} | {name}:{line} | {message}"</span>,
+        level=os.getenv(<span class="str">"LOG_LEVEL"</span>, <span class="str">"INFO"</span>),
+        serialize=<span class="kw">True</span>,           <span class="cm"># JSON para parsear en producción</span>
+        backtrace=<span class="kw">False</span>,          <span class="cm"># sin tracebacks en stderr (van a Sentry)</span>
+        diagnose=<span class="kw">False</span>,
+    )
+ 
+    <span class="cm"># Archivo con rotación diaria y compresión</span>
+    logger.add(
+        <span class="str">"/app/logs/cipher-api-{time:YYYY-MM-DD}.log"</span>,
+        rotation=<span class="str">"1 day"</span>,
+        retention=<span class="str">"30 days"</span>,
+        compression=<span class="str">"gz"</span>,
+        level=<span class="str">"WARNING"</span>,
+        serialize=<span class="kw">True</span>,
+    )
+ 
+<span class="cm"># Middleware que loguea cada request</span>
+<span class="kw">class</span> <span class="cls">RequestLoggingMiddleware</span>:
+    <span class="kw">async def</span> <span class="fn">dispatch</span>(<span class="kw">self</span>, request: Request, call_next):
+        t0 = time.<span class="fn">time</span>()
+        req_id = request.headers.<span class="fn">get</span>(<span class="str">"x-request-id"</span>, <span class="str">"-"</span>)
+ 
+        response = <span class="kw">await</span> <span class="fn">call_next</span>(request)
+        ms = <span class="fn">round</span>((time.<span class="fn">time</span>() - t0) * <span class="num">1000</span>, <span class="num">2</span>)
+ 
+        <span class="cm"># Determinar nivel según status</span>
+        log_fn = logger.info
+        <span class="kw">if</span> response.status_code >= <span class="num">500</span>: log_fn = logger.error
+        <span class="kw">elif</span> response.status_code >= <span class="num">400</span>: log_fn = logger.warning
+ 
+        <span class="cm"># Log estructurado — SIN PII, sin contraseñas</span>
+        <span class="fn">log_fn</span>(<span class="str">"http_request"</span>,
+            method=request.method,
+            path=request.url.path,
+            status=response.status_code,
+            ms=ms,
+            ip=request.client.host,
+            request_id=req_id,
+        )
+        <span class="kw">return</span> response
+ 
+<span class="cm"># Uso manual en servicios</span>
+logger.info(<span class="str">"user_registered"</span>, user_id=<span class="num">42</span>, method=<span class="str">"email"</span>)
+logger.warning(<span class="str">"auth_failed"</span>, ip=<span class="str">"203.0.113.5"</span>, attempts=<span class="num">4</span>)
+logger.error(<span class="str">"db_timeout"</span>, query=<span class="str">"users"</span>, ms=<span class="num">5100</span>)
+<span class="cm"># NUNCA: logger.info(f"Login {email} {password}")</span></pre></div>
+    </div>
+    <div class="code-pane" id="ct-sentry">
+      <div class="code-block"><pre># app/core/sentry_config.py — Sentry para error tracking
+<span class="kw">import</span> sentry_sdk, os
+<span class="kw">from</span> sentry_sdk.integrations.fastapi <span class="kw">import</span> FastApiIntegration
+<span class="kw">from</span> sentry_sdk.integrations.sqlalchemy <span class="kw">import</span> SqlalchemyIntegration
+<span class="kw">from</span> sentry_sdk.integrations.redis <span class="kw">import</span> RedisIntegration
+<span class="kw">from</span> sentry_sdk.integrations.loguru <span class="kw">import</span> LoguruIntegration
+ 
+<span class="kw">def</span> <span class="fn">setup_sentry</span>():
+    dsn = os.getenv(<span class="str">"SENTRY_DSN"</span>)
+    <span class="kw">if not</span> dsn:
+        <span class="kw">return</span>  <span class="cm"># silencioso en desarrollo</span>
+ 
+    sentry_sdk.<span class="fn">init</span>(
+        dsn=dsn,
+        environment=os.getenv(<span class="str">"ENVIRONMENT"</span>, <span class="str">"development"</span>),
+        release=os.getenv(<span class="str">"GIT_SHA"</span>, <span class="str">"unknown"</span>),
+ 
+        integrations=[
+            <span class="cls">FastApiIntegration</span>(),       <span class="cm"># captura exceptions de FastAPI</span>
+            <span class="cls">SqlalchemyIntegration</span>(),    <span class="cm"># rastrea queries lentas</span>
+            <span class="cls">RedisIntegration</span>(),         <span class="cm"># errores de Redis</span>
+            <span class="cls">LoguruIntegration</span>(),        <span class="cm"># integra con loguru</span>
+        ],
+ 
+        <span class="cm"># Performance monitoring</span>
+        traces_sample_rate=<span class="num">0.1</span>,     <span class="cm"># 10% de requests trackeados</span>
+        profiles_sample_rate=<span class="num">0.05</span>,  <span class="cm"># 5% con profiling de CPU</span>
+ 
+        <span class="cm"># Privacidad — no enviar PII</span>
+        send_default_pii=<span class="kw">False</span>,
+        before_send=<span class="fn">scrub_sensitive_data</span>,
+ 
+        <span class="cm"># Ignorar errores esperados</span>
+        ignore_errors=[<span class="str">"HTTPException"</span>],  <span class="cm"># 404, 422, etc son normales</span>
+    )
+ 
+<span class="kw">def</span> <span class="fn">scrub_sensitive_data</span>(event: <span class="cls">dict</span>, hint: <span class="cls">dict</span>) -> <span class="cls">dict</span>:
+    <span class="cm"># Limpiar headers sensibles antes de enviar a Sentry</span>
+    <span class="kw">if</span> <span class="str">"request"</span> <span class="kw">in</span> event:
+        headers = event[<span class="str">"request"</span>].get(<span class="str">"headers"</span>, {})
+        <span class="kw">for</span> k <span class="kw">in</span> (<span class="str">"Authorization"</span>, <span class="str">"Cookie"</span>, <span class="str">"X-API-Key"</span>):
+            <span class="kw">if</span> k <span class="kw">in</span> headers:
+                headers[k] = <span class="str">"[REDACTED]"</span>
+ 
+    <span class="cm"># Limpiar datos de usuario del contexto</span>
+    <span class="kw">if</span> <span class="str">"user"</span> <span class="kw">in</span> event:
+        <span class="cm"># Solo mantener ID, eliminar email/nombre</span>
+        user_id = event[<span class="str">"user"</span>].get(<span class="str">"id"</span>)
+        event[<span class="str">"user"</span>] = {<span class="str">"id"</span>: user_id}
+ 
+    <span class="kw">return</span> event
+ 
+<span class="cm"># Capturar manualmente eventos de seguridad</span>
+<span class="kw">def</span> <span class="fn">capture_security_event</span>(event_type: <span class="cls">str</span>, **kwargs):
+    <span class="kw">with</span> sentry_sdk.<span class="fn">push_scope</span>() <span class="kw">as</span> scope:
+        scope.<span class="fn">set_tag</span>(<span class="str">"event_type"</span>, <span class="str">"security"</span>)
+        scope.<span class="fn">set_tag</span>(<span class="str">"security_event"</span>, event_type)
+        scope.<span class="fn">set_extra</span>(<span class="str">"context"</span>, kwargs)
+        sentry_sdk.<span class="fn">capture_message</span>(
+            <span class="fn">f</span><span class="str">"Security: {event_type}"</span>,
+            level=<span class="str">"warning"</span>
+        )</pre></div>
+    </div>
+    <div class="code-pane" id="ct-alerts">
+      <div class="code-block"><pre># Configuración de alertas — múltiples canales
+ 
+# ── Render Alerts (dashboard)
+# Health check → alerta si /health devuelve != 200 por &gt; 2 min
+# CPU &gt; 90% por &gt; 5 min → alerta
+# Memory &gt; 90% por &gt; 5 min → alerta
+ 
+# ── Sentry Alerts
+# Sentry Dashboard &gt; Alerts &gt; Create Alert Rule
+# Condición: error_rate &gt; 1% en 5 min → notificar Slack
+# Condición: new_issue detectado → notificar inmediatamente
+# Condición: issue regressed (volvió después de fix) → critical
+ 
+# ── Script de alerta personalizada en Python
+<span class="kw">import</span> httpx, os
+<span class="kw">from</span> loguru <span class="kw">import</span> logger
+ 
+SLACK_WEBHOOK = os.getenv(<span class="str">"SLACK_WEBHOOK_URL"</span>)
+ 
+<span class="kw">async def</span> <span class="fn">send_alert</span>(title: <span class="cls">str</span>, message: <span class="cls">str</span>, level: <span class="cls">str</span> = <span class="str">"warning"</span>):
+    colors = {<span class="str">"info"</span>: <span class="str">"#00cfff"</span>, <span class="str">"warning"</span>: <span class="str">"#ffb347"</span>, <span class="str">"critical"</span>: <span class="str">"#ef233c"</span>}
+    payload = {
+        <span class="str">"attachments"</span>: [{
+            <span class="str">"color"</span>: colors.get(level, <span class="str">"#ffb347"</span>),
+            <span class="str">"title"</span>: <span class="fn">f</span><span class="str">"[{level.upper()}] {title}"</span>,
+            <span class="str">"text"</span>: message,
+            <span class="str">"footer"</span>: <span class="str">"cipher-api"</span>,
+        }]
+    }
+    <span class="kw">async with</span> httpx.<span class="cls">AsyncClient</span>() <span class="kw">as</span> client:
+        <span class="kw">await</span> client.<span class="fn">post</span>(SLACK_WEBHOOK, json=payload)
+ 
+<span class="cm"># Usar en el health check degradado:</span>
+<span class="kw">if</span> status == <span class="str">"degraded"</span>:
+    <span class="kw">await</span> <span class="fn">send_alert</span>(
+        <span class="str">"Health degradado"</span>,
+        <span class="fn">f</span><span class="str">"Checks fallidos: {[k for k,v in checks.items() if v != 'ok']}"</span>,
+        level=<span class="str">"critical"</span>
+    )
+ 
+<span class="cm"># Alerta de seguridad por brute force:</span>
+<span class="cm"># En el auth middleware, si IP tiene > 10 intentos fallidos:</span>
+<span class="kw">await</span> <span class="fn">send_alert</span>(
+    <span class="str">"Posible brute force detectado"</span>,
+    <span class="fn">f</span><span class="str">"IP: {ip} — {attempts} intentos fallidos en 5 min"</span>,
+    level=<span class="str">"warning"</span>
+)</pre></div>
+    </div>
+    <div class="code-pane" id="ct-incident">
+      <div class="code-block"><pre># scripts/incident_response.py — comandos para incidentes
+<span class="kw">import</span> subprocess, sys, datetime
+ 
+# ── PASO 1: Evaluar el impacto
+# Verificar estado actual de todos los servicios
+$ docker compose ps
+$ curl -s http://localhost:8000/health | python3 -m json.tool
+$ docker compose logs --tail=100 app | grep ERROR
+ 
+# ── PASO 2: Contener — opciones según el incidente
+ 
+# Opción A: Bloquear IP atacante
+$ docker compose exec nginx sh -c \
+    <span class="str">'echo "deny 203.0.113.5;" >> /etc/nginx/conf.d/blocklist.conf'</span>
+$ docker compose exec nginx nginx -s reload
+ 
+# Opción B: Modo mantenimiento (bloquear todo el tráfico)
+$ cat &gt; /tmp/maintenance.html &lt;&lt; EOF
+Mantenimiento en curso. Volvemos pronto.
+EOF
+$ docker compose exec nginx sh -c \
+    <span class="str">'return 503 "Maintenance"'</span>
+ 
+# Opción C: Escalar a más workers
+$ docker compose up -d --scale app=4
+ 
+# ── PASO 3: Analizar logs del período afectado
+$ docker compose logs app --since="2024-04-25T14:00:00" \
+    | grep -E "(ERROR|WARN|CRIT)" > incident_logs.txt
+ 
+# Buscar patrones de ataque
+$ cat incident_logs.txt | python3 -c "
+import sys, json
+for line in sys.stdin:
+    try:
+        d = json.loads(line)
+        if d.get(chr(115)+chr(116)+chr(97)+chr(116)+chr(117)+chr(115), 0) == 401:
+            print(d.get(chr(105)+chr(112)), d.get(chr(112)+chr(97)+chr(116)+chr(104)))
+    except: pass
+"
+ 
+# ── PASO 4: Rollback si es necesario
+$ docker compose down app
+$ docker compose pull app  <span class="cm"># imagen anterior</span>
+$ docker compose up -d app
+$ curl http://localhost:8000/health
+ 
+# ── PASO 5: Documentar en el postmortem
+# Ver plantilla de postmortem en la sección siguiente</pre></div>
+    </div>
+    <div class="code-pane" id="ct-bruteforce">
+      <div class="code-block"><pre># app/middleware/brute_force_protection.py
+<span class="kw">from</span> fastapi <span class="kw">import</span> Request, HTTPException
+<span class="kw">from</span> app.db.redis <span class="kw">import</span> get_redis
+<span class="kw">from</span> loguru <span class="kw">import</span> logger
+<span class="kw">import</span> sentry_sdk
+ 
+MAX_ATTEMPTS   = <span class="num">5</span>
+WINDOW_SECONDS = <span class="num">300</span>   <span class="cm"># 5 minutos</span>
+LOCKOUT_TIME   = <span class="num">3600</span>  <span class="cm"># 1 hora</span>
+ 
+<span class="kw">async def</span> <span class="fn">check_brute_force</span>(request: Request, identifier: <span class="cls">str</span>):
+    redis = <span class="kw">await</span> <span class="fn">get_redis</span>()
+    ip = request.client.host
+ 
+    <span class="cm"># Clave única por IP + endpoint</span>
+    attempt_key = <span class="fn">f</span><span class="str">"bf:attempts:{ip}:{identifier}"</span>
+    lockout_key = <span class="fn">f</span><span class="str">"bf:lockout:{ip}"</span>
+ 
+    <span class="cm"># Verificar si está en lockout</span>
+    <span class="kw">if</span> <span class="kw">await</span> redis.<span class="fn">exists</span>(lockout_key):
+        ttl = <span class="kw">await</span> redis.<span class="fn">ttl</span>(lockout_key)
+        logger.<span class="fn">warning</span>(<span class="str">"auth_blocked_lockout"</span>, ip=ip, ttl_s=ttl)
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(
+            <span class="num">429</span>,
+            <span class="fn">f</span><span class="str">"Demasiados intentos. Espera {ttl // 60} minutos."</span>
+        )
+ 
+    <span class="cm"># Incrementar contador</span>
+    attempts = <span class="kw">await</span> redis.<span class="fn">incr</span>(attempt_key)
+    <span class="kw">if</span> attempts == <span class="num">1</span>:
+        <span class="kw">await</span> redis.<span class="fn">expire</span>(attempt_key, WINDOW_SECONDS)
+ 
+    <span class="kw">if</span> attempts > MAX_ATTEMPTS:
+        <span class="cm"># Activar lockout de 1 hora</span>
+        <span class="kw">await</span> redis.<span class="fn">setex</span>(lockout_key, LOCKOUT_TIME, <span class="str">"1"</span>)
+ 
+        <span class="cm"># Alerta de seguridad</span>
+        logger.<span class="fn">error</span>(<span class="str">"brute_force_lockout"</span>, ip=ip, attempts=attempts)
+        sentry_sdk.<span class="fn">capture_message</span>(
+            <span class="fn">f</span><span class="str">"Brute force lockout: {ip}"</span>, level=<span class="str">"warning"</span>
+        )
+ 
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(<span class="num">429</span>, <span class="str">"Cuenta temporalmente bloqueada."</span>)
+ 
+<span class="kw">async def</span> <span class="fn">reset_attempts</span>(ip: <span class="cls">str</span>, identifier: <span class="cls">str</span>):
+    redis = <span class="kw">await</span> <span class="fn">get_redis</span>()
+    <span class="kw">await</span> redis.<span class="fn">delete</span>(<span class="fn">f</span><span class="str">"bf:attempts:{ip}:{identifier}"</span>)
+ 
+<span class="cm"># Uso en el router de auth:</span>
+<span class="dec">@router.post</span>(<span class="str">"/login"</span>)
+<span class="kw">async def</span> <span class="fn">login</span>(credentials: ..., request: Request, db=...):
+    <span class="kw">await</span> <span class="fn">check_brute_force</span>(request, <span class="str">"login"</span>)
+    user = <span class="kw">await</span> <span class="fn">authenticate</span>(credentials)
+    <span class="kw">if not</span> user:
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(<span class="num">401</span>, <span class="str">"Credenciales inválidas"</span>)
+    <span class="kw">await</span> <span class="fn">reset_attempts</span>(request.client.host, <span class="str">"login"</span>)
+    <span class="kw">return await</span> <span class="fn">create_tokens</span>(user)</pre></div>
+    </div>
+  </div>
+</section>
+ 
+<!-- POSTMORTEM TEMPLATE -->
+<section class="section" id="postmortem" style="background:linear-gradient(to bottom,transparent,rgba(0,207,255,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 08 &#8212; aprendizaje</p>
+    <h2 class="sec-h2 fade-in">Postmortem &#8212;<br><em>sin blame, solo aprendizaje</em></h2>
+    <p class="sec-sub fade-in">El documento que escribes despu&#233;s de cada incidente grave. No busca culpables &#8212; busca c&#243;mo el sistema permiti&#243; que pasara.</p>
+ 
+    <div class="pm-template fade-in">
+      <div class="pm-head">
+        <span class="pm-title">&#128203; Plantilla de Postmortem &#8212; Incidente #001 &#8212; SQL Injection en /search</span>
+        <span style="font-family:var(--mono);font-size:0.65rem;color:var(--gray)">2024-04-25 &#183; Durado: 1h 43min &#183; Severidad: HIGH</span>
+      </div>
+      <div class="pm-body">
+        <div class="pm-col">
+          <div class="pm-section">
+            <div class="pm-section-title">&#128200; Impacto</div>
+            <div class="pm-content">
+              <strong>Usuarios afectados:</strong> 0 (ataque contenido antes de exfiltraci&#243;n)<br>
+              <strong>Disponibilidad:</strong> 100% (no hubo downtime)<br>
+              <strong>Datos comprometidos:</strong> Ninguno &#8212; bcrypt protegi&#243; passwords<br>
+              <strong>Duraci&#243;n del ataque:</strong> 3 minutos activo<br>
+              <div class="pm-metric">MTTD: 3 min &#8226; MTTR: 1h 43min</div>
+            </div>
+          </div>
+          <div class="pm-section">
+            <div class="pm-section-title">&#128336; Timeline del incidente</div>
+            <div class="pm-content">
+              <strong>03:47</strong> &#8212; Sentry detecta spike de 500s en /search<br>
+              <strong>03:50</strong> &#8212; Alerta llega a Slack, on-call responde<br>
+              <strong>03:55</strong> &#8212; IP bloqueada en nginx<br>
+              <strong>04:10</strong> &#8212; An&#225;lisis forense completo<br>
+              <strong>05:00</strong> &#8212; Parche desarrollado y testeado<br>
+              <strong>05:30</strong> &#8212; Deploy del parche, incidente cerrado
+            </div>
+          </div>
+          <div class="pm-section">
+            <div class="pm-section-title">&#128161; Causa ra&#237;z</div>
+            <div class="pm-content">
+              El endpoint GET /api/v1/search usaba una f-string directamente en <code style="color:var(--cyan)">text()</code> de SQLAlchemy en lugar del ORM parametrizado. El c&#243;digo exist&#237;a desde el commit inicial y no fue detectado en code review porque no hab&#237;a tests de seguridad para ese endpoint.
+            </div>
+          </div>
+        </div>
+        <div class="pm-col">
+          <div class="pm-section">
+            <div class="pm-section-title">&#9989; Qu&#233; sali&#243; bien</div>
+            <div class="pm-content">
+              &#8226; Sentry detect&#243; el incidente en 3 minutos<br>
+              &#8226; bcrypt evit&#243; que las contrase&#241;as fueran &#250;tiles<br>
+              &#8226; El runbook exist&#237;a y se sigui&#243;<br>
+              &#8226; El bloqueo de IP fue inmediato<br>
+              &#8226; No hubo downtime para usuarios leg&#237;timos
+            </div>
+          </div>
+          <div class="pm-section">
+            <div class="pm-section-title">&#128293; Qu&#233; sali&#243; mal</div>
+            <div class="pm-content">
+              &#8226; El c&#243;digo vulnerable pas&#243; code review<br>
+              &#8226; No hab&#237;a tests de SQL injection autom&#225;ticos<br>
+              &#8226; pip-audit no detecta vulnerabilidades en nuestro c&#243;digo<br>
+              &#8226; MTTR de 1h 43min &#8212; objetivo era &lt; 1h
+            </div>
+          </div>
+          <div class="pm-section">
+            <div class="pm-section-title">&#128295; Acciones correctivas</div>
+            <div class="pm-content">
+              &#8226; <strong>Inmediato:</strong> Parche y test de regression aplicado<br>
+              &#8226; <strong>Esta semana:</strong> Revisar todos los endpoints con text() manual<br>
+              &#8226; <strong>Este sprint:</strong> A&#241;adir bandit al CI &#8212; detecta text() inseguro<br>
+              &#8226; <strong>Pr&#243;ximo sprint:</strong> OWASP ZAP scan autom&#225;tico en staging<br>
+              &#8226; <strong>Proceso:</strong> SQL injection checklist en code review template
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- LOG -->
+<section class="log-section">
+  <div class="log-entry">
+    <div class="log-date">ENTRADA #007 &#8212; CAP&#205;TULO 07 COMPLETADO</div>
+    <p>
+      Hoy entend&#237; que monitorear no es solo ver n&#250;meros &#8212; es construir el sistema que te despierta a las 3am cuando algo va mal, te dice exactamente qu&#233; pas&#243;, y te da los pasos para arreglarlo. La diferencia entre 277 d&#237;as de brecha sin detectar y 3 minutos de detecci&#243;n es exactamente Sentry + logs estructurados + alertas bien configuradas.
+    </p>
+    <p>
+      El postmortem sin blame fue la lecci&#243;n m&#225;s importante. El bug exist&#237;a en el c&#243;digo desde el d&#237;a uno. No fall&#243; el desarrollador &#8212; fall&#243; el proceso: no hab&#237;a tests de seguridad, no hab&#237;a an&#225;lisis est&#225;tico con bandit. El objetivo no es no equivocarse &#8212; es construir sistemas que detecten y contengan los errores antes de que hagan da&#241;o real.
+    </p>
+  </div>
+</section>
+ 
+<footer>
+  <div class="footer-brand">CIPHER</div>
+  <div class="chapter-nav">
+    <a href="cybersec_chapter6.html" class="ch-link prev">
+      <span class="ch-label">&#8592; Anterior</span>
+      <span class="ch-title">06 &#8212; AppSec Profundo</span>
+    </a>
+    <a href="#" class="ch-link">
+      <span class="ch-label">Pr&#243;ximo &#8594;</span>
+      <span class="ch-title">08 &#8212; OSINT &amp; Forense Digital</span>
+    </a>
+  </div>
+</footer>
+<div class="footer-copy">CIPHER DOC &#8212; Cap&#237;tulo 08: Monitoreo &amp; Respuesta a Incidentes &#183; Loguru &#183; Sentry &#183; Runbooks &#183; Postmortem &#183; Construido con Claude Pro</div>
+ 
+<script>
+// Hero canvas — simula actividad de red con alertas
+const canvas = document.getElementById('hero-canvas');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
+resize();
+new ResizeObserver(resize).observe(canvas);
+ 
+const pulses = [];
+function addPulse(x, y, color){
+  pulses.push({x, y, r: 0, maxR: 80 + Math.random()*60, alpha: 0.6, color});
+}
+ 
+let t = 0;
+function drawHero(){
+  ctx.fillStyle = 'rgba(5,6,10,0.15)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+ 
+  // grid
+  ctx.strokeStyle = 'rgba(0,207,255,0.04)';
+  ctx.lineWidth = 0.5;
+  for(let x=0; x<canvas.width; x+=50){
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke();
+  }
+  for(let y=0; y<canvas.height; y+=50){
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
+  }
+ 
+  // random events
+  if(Math.random() < 0.02){
+    const colors = ['rgba(0,207,255,', 'rgba(6,214,160,', 'rgba(239,35,60,', 'rgba(255,179,71,'];
+    const c = colors[Math.floor(Math.random()*colors.length)];
+    addPulse(Math.random()*canvas.width, Math.random()*canvas.height, c);
+  }
+ 
+  // draw pulses
+  for(let i = pulses.length-1; i >= 0; i--){
+    const p = pulses[i];
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.strokeStyle = p.color + p.alpha + ')';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    p.r += 1.5; p.alpha *= 0.97;
+    if(p.r > p.maxR) pulses.splice(i, 1);
+  }
+ 
+  // floating text snippets
+  ctx.font = '9px Share Tech Mono';
+  const texts = [
+    {t:'logger.info("request")', x:10, y:30},
+    {t:'sentry_sdk.capture_exception()', x:10, y:60},
+    {t:'GET /health → 200 OK', x:10, y:90},
+    {t:'brute_force_detected: ip=203.x', x:10, y:120},
+    {t:'db.execute(text(query))', x:10, y:150},
+    {t:'alert: p95_latency > 2000ms', x:10, y:180},
+  ];
+  t += 0.005;
+  texts.forEach((item, i) => {
+    const alpha = 0.08 + 0.04 * Math.sin(t + i);
+    ctx.fillStyle = `rgba(0,207,255,${alpha})`;
+    ctx.fillText(item.t, item.x, item.y + Math.sin(t*0.7 + i) * 3);
+  });
+ 
+  requestAnimationFrame(drawHero);
+}
+drawHero();
+ 
+// Log stream simulator
+const logContainer = document.getElementById('log-stream');
+let streaming = true;
+let logInterval;
+ 
+const LOG_TEMPLATES = [
+  {level:'INFO', cls:'ll-info', msgs:[
+    'method=GET path=/api/v1/users status=200 ms=45',
+    'method=POST path=/api/v1/auth/login status=200 ms=287 user_id=42',
+    'method=GET path=/health status=200 checks=ok ms=12',
+    'method=GET path=/api/v1/orders status=200 ms=67',
+    'user_registered user_id=87 method=email',
+  ]},
+  {level:'WARN', cls:'ll-warn', msgs:[
+    'auth_failed ip=198.51.100.22 attempts=3 endpoint=/auth/login',
+    'db_slow_query ms=1450 table=orders threshold=1000',
+    'rate_limit_near ip=203.0.113.5 count=45 limit=60',
+    'jwt_expiring_soon user_id=12 exp_in_min=5',
+  ]},
+  {level:'ERROR', cls:'ll-error', msgs:[
+    'db_connection_timeout pool_size=10 active=10',
+    'unhandled_exception endpoint=/api/v1/files/upload',
+    'redis_connection_failed host=redis port=6379',
+  ]},
+  {level:'OK', cls:'ll-ok', msgs:[
+    'deploy_completed version=a3f2b1c health=ok',
+    'backup_completed db=cipher_db size_mb=245',
+    'ssl_certificate_renewed domain=tudominio.com days_valid=90',
+    'migration_applied name=003_add_audit_logs',
+  ]},
+];
+ 
+function fmtTime(){
+  return new Date().toISOString().slice(11,23);
+}
+ 
+function addLogLine(level, cls, msg, highlight=false){
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  const msgClass = highlight ? 'log-danger' : 'log-msg';
+  line.innerHTML = `<span class="log-time">${fmtTime()}</span>`
+    + `<span class="log-level ${cls}">${level}</span>`
+    + `<span class="${msgClass}">${msg}</span>`;
+  logContainer.appendChild(line);
+  logContainer.scrollTop = logContainer.scrollHeight;
+  // keep max 80 lines
+  while(logContainer.children.length > 80){
+    logContainer.removeChild(logContainer.firstChild);
+  }
+}
+ 
+function generateLog(){
+  const weights = [70, 20, 8, 2];
+  const rand = Math.random() * 100;
+  let idx = 0, acc = 0;
+  for(let i=0; i<weights.length; i++){ acc+=weights[i]; if(rand<acc){idx=i;break;} }
+  const tpl = LOG_TEMPLATES[idx];
+  const msg = tpl.msgs[Math.floor(Math.random()*tpl.msgs.length)];
+  addLogLine(tpl.level, tpl.cls, msg);
+}
+ 
+function startStream(){
+  logInterval = setInterval(generateLog, 600 + Math.random()*400);
+}
+ 
+function toggleStream(){
+  streaming = !streaming;
+  const btn = document.getElementById('btn-play');
+  const status = document.getElementById('stream-status');
+  if(streaming){
+    startStream();
+    btn.textContent = '⏸ PAUSA'; btn.classList.add('active');
+    status.textContent = 'EN VIVO';
+  } else {
+    clearInterval(logInterval);
+    btn.textContent = '▶ PLAY'; btn.classList.remove('active');
+    status.textContent = 'PAUSADO';
+  }
+}
+ 
+function clearLogs(){ logContainer.innerHTML = ''; }
+ 
+function injectAttack(){
+  clearInterval(logInterval);
+  const attackLogs = [
+    {level:'WARN', cls:'ll-warn', msg:'auth_failed ip=203.0.113.47 attempts=1 endpoint=/api/v1/search', h:false},
+    {level:'WARN', cls:'ll-warn', msg:"suspicious_request ip=203.0.113.47 pattern=sql_injection path=/api/v1/search?q='%20OR%20'1'%3D'1", h:false},
+    {level:'ERROR', cls:'ll-error', msg:"sqlalchemy.ProgrammingError: syntax error at or near 'OR' — endpoint=/api/v1/search", h:true},
+    {level:'ERROR', cls:'ll-error', msg:'sqlalchemy.ProgrammingError — 2nd attempt — same IP', h:true},
+    {level:'CRIT', cls:'ll-crit', msg:'SECURITY ALERT: SQL injection detected — ip=203.0.113.47 — 12 errors in 60s', h:true},
+    {level:'INFO', cls:'ll-info', msg:'brute_force_lockout activated — ip=203.0.113.47 duration=3600s', h:false},
+    {level:'INFO', cls:'ll-info', msg:'sentry_alert_sent — issue captured — 12 events grouped', h:false},
+    {level:'INFO', cls:'ll-info', msg:'slack_notification_sent channel=#incidents level=critical', h:false},
+    {level:'OK', cls:'ll-ok', msg:'nginx_block applied — ip=203.0.113.47 — attack contained', h:false},
+  ];
+ 
+  let i = 0;
+  const attackInterval = setInterval(() => {
+    if(i >= attackLogs.length){
+      clearInterval(attackInterval);
+      if(streaming) startStream();
+      return;
+    }
+    const l = attackLogs[i++];
+    addLogLine(l.level, l.cls, l.msg, l.h);
+  }, 700);
+}
+ 
+// Start stream
+startStream();
+addLogLine('INFO', 'll-info', 'cipher-api started — version=1.0.0 env=production workers=4');
+addLogLine('OK', 'll-ok', 'postgresql connected — pool_size=10');
+addLogLine('OK', 'll-ok', 'redis connected — host=redis port=6379');
+ 
+// Metrics animation
+const metrics = [
+  {id:'m-uptime', vals:['99.8%','99.9%','99.8%','99.7%'], cls:['mv-good','mv-good','mv-good','mv-warn']},
+  {id:'m-p95', vals:['87ms','92ms','78ms','145ms'], cls:['mv-good','mv-good','mv-good','mv-warn']},
+  {id:'m-err', vals:['0.4%','0.3%','0.5%','0.4%'], cls:['mv-warn','mv-good','mv-warn','mv-warn']},
+  {id:'m-rps', vals:['142','138','156','203'], cls:['mv-neutral','mv-neutral','mv-neutral','mv-neutral']},
+  {id:'m-cpu', vals:['68%','72%','64%','81%'], cls:['mv-warn','mv-warn','mv-good','mv-bad']},
+  {id:'m-mem', vals:['312MB','298MB','325MB','318MB'], cls:['mv-good','mv-good','mv-good','mv-good']},
+];
+ 
+let metricTick = 0;
+setInterval(() => {
+  metricTick = (metricTick + 1) % 4;
+  metrics.forEach(m => {
+    const el = document.getElementById(m.id);
+    if(!el) return;
+    el.textContent = m.vals[metricTick];
+    el.className = 'metric-val ' + m.cls[metricTick];
+  });
+}, 3000);
+ 
+// Code tabs
+document.querySelectorAll('.code-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.code-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('ct-' + tab.dataset.ct).classList.add('active');
+  });
+});
+ 
+// Scroll observer
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.07, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.fade-in').forEach((el, i) => {
+  el.style.transitionDelay = (i % 5) * 0.07 + 's';
+  obs.observe(el);
+});
+</script>
+</body>
+</html>
