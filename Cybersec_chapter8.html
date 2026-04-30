@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIPHER &#8212; Cap. 08: OSINT &amp; Forense Digital</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#050608;--lime:#39ff14;--lime2:rgba(57,255,20,0.07);
+  --green:#06d6a0;--red:#ef233c;--amber:#ffb347;--blue:#4cc9f0;
+  --purple:#c77dff;--orange:#ff6b35;--white:#e8e8e0;--gray:#46485a;
+  --mono:'Share Tech Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+  --body:'Crimson Pro',Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:var(--body);
+  font-weight:300;line-height:1.7;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,
+  rgba(57,255,20,0.005) 2px,rgba(57,255,20,0.005) 4px);
+  pointer-events:none;z-index:9999}
+ 
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;
+  align-items:center;justify-content:space-between;padding:1.2rem 3rem;
+  background:linear-gradient(to bottom,rgba(5,6,8,0.98),transparent);
+  border-bottom:1px solid rgba(57,255,20,0.08)}
+.nav-logo{font-family:var(--display);font-size:1.8rem;letter-spacing:0.3em;
+  color:var(--lime);text-decoration:none}
+.nav-logo span{color:var(--white)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{font-family:var(--mono);font-size:0.68rem;color:var(--gray);
+  text-decoration:none;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s}
+.nav-links a:hover{color:var(--lime)}
+.nav-prev{font-family:var(--mono);font-size:0.65rem;color:var(--gray);
+  text-decoration:none;transition:color 0.2s}
+.nav-prev:hover{color:var(--white)}
+ 
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;
+  justify-content:flex-end;padding:8rem 3rem 5rem;position:relative;overflow:hidden}
+#hero-canvas{position:absolute;inset:0;z-index:0}
+.hero-overlay{position:absolute;inset:0;z-index:1;
+  background:linear-gradient(to top,var(--black) 35%,rgba(5,6,8,0.15) 100%)}
+.hero-content{position:relative;z-index:2}
+.chapter-tag{font-family:var(--mono);font-size:0.65rem;color:var(--lime);
+  letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;
+  display:flex;align-items:center;gap:1rem}
+.chapter-tag::after{content:'';flex:0 0 40px;height:1px;background:var(--lime)}
+.hero h1{font-family:var(--display);font-size:clamp(3.5rem,10vw,10rem);
+  line-height:0.88;letter-spacing:0.02em;color:var(--white)}
+.hero h1 .l{color:var(--lime)}.hero h1 .o{color:var(--orange)}
+.hero-cols{display:grid;grid-template-columns:1fr 1fr;gap:4rem;
+  margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.05)}
+.hero-desc{font-size:1.1rem;color:rgba(232,232,224,0.45);line-height:1.85;font-style:italic}
+.hero-tech{display:flex;flex-direction:column;gap:0.4rem}
+.tech-row{font-family:var(--mono);font-size:0.68rem;display:flex;align-items:center;
+  gap:0.8rem;color:var(--gray);padding:0.4rem 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.tech-row .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.tech-row .val{margin-left:auto;color:var(--white)}
+.dl{background:var(--lime)}.do{background:var(--orange)}.dr{background:var(--red)}
+.db{background:var(--blue)}.dp{background:var(--purple)}
+ 
+/* SHARED */
+.section{padding:8rem 3rem;position:relative}
+.section-inner{max-width:1100px;margin:0 auto}
+.sec-label{font-family:var(--mono);font-size:0.6rem;color:var(--lime);
+  letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem}
+.sec-h2{font-family:var(--display);font-size:clamp(2.5rem,5vw,5rem);
+  letter-spacing:0.04em;line-height:1.05;color:var(--white)}
+.sec-h2 em{font-style:normal;color:var(--lime)}
+.sec-sub{font-size:1.05rem;color:rgba(232,232,224,0.4);font-style:italic;
+  margin-top:0.8rem;max-width:620px}
+.fade-in{opacity:0;transform:translateY(16px);transition:opacity 0.6s,transform 0.6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+ 
+/* OSINT TOOL GRID */
+.tool-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:rgba(57,255,20,0.07);margin-top:4rem}
+.tool-card{background:var(--black);padding:2rem;position:relative;
+  overflow:hidden;transition:background 0.3s;cursor:default}
+.tool-card:hover{background:rgba(57,255,20,0.02)}
+.tool-cat{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.2em;
+  text-transform:uppercase;margin-bottom:0.8rem;display:inline-block;padding:0.15rem 0.5rem}
+.tc-recon{background:rgba(57,255,20,0.08);border:1px solid rgba(57,255,20,0.2);color:var(--lime)}
+.tc-social{background:rgba(76,201,240,0.08);border:1px solid rgba(76,201,240,0.2);color:var(--blue)}
+.tc-net{background:rgba(255,107,53,0.08);border:1px solid rgba(255,107,53,0.2);color:var(--orange)}
+.tc-img{background:rgba(199,125,255,0.08);border:1px solid rgba(199,125,255,0.2);color:var(--purple)}
+.tc-doc{background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.2);color:var(--amber)}
+.tc-dark{background:rgba(239,35,60,0.08);border:1px solid rgba(239,35,60,0.2);color:var(--red)}
+.tool-name{font-family:var(--mono);font-size:0.85rem;color:var(--white);
+  letter-spacing:0.08em;margin-bottom:0.4rem}
+.tool-desc{font-size:0.9rem;color:rgba(232,232,224,0.45);line-height:1.6;margin-bottom:0.8rem}
+.tool-cmd{font-family:var(--mono);font-size:0.65rem;color:var(--lime);
+  background:rgba(57,255,20,0.04);border:1px solid rgba(57,255,20,0.1);
+  padding:0.4rem 0.8rem;line-height:1.7}
+.tool-use{position:absolute;top:1rem;right:1rem;font-family:var(--mono);
+  font-size:0.5rem;padding:0.15rem 0.4rem;letter-spacing:0.1em}
+.tu-legal{background:rgba(6,214,160,0.08);border:1px solid rgba(6,214,160,0.2);color:var(--green)}
+.tu-care{background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.2);color:var(--amber)}
+ 
+/* GOOGLE DORKS INTERACTIVE */
+.dorks-wrap{margin-top:4rem;border:1px solid rgba(57,255,20,0.15);overflow:hidden}
+.dorks-head{background:rgba(57,255,20,0.04);border-bottom:1px solid rgba(57,255,20,0.1);
+  padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.dorks-title{font-family:var(--mono);font-size:0.7rem;color:var(--lime);
+  letter-spacing:0.15em;text-transform:uppercase}
+.dorks-body{padding:2rem;display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+.dork-category h4{font-family:var(--mono);font-size:0.65rem;color:var(--lime);
+  letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.8rem;
+  padding-bottom:0.4rem;border-bottom:1px solid rgba(57,255,20,0.1)}
+.dork-item{font-family:var(--mono);font-size:0.7rem;padding:0.5rem 0.8rem;
+  margin-bottom:0.4rem;background:rgba(57,255,20,0.03);border:1px solid rgba(57,255,20,0.08);
+  cursor:pointer;transition:all 0.2s;line-height:1.5;display:flex;
+  align-items:flex-start;gap:0.6rem}
+.dork-item:hover{background:rgba(57,255,20,0.07);border-color:rgba(57,255,20,0.2)}
+.dork-text{color:var(--lime);flex:1}
+.dork-desc{color:var(--gray);font-size:0.62rem}
+.dork-result{margin-top:1.5rem;padding:1rem;background:rgba(5,6,8,0.8);
+  border:1px solid rgba(57,255,20,0.1);font-family:var(--mono);font-size:0.72rem;
+  color:rgba(232,232,224,0.5);min-height:60px;line-height:1.7}
+.dork-result .highlight{color:var(--lime)}
+ 
+/* RECONNAISSANCE PIPELINE */
+.recon-flow{margin-top:4rem;display:flex;flex-direction:column;gap:2px}
+.recon-step{display:grid;grid-template-columns:140px 1fr auto;align-items:stretch;
+  gap:0;border:1px solid rgba(255,255,255,0.04);border-top:none;transition:background 0.2s}
+.recon-step:first-child{border-top:1px solid rgba(255,255,255,0.04)}
+.recon-step:hover{background:rgba(57,255,20,0.01)}
+.rs-phase{padding:1.2rem 1.5rem;border-right:1px solid rgba(255,255,255,0.04);
+  display:flex;flex-direction:column;justify-content:center}
+.rs-num{font-family:var(--display);font-size:1.8rem;color:rgba(57,255,20,0.1);line-height:1}
+.rs-name{font-family:var(--mono);font-size:0.62rem;color:var(--lime);
+  letter-spacing:0.1em;text-transform:uppercase}
+.rs-content{padding:1.2rem 1.5rem;font-size:0.9rem;color:rgba(232,232,224,0.5);line-height:1.65}
+.rs-content strong{color:var(--white);font-weight:400}
+.rs-content code{font-family:var(--mono);font-size:0.78rem;color:var(--lime)}
+.rs-output{padding:1.2rem 1.5rem;border-left:1px solid rgba(255,255,255,0.04);
+  display:flex;align-items:center;min-width:140px;justify-content:center}
+.rs-badge{font-family:var(--mono);font-size:0.55rem;padding:0.2rem 0.5rem;
+  letter-spacing:0.1em;text-transform:uppercase;text-align:center}
+.rb-passive{background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.15);color:var(--green)}
+.rb-active{background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.2);color:var(--amber)}
+.rb-analysis{background:rgba(57,255,20,0.06);border:1px solid rgba(57,255,20,0.15);color:var(--lime)}
+ 
+/* DIGITAL FORENSICS */
+.forensics-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:4rem}
+.forensic-card{border:1px solid rgba(255,255,255,0.05);padding:2rem;
+  position:relative;overflow:hidden;transition:border-color 0.3s}
+.forensic-card:hover{border-color:rgba(57,255,20,0.15)}
+.fc-num{font-family:var(--display);font-size:3.5rem;color:rgba(57,255,20,0.06);
+  position:absolute;top:0.5rem;right:1rem;line-height:1}
+.fc-icon{font-size:1.5rem;margin-bottom:0.8rem}
+.fc-name{font-family:var(--mono);font-size:0.75rem;color:var(--white);
+  letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.6rem}
+.fc-desc{font-size:0.9rem;color:rgba(232,232,224,0.45);line-height:1.65}
+.fc-tools{margin-top:1rem;font-family:var(--mono);font-size:0.65rem;color:var(--lime);
+  line-height:1.7}
+ 
+/* THEHARVESTOR DEMO */
+.demo-terminal{margin-top:4rem;border:1px solid rgba(57,255,20,0.15);overflow:hidden}
+.demo-head{background:rgba(57,255,20,0.04);border-bottom:1px solid rgba(57,255,20,0.1);
+  padding:0.8rem 1.2rem;display:flex;align-items:center;gap:0.6rem}
+.demo-dot{width:10px;height:10px;border-radius:50%}
+.dd-r{background:#ff5f57}.dd-y{background:#febc2e}.dd-g{background:#28c840}
+.demo-title{font-family:var(--mono);font-size:0.62rem;color:var(--gray);letter-spacing:0.1em;margin-left:0.5rem}
+.demo-tabs{display:flex;border-bottom:1px solid rgba(57,255,20,0.08)}
+.demo-tab{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.08em;
+  text-transform:uppercase;padding:0.6rem 1.2rem;color:var(--gray);cursor:pointer;
+  border-bottom:2px solid transparent;transition:all 0.2s}
+.demo-tab.active{color:var(--lime);border-bottom-color:var(--lime)}
+.demo-tab:hover{color:var(--white)}
+.demo-pane{display:none}.demo-pane.active{display:block}
+.demo-body{padding:1.5rem 2rem;font-family:var(--mono);font-size:0.76rem;
+  line-height:1.9;max-height:420px;overflow-y:auto}
+.demo-body::-webkit-scrollbar{width:3px}
+.demo-body::-webkit-scrollbar-thumb{background:rgba(57,255,20,0.2)}
+.demo-body pre{margin:0;white-space:pre-wrap;word-break:break-word}
+.dp{color:var(--lime)}.dc{color:var(--white)}.do2{color:rgba(232,232,224,0.45)}
+.dh{color:var(--amber)}.de{color:var(--red)}.dg{color:var(--green)}
+ 
+/* METADATA ANALYSIS */
+.metadata-demo{margin-top:4rem;display:grid;grid-template-columns:1fr 1fr;gap:2px;
+  background:rgba(57,255,20,0.06)}
+.meta-panel{background:var(--black);overflow:hidden}
+.meta-head{padding:0.9rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.05);
+  display:flex;align-items:center;gap:0.8rem;font-family:var(--mono);font-size:0.62rem;
+  letter-spacing:0.12em;text-transform:uppercase;background:rgba(255,255,255,0.02)}
+.meta-badge-before{padding:0.15rem 0.5rem;font-size:0.55rem;
+  background:rgba(239,35,60,0.1);border:1px solid rgba(239,35,60,0.25);color:var(--red)}
+.meta-badge-after{padding:0.15rem 0.5rem;font-size:0.55rem;
+  background:rgba(6,214,160,0.08);border:1px solid rgba(6,214,160,0.2);color:var(--green)}
+.meta-body{padding:1.5rem;font-family:var(--mono);font-size:0.72rem;line-height:2}
+.meta-field{display:flex;gap:0.5rem;align-items:flex-start;padding:0.2rem 0;
+  border-bottom:1px solid rgba(255,255,255,0.03)}
+.mf-key{color:var(--gray);min-width:160px;flex-shrink:0}
+.mf-val-danger{color:var(--red)}
+.mf-val-safe{color:var(--green)}
+.mf-val-neutral{color:rgba(232,232,224,0.6)}
+ 
+/* CODE */
+.code-tabs{display:flex;flex-wrap:wrap;gap:0;margin-top:4rem;
+  border-bottom:1px solid rgba(255,255,255,0.06)}
+.code-tab{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;
+  text-transform:uppercase;padding:0.7rem 1.2rem;color:var(--gray);cursor:pointer;
+  border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap}
+.code-tab.active{color:var(--lime);border-bottom-color:var(--lime)}
+.code-tab:hover{color:var(--white)}
+.code-pane{display:none}.code-pane.active{display:block}
+.code-block{background:rgba(5,6,8,0.97);border:1px solid rgba(255,255,255,0.06);
+  border-top:none;padding:2rem;font-family:var(--mono);font-size:0.76rem;
+  line-height:1.95;overflow-x:auto;max-height:540px;overflow-y:auto}
+.code-block::-webkit-scrollbar{width:3px}
+.code-block::-webkit-scrollbar-thumb{background:rgba(57,255,20,0.2);border-radius:2px}
+.code-block pre{margin:0;white-space:pre-wrap;word-break:break-word}
+.kw{color:#c792ea}.fn{color:#ffb347}.str{color:#06d6a0}.cm{color:#46485a;font-style:italic}
+.dec{color:#4cc9f0}.cls{color:#82aaff}.num{color:#ef233c}
+.li{color:#39ff14}.am{color:#ffb347}
+ 
+/* ETHICS */
+.ethics-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;
+  background:rgba(255,255,255,0.04);margin-top:4rem}
+.ethics-col{background:var(--black);padding:2.5rem}
+.ethics-title{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.15em;
+  text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.6rem}
+.et-legal{color:var(--green)}.et-illegal{color:var(--red)}
+.ethics-item{display:flex;align-items:flex-start;gap:0.8rem;padding:0.6rem 0;
+  border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.9rem;
+  color:rgba(232,232,224,0.5);line-height:1.4}
+.ei-ok{color:var(--green)}.ei-no{color:var(--red)}
+ 
+/* LOG & FOOTER */
+.log-section{padding:5rem 3rem;border-top:1px solid rgba(255,255,255,0.04)}
+.log-entry{max-width:800px;margin:3rem auto 0;background:rgba(57,255,20,0.02);
+  border:1px solid rgba(57,255,20,0.1);padding:3rem;position:relative}
+.log-entry::before{content:'ENTRADA DE APRENDIZAJE // CAPcdTULO 08';
+  font-family:var(--mono);font-size:0.55rem;color:var(--lime);letter-spacing:0.25em;
+  position:absolute;top:-0.5rem;left:2rem;background:var(--black);padding:0 0.8rem}
+.log-date{font-family:var(--mono);font-size:0.65rem;color:var(--gray);margin-bottom:1.5rem}
+.log-entry p{font-size:1.05rem;color:rgba(232,232,224,0.65);line-height:1.85;font-style:italic}
+.log-entry p+p{margin-top:1rem}
+footer{padding:4rem 3rem;border-top:1px solid rgba(255,255,255,0.04);
+  display:flex;justify-content:space-between;align-items:center}
+.footer-brand{font-family:var(--display);font-size:1.5rem;letter-spacing:0.3em;
+  color:rgba(57,255,20,0.3)}
+.chapter-nav{display:flex;gap:3rem}
+.ch-link{display:flex;flex-direction:column;gap:0.3rem;text-decoration:none}
+.ch-label{font-family:var(--mono);font-size:0.6rem;color:var(--gray);
+  letter-spacing:0.2em;text-transform:uppercase}
+.ch-title{font-family:var(--display);font-size:1.1rem;letter-spacing:0.1em;
+  color:var(--white);transition:color 0.2s}
+.ch-link:hover .ch-title{color:var(--lime)}
+.ch-link.prev .ch-title{color:rgba(232,232,224,0.3)}
+.footer-copy{font-family:var(--mono);font-size:0.6rem;color:var(--gray);
+  letter-spacing:0.1em;text-align:center;padding:1.5rem 3rem;
+  border-top:1px solid rgba(255,255,255,0.03)}
+ 
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+ 
+@media(max-width:900px){
+  nav{padding:1rem 1.5rem}.nav-links{display:none}
+  .section{padding:5rem 1.5rem}
+  .hero-cols{grid-template-columns:1fr}
+  .tool-grid,.forensics-grid,.ethics-grid,.metadata-demo{grid-template-columns:1fr}
+  .dorks-body,.recon-step{grid-template-columns:1fr}
+  .rs-output{border-left:none;border-top:1px solid rgba(255,255,255,0.04)}
+  footer{flex-direction:column;gap:2rem;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+ 
+<nav>
+  <a href="#" class="nav-logo">CIPHER<span>DOC</span></a>
+  <ul class="nav-links">
+    <li><a href="#osint">OSINT</a></li>
+    <li><a href="#dorks">Google Dorks</a></li>
+    <li><a href="#recon">Reconocimiento</a></li>
+    <li><a href="#metadata">Metadatos</a></li>
+    <li><a href="#forense">Forense</a></li>
+  </ul>
+  <a href="cybersec_chapter7.html" class="nav-prev">&#8592; Cap. 07</a>
+</nav>
+ 
+<!-- HERO -->
+<section class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="chapter-tag">Cap&#237;tulo 08 &#8212; Inteligencia de fuentes abiertas</p>
+    <h1>
+      <span class="l">OSINT</span><br>
+      <span class="o">&amp;</span> FORENSE<br>
+      <span style="font-size:0.35em;letter-spacing:0.1em;color:rgba(232,232,224,0.18)">DIGITAL &#183; PASIVO &#183; LEGAL &#183; PODEROSO</span>
+    </h1>
+    <div class="hero-cols">
+      <p class="hero-desc">
+        Open Source Intelligence: extraer informaci&#243;n de fuentes p&#250;blicas sin
+        tocar el objetivo. Lo que un atacante hace antes de atacarte &#8212;
+        y lo que t&#250; deber&#237;as hacer para ver qu&#233; expones t&#250; mismo.
+        Conocer tu superficie de ataque desde fuera es el primer paso de la defensa.
+      </p>
+      <div class="hero-tech">
+        <div class="tech-row"><span class="dot dl"></span>theHarvester<span class="val">emails, hosts, IPs</span></div>
+        <div class="tech-row"><span class="dot db"></span>Shodan<span class="val">puertos, banners, CVEs</span></div>
+        <div class="tech-row"><span class="dot dl"></span>crt.sh<span class="val">subdominios por certificados</span></div>
+        <div class="tech-row"><span class="dot do"></span>Google Dorks<span class="val">archivos sensibles indexados</span></div>
+        <div class="tech-row"><span class="dot dp"></span>Exiftool / Pillow<span class="val">metadatos de archivos</span></div>
+        <div class="tech-row"><span class="dot dr"></span>WHOIS / DNS<span class="val">infraestructura del dominio</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- HERRAMIENTAS OSINT -->
+<section class="section" id="osint">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 01 &#8212; arsenal OSINT</p>
+    <h2 class="sec-h2 fade-in">Las herramientas que<br>los atacantes usan <em>primero</em></h2>
+    <p class="sec-sub fade-in">Todas son legales, p&#250;blicas y gratuitas. Lo que las hace peligrosas es c&#243;mo se combinan. &#218;salas en tus propios sistemas para ver qu&#233; ves desde fuera.</p>
+ 
+    <div class="tool-grid">
+      <div class="tool-card fade-in">
+        <span class="tu-legal tool-use">PASIVO</span>
+        <span class="tool-cat tc-recon">Reconocimiento</span>
+        <div class="tool-name">theHarvester</div>
+        <div class="tool-desc">Agrega emails, subdominios, IPs y nombres de personas desde Google, Bing, LinkedIn, Shodan y m&#225;s. Una sola herramienta, muchas fuentes.</div>
+        <div class="tool-cmd">$ theHarvester -d tudominio.com -l 200 -b all</div>
+      </div>
+ 
+      <div class="tool-card fade-in">
+        <span class="tu-legal tool-use">PASIVO</span>
+        <span class="tool-cat tc-net">Red</span>
+        <div class="tool-name">Shodan</div>
+        <div class="tool-desc">Motor de b&#250;squeda de dispositivos conectados. Ve qu&#233; puertos, servicios y versiones expone tu servidor seg&#250;n el &#237;ndice de Shodan. Tambi&#233;n muestra CVEs.</div>
+        <div class="tool-cmd">$ shodan host TU_IP_PUBLICA<br>$ shodan search "org:tuempresa nginx"</div>
+      </div>
+ 
+      <div class="tool-card fade-in">
+        <span class="tu-legal tool-use">PASIVO</span>
+        <span class="tool-cat tc-recon">Certificados</span>
+        <div class="tool-name">crt.sh</div>
+        <div class="tool-desc">Certificate Transparency Logs. Cada certificado TLS emitido queda registrado p&#250;blicamente. Revela subdominios hist&#243;ricos incluyendo staging, admin, dev.</div>
+        <div class="tool-cmd">$ curl "https://crt.sh/?q=%.tudominio.com&output=json"</div>
+      </div>
+ 
+      <div class="tool-card fade-in">
+        <span class="tu-legal tool-use">PASIVO</span>
+        <span class="tool-cat tc-recon">DNS / WHOIS</span>
+        <div class="tool-name">dnsx / WHOIS</div>
+        <div class="tool-desc">Registros DNS completos: A, MX, TXT, SPF, DKIM, NS. WHOIS revela registrante, fechas y nameservers. Mapeo completo de la infraestructura.</div>
+        <div class="tool-cmd">$ dnsx -d tudominio.com -a -mx -txt -resp<br>$ whois tudominio.com</div>
+      </div>
+ 
+      <div class="tool-card fade-in">
+        <span class="tu-care tool-use">CON CUIDADO</span>
+        <span class="tool-cat tc-social">Social</span>
+        <div class="tool-name">Maltego</div>
+        <div class="tool-desc">Grafo visual de relaciones entre personas, dominios, IPs, emails y redes sociales. Visualiza c&#243;mo est&#225; conectada la infraestructura de un objetivo.</div>
+        <div class="tool-cmd">$ maltego  # GUI<br># Transforma: dominio → emails → personas → LinkedIn</div>
+      </div>
+ 
+      <div class="tool-card fade-in">
+        <span class="tu-legal tool-use">PASIVO</span>
+        <span class="tool-cat tc-img">Metadatos</span>
+        <div class="tool-name">ExifTool</div>
+        <div class="tool-desc">Extrae metadatos de im&#225;genes, PDFs y documentos. GPS, c&#225;mara, autor, empresa, software. Una foto subida sin limpiar puede revelar la ubicaci&#243;n exacta.</div>
+        <div class="tool-cmd">$ exiftool foto.jpg<br>$ exiftool -all= foto.jpg  # limpiar</div>
+      </div>
+ 
+      <div class="tool-card fade-in">
+        <span class="tu-legal tool-use">PASIVO</span>
+        <span class="tool-cat tc-doc">Archivos</span>
+        <div class="tool-name">Google Dorks</div>
+        <div class="tool-desc">B&#250;squedas avanzadas en Google que revelan archivos sensibles indexados, directorios expuestos, configuraciones, y paneles de admin accesibles.</div>
+        <div class="tool-cmd">site:tudominio.com filetype:env<br>site:tudominio.com inurl:admin</div>
+      </div>
+ 
+      <div class="tool-card fade-in">
+        <span class="tu-legal tool-use">PASIVO</span>
+        <span class="tool-cat tc-recon">Historial</span>
+        <div class="tool-name">Wayback Machine</div>
+        <div class="tool-desc">Archivos hist&#243;ricos del sitio web. Versiones antiguas pueden exponer endpoints eliminados, credenciales commiteadas, o estructuras de API que ya no est&#225;n en producci&#243;n.</div>
+        <div class="tool-cmd">$ waybackurls tudominio.com | grep -E "\.env|\.sql|backup"</div>
+      </div>
+ 
+      <div class="tool-card fade-in">
+        <span class="tu-legal tool-use">PASIVO</span>
+        <span class="tool-cat tc-dark">C&#243;digo</span>
+        <div class="tool-name">GitHub Dorks</div>
+        <div class="tool-desc">B&#250;squeda en c&#243;digo p&#250;blico de GitHub. Encuentra credenciales, API keys, connection strings y secrets commiteados accidentalmente por desarrolladores.</div>
+        <div class="tool-cmd">org:tuempresa "SECRET_KEY"<br>org:tuempresa "DATABASE_URL" password</div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- GOOGLE DORKS INTERACTIVO -->
+<section class="section" id="dorks" style="background:linear-gradient(to bottom,transparent,rgba(57,255,20,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 02 &#8212; google dorks</p>
+    <h2 class="sec-h2 fade-in">Google como<br><em>herramienta de reconocimiento</em></h2>
+    <p class="sec-sub fade-in">Los operadores avanzados de Google permiten encontrar archivos sensibles indexados accidentalmente. Haz click en cualquier dork para ver qu&#233; busca.</p>
+ 
+    <div class="dorks-wrap fade-in">
+      <div class="dorks-head">
+        <span class="dorks-title">&#128269; Google Dorks &#8212; haz click para ver el resultado</span>
+        <span style="font-family:var(--mono);font-size:0.62rem;color:var(--gray)">Solo usar en dominios propios o con permiso</span>
+      </div>
+      <div class="dorks-body">
+        <div class="dork-category">
+          <h4>Archivos sensibles expuestos</h4>
+          <div class="dork-item" onclick="showDork(this, 'Busca archivos .env indexados por Google — pueden contener DATABASE_URL, SECRET_KEY, API keys en texto plano. Si aparece el tuyo: emergencia.')">
+            <span class="dork-text">site:tudominio.com filetype:env</span>
+            <span class="dork-desc">Archivos .env p&#250;blicos</span>
+          </div>
+          <div class="dork-item" onclick="showDork(this, 'Busca dumps de SQL indexados. Un backup.sql expuesto puede contener toda la base de datos con hashes de contraseñas.')">
+            <span class="dork-text">site:tudominio.com filetype:sql</span>
+            <span class="dork-desc">Dumps de SQL</span>
+          </div>
+          <div class="dork-item" onclick="showDork(this, 'Logs de servidor indexados. Pueden contener stack traces con rutas internas, versiones de software y datos de usuarios.')">
+            <span class="dork-text">site:tudominio.com filetype:log</span>
+            <span class="dork-desc">Archivos de log</span>
+          </div>
+          <div class="dork-item" onclick="showDork(this, 'Archivos de configuración de bases de datos. database.yml (Rails), config/database.php (Laravel) pueden tener credenciales.')">
+            <span class="dork-text">site:tudominio.com filetype:yml "password"</span>
+            <span class="dork-desc">Configs con passwords</span>
+          </div>
+          <div class="dork-item" onclick="showDork(this, 'pyproject.toml, package.json, requirements.txt indexados. Revelan el stack tecnológico exacto con versiones — facilita buscar CVEs específicos.')">
+            <span class="dork-text">site:tudominio.com filetype:toml OR filetype:json "dependencies"</span>
+            <span class="dork-desc">Dependencias expuestas</span>
+          </div>
+        </div>
+        <div class="dork-category">
+          <h4>Paneles y entornos expuestos</h4>
+          <div class="dork-item" onclick="showDork(this, 'FastAPI genera /docs y /redoc automáticamente. Si está en producción y no está protegido, el atacante ve todos tus endpoints, parámetros y esquemas.')">
+            <span class="dork-text">site:tudominio.com inurl:docs "FastAPI"</span>
+            <span class="dork-desc">FastAPI docs expuestos</span>
+          </div>
+          <div class="dork-item" onclick="showDork(this, 'Paneles de administración sin autenticación o con credenciales por defecto. admin/admin, admin/password son las más comunes.')">
+            <span class="dork-text">site:tudominio.com inurl:admin intitle:"admin"</span>
+            <span class="dork-desc">Panel admin accesible</span>
+          </div>
+          <div class="dork-item" onclick="showDork(this, 'Entornos de staging sin restricciones de IP. Suelen tener el mismo código que producción pero sin hardening — objetivo ideal para reconocimiento.')">
+            <span class="dork-text">site:staging.tudominio.com OR site:dev.tudominio.com</span>
+            <span class="dork-desc">Entornos staging/dev</span>
+          </div>
+          <div class="dork-item" onclick="showDork(this, 'phpMyAdmin, pgAdmin, Adminer — interfaces web de base de datos. Si están expuestas y sin auth fuerte, acceso directo a todos los datos.')">
+            <span class="dork-text">site:tudominio.com inurl:phpmyadmin OR inurl:pgadmin</span>
+            <span class="dork-desc">GUIs de base de datos</span>
+          </div>
+          <div class="dork-item" onclick="showDork(this, 'Kibana, Grafana, Prometheus expuestos públicamente. Revelan métricas internas, logs, y en Kibana pueden permitir leer datos completos.')">
+            <span class="dork-text">site:tudominio.com inurl:kibana OR inurl:grafana</span>
+            <span class="dork-desc">Dashboards de monitoreo</span>
+          </div>
+        </div>
+      </div>
+      <div class="dork-result" id="dork-result">
+        &#8592; Haz click en cualquier dork para ver qu&#233; busca y por qu&#233; es peligroso si aparece tu dominio.
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- PIPELINE DE RECONOCIMIENTO -->
+<section class="section" id="recon">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 03 &#8212; metodolog&#237;a</p>
+    <h2 class="sec-h2 fade-in">C&#243;mo un atacante<br><em>reconoce tu infraestructura</em></h2>
+    <p class="sec-sub fade-in">Este es el proceso exacto &#8212; paso a paso &#8212; antes de que haya un solo ataque activo. Todo pasivo, todo legal, todo p&#250;blico.</p>
+ 
+    <div class="recon-flow fade-in">
+      <div class="recon-step">
+        <div class="rs-phase"><div class="rs-num">01</div><div class="rs-name">Dominio</div></div>
+        <div class="rs-content">
+          <strong>WHOIS + DNS completo.</strong> Registrante, nameservers, fechas de registro, registros MX, SPF, DKIM.
+          Revela el proveedor de hosting, el proveedor de email, y si hay protecci&#243;n de privacidad en el WHOIS.
+          <code>whois tudominio.com &amp;&amp; dnsx -d tudominio.com -all</code>
+        </div>
+        <div class="rs-output"><span class="rs-badge rb-passive">Pasivo</span></div>
+      </div>
+ 
+      <div class="recon-step">
+        <div class="rs-phase"><div class="rs-num">02</div><div class="rs-name">Subdominios</div></div>
+        <div class="rs-content">
+          <strong>Certificate Transparency + amass pasivo.</strong> crt.sh revela todos los certificados TLS emitidos hist&#243;ricamente.
+          Cada subdominio es un potencial punto de entrada: staging, admin, dev, api-v2, internal.
+          <code>curl "https://crt.sh/?q=%.tudominio.com&amp;output=json"</code>
+        </div>
+        <div class="rs-output"><span class="rs-badge rb-passive">Pasivo</span></div>
+      </div>
+ 
+      <div class="recon-step">
+        <div class="rs-phase"><div class="rs-num">03</div><div class="rs-name">Personas</div></div>
+        <div class="rs-content">
+          <strong>theHarvester + LinkedIn.</strong> Emails corporativos, nombres completos, cargos y departamentos.
+          Esto alimenta ataques de phishing dirigido (spear phishing) y permite adivinar patrones de email
+          para encontrar m&#225;s cuentas. Los developers con c&#243;digo en GitHub son especialmente valiosos.
+          <code>theHarvester -d tudominio.com -b linkedin,google</code>
+        </div>
+        <div class="rs-output"><span class="rs-badge rb-passive">Pasivo</span></div>
+      </div>
+ 
+      <div class="recon-step">
+        <div class="rs-phase"><div class="rs-num">04</div><div class="rs-name">Puertos</div></div>
+        <div class="rs-content">
+          <strong>Shodan.</strong> Sin enviar un solo paquete al servidor: qu&#233; puertos est&#225;n abiertos, qu&#233; servicios corren,
+          qu&#233; versiones exactas, qu&#233; CVEs tienen. Si 5432 aparece: PostgreSQL p&#250;blico.
+          Si 8000 aparece: Uvicorn sin proxy. Si hay CVEs: vector de entrada inmediato.
+          <code>shodan host TU_IP</code>
+        </div>
+        <div class="rs-output"><span class="rs-badge rb-passive">Pasivo</span></div>
+      </div>
+ 
+      <div class="recon-step">
+        <div class="rs-phase"><div class="rs-num">05</div><div class="rs-name">C&#243;digo</div></div>
+        <div class="rs-content">
+          <strong>GitHub dorks + GitLeaks.</strong> B&#250;squeda en repositorios p&#250;blicos de la organizaci&#243;n.
+          Un commit hace 6 meses con SECRET_KEY en texto plano, aunque ya fue eliminado, puede seguir
+          en el historial de Git. <code>git log --all -S "SECRET_KEY"</code> lo encontrar&#237;a.
+          <code>gitleaks detect --source . --log-opts="--all"</code>
+        </div>
+        <div class="rs-output"><span class="rs-badge rb-passive">Pasivo</span></div>
+      </div>
+ 
+      <div class="recon-step">
+        <div class="rs-phase"><div class="rs-num">06</div><div class="rs-name">An&#225;lisis</div></div>
+        <div class="rs-content">
+          <strong>Consolidar y priorizar vectores.</strong> Con toda la informaci&#243;n recopilada, el atacante tiene:
+          emails para phishing, subdominios para probar, IPs con CVEs conocidos, tecnolog&#237;as exactas,
+          y posiblemente credenciales. El reconocimiento termina &#8212; el ataque empieza.
+        </div>
+        <div class="rs-output"><span class="rs-badge rb-analysis">An&#225;lisis</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- DEMOS TERMINALES -->
+<section class="section" style="padding-top:2rem">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 04 &#8212; demos reales</p>
+    <h2 class="sec-h2 fade-in">As&#237; se ve el<br><em>reconocimiento en acci&#243;n</em></h2>
+ 
+    <div class="demo-terminal fade-in">
+      <div class="demo-head">
+        <div class="demo-dot dd-r"></div><div class="demo-dot dd-y"></div><div class="demo-dot dd-g"></div>
+        <span class="demo-title">kali@osint:~$ &#8212; outputs reales de herramientas OSINT (datos ficticios)</span>
+      </div>
+      <div class="demo-tabs">
+        <div class="demo-tab active" data-dt="harvester">theHarvester</div>
+        <div class="demo-tab" data-dt="shodan">Shodan</div>
+        <div class="demo-tab" data-dt="crtsh">crt.sh</div>
+      </div>
+      <div class="demo-pane active" id="dt-harvester">
+        <div class="demo-body"><pre><span class="dp">kali@osint</span><span class="do2">:~$</span> <span class="dc">theHarvester -d ejemplo.com -l 200 -b all</span>
+ 
+<span class="do2">*******************************************************************</span>
+<span class="li">*  _   _                            _             *</span>
+<span class="li">* | |_| |__   ___  /\  /\__ _ _ ____   _____  ___| |_ ___ _ __ *</span>
+<span class="do2">*              theHarvester v4.4.3                *</span>
+<span class="do2">*******************************************************************</span>
+ 
+<span class="dh">[*] Target: ejemplo.com</span>
+<span class="dh">[*] Sources: google, bing, linkedin, shodan, crt.sh...</span>
+ 
+<span class="dg">[*] Emails found: 8</span>
+<span class="do2">------------------</span>
+<span class="li">admin@ejemplo.com</span>
+<span class="li">soporte@ejemplo.com</span>
+<span class="li">carlos.mendez@ejemplo.com</span>  <span class="dh">← nombre real expuesto</span>
+<span class="li">dev@ejemplo.com</span>
+<span class="li">noreply@ejemplo.com</span>
+ 
+<span class="dg">[*] Hosts found: 12</span>
+<span class="do2">------------------</span>
+<span class="li">api.ejemplo.com:198.51.100.5</span>
+<span class="li">staging.ejemplo.com:198.51.100.8</span>   <span class="de">← entorno staging expuesto</span>
+<span class="li">admin.ejemplo.com:198.51.100.5</span>     <span class="de">← panel admin accesible</span>
+<span class="li">old.ejemplo.com:198.51.100.3</span>       <span class="de">← servidor legado</span>
+<span class="li">dev.ejemplo.com:10.0.0.5</span>
+<span class="li">mail.ejemplo.com:198.51.100.9</span>
+ 
+<span class="dg">[*] IPs found: 4</span>
+<span class="do2">------------------</span>
+<span class="li">198.51.100.3</span>
+<span class="li">198.51.100.5</span>
+<span class="li">198.51.100.8</span>
+<span class="li">198.51.100.9</span>
+ 
+<span class="dh">[*] LinkedIn profiles found: 3</span>
+<span class="li">Carlos Méndez — Backend Developer @ Ejemplo S.A.</span>
+<span class="li">Ana Torres — CTO @ Ejemplo S.A.</span>
+<span class="li">Pedro Ruiz — DevOps Engineer @ Ejemplo S.A.</span>
+ 
+<span class="de">[!] Análisis: staging.ejemplo.com expone entorno de prueba sin auth</span>
+<span class="de">[!] admin.ejemplo.com responde con status 200 sin autenticación</span>
+<span class="de">[!] Emails corporativos pueden ser usados en phishing dirigido</span></pre></div>
+      </div>
+      <div class="demo-pane" id="dt-shodan">
+        <div class="demo-body"><pre><span class="dp">kali@osint</span><span class="do2">:~$</span> <span class="dc">shodan host 198.51.100.5</span>
+ 
+<span class="li">198.51.100.5</span>
+<span class="do2">Organización:  DigitalOcean LLC</span>
+<span class="do2">País:          United States</span>
+<span class="do2">Actualizado:   2024-04-20T03:12:00.000000</span>
+<span class="do2">Puertos:       22, 80, 443, 8000, 5432</span>
+ 
+<span class="dh">PORT    PROTO  BANNER</span>
+<span class="dh">----    -----  ------</span>
+<span class="do2">22/tcp  ssh    SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.6</span>
+<span class="do2">80/tcp  http   HTTP/1.1 301 Moved Permanently</span>
+<span class="do2">443/tcp https  nginx/1.24.0</span>
+<span class="de">8000/tcp http  uvicorn/0.29.0  ← versión exacta expuesta</span>
+<span class="de">5432/tcp psql  PostgreSQL 15.5  ← BASE DE DATOS PÚBLICA</span>
+ 
+<span class="de">Vulnerabilidades detectadas:</span>
+<span class="de">  CVE-2023-5870  PostgreSQL privilege escalation (CVSS: 4.2)</span>
+<span class="de">  CVE-2024-0985  PostgreSQL timing attack (CVSS: 7.5)</span>
+ 
+<span class="dh">Shodan Tags: database, nginx, self-signed</span>
+ 
+<span class="de">[CRITICAL] Puerto 5432 accesible públicamente</span>
+<span class="de">[HIGH] CVEs activos en versión de PostgreSQL instalada</span>
+<span class="de">[HIGH] Uvicorn expuesto directamente sin proxy</span>
+<span class="de">[INFO] Header Server revela nginx versión exacta</span></pre></div>
+      </div>
+      <div class="demo-pane" id="dt-crtsh">
+        <div class="demo-body"><pre><span class="dp">kali@osint</span><span class="do2">:~$</span> <span class="dc">curl -s "https://crt.sh/?q=%.ejemplo.com&output=json" | python3 -m json.tool | grep name_value</span>
+ 
+<span class="do2">Consultando Certificate Transparency Logs...</span>
+<span class="do2">(Técnica 100% pasiva — no contacta el servidor objetivo)</span>
+ 
+<span class="li">"name_value": "ejemplo.com"</span>
+<span class="li">"name_value": "www.ejemplo.com"</span>
+<span class="li">"name_value": "api.ejemplo.com"</span>
+<span class="de">"name_value": "staging.ejemplo.com"</span>
+<span class="de">"name_value": "admin.ejemplo.com"</span>
+<span class="de">"name_value": "dev-api.ejemplo.com"</span>
+<span class="li">"name_value": "mail.ejemplo.com"</span>
+<span class="de">"name_value": "internal.ejemplo.com"</span>   ← ¿interno?
+<span class="de">"name_value": "vpn.ejemplo.com"</span>
+<span class="li">"name_value": "cdn.ejemplo.com"</span>
+ 
+<span class="dh">Total certificados históricos: 47</span>
+<span class="dh">Subdominios únicos encontrados: 12</span>
+ 
+<span class="dh">Análisis:</span>
+<span class="de">• staging, dev-api, internal → posibles entornos sin hardening</span>
+<span class="de">• vpn.ejemplo.com → confirma uso de VPN corporativa</span>
+<span class="do2">• mail.ejemplo.com → objetivo potencial para spear phishing</span>
+ 
+<span class="dp">kali@osint</span><span class="do2">:~$</span> <span class="tcursor"></span></pre></div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- METADATOS -->
+<section class="section" id="metadata" style="background:linear-gradient(to bottom,transparent,rgba(57,255,20,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 05 &#8212; metadatos</p>
+    <h2 class="sec-h2 fade-in">Los metadatos que<br><em>traicionan a tus usuarios</em></h2>
+    <p class="sec-sub fade-in">Una imagen subida a tu API puede revelar la ubicaci&#243;n GPS exacta donde se tom&#243;, el modelo de tel&#233;fono, y el nombre del fotograf&#243;. Tu endpoint de upload debe limpiarlos.</p>
+ 
+    <div class="metadata-demo fade-in">
+      <div class="meta-panel">
+        <div class="meta-head"><span class="meta-badge-before">&#10007; Sin limpiar</span>foto_vacaciones.jpg subida al API</div>
+        <div class="meta-body">
+          <div class="meta-field"><span class="mf-key">File Name</span><span class="mf-val-neutral">foto_vacaciones.jpg</span></div>
+          <div class="meta-field"><span class="mf-key">Camera Make</span><span class="mf-val-danger">Apple</span></div>
+          <div class="meta-field"><span class="mf-key">Camera Model</span><span class="mf-val-danger">iPhone 15 Pro Max</span></div>
+          <div class="meta-field"><span class="mf-key">Software</span><span class="mf-val-danger">iOS 17.3.1</span></div>
+          <div class="meta-field"><span class="mf-key">Date/Time Original</span><span class="mf-val-danger">2024:04:14 09:23:17</span></div>
+          <div class="meta-field"><span class="mf-key">GPS Latitude</span><span class="mf-val-danger">40&#176; 24&#39; 52.8&quot; N</span></div>
+          <div class="meta-field"><span class="mf-key">GPS Longitude</span><span class="mf-val-danger">3&#176; 41&#39; 34.1&quot; W &#8592; Madrid exacto</span></div>
+          <div class="meta-field"><span class="mf-key">GPS Altitude</span><span class="mf-val-danger">667.3 m</span></div>
+          <div class="meta-field"><span class="mf-key">Artist</span><span class="mf-val-danger">Carlos M&#233;ndez</span></div>
+          <div class="meta-field"><span class="mf-key">Copyright</span><span class="mf-val-danger">&#169; 2024 Carlos M&#233;ndez</span></div>
+          <div class="meta-field"><span class="mf-key">Image Width</span><span class="mf-val-neutral">4032 px</span></div>
+          <div class="meta-field"><span class="mf-key">Image Height</span><span class="mf-val-neutral">3024 px</span></div>
+        </div>
+      </div>
+      <div class="meta-panel">
+        <div class="meta-head"><span class="meta-badge-after">&#10003; Despu&#233;s de strip_image_metadata()</span></div>
+        <div class="meta-body">
+          <div class="meta-field"><span class="mf-key">File Name</span><span class="mf-val-safe">a3f2b1c4-uuid.jpg</span></div>
+          <div class="meta-field"><span class="mf-key">Camera Make</span><span class="mf-val-safe">[eliminado]</span></div>
+          <div class="meta-field"><span class="mf-key">Camera Model</span><span class="mf-val-safe">[eliminado]</span></div>
+          <div class="meta-field"><span class="mf-key">Software</span><span class="mf-val-safe">[eliminado]</span></div>
+          <div class="meta-field"><span class="mf-key">Date/Time Original</span><span class="mf-val-safe">[eliminado]</span></div>
+          <div class="meta-field"><span class="mf-key">GPS Latitude</span><span class="mf-val-safe">[eliminado]</span></div>
+          <div class="meta-field"><span class="mf-key">GPS Longitude</span><span class="mf-val-safe">[eliminado]</span></div>
+          <div class="meta-field"><span class="mf-key">GPS Altitude</span><span class="mf-val-safe">[eliminado]</span></div>
+          <div class="meta-field"><span class="mf-key">Artist</span><span class="mf-val-safe">[eliminado]</span></div>
+          <div class="meta-field"><span class="mf-key">Copyright</span><span class="mf-val-safe">[eliminado]</span></div>
+          <div class="meta-field"><span class="mf-key">Image Width</span><span class="mf-val-neutral">800 px (redimensionada)</span></div>
+          <div class="meta-field"><span class="mf-key">Image Height</span><span class="mf-val-neutral">600 px</span></div>
+        </div>
+      </div>
+    </div>
+ 
+    <div style="margin-top:1.5rem;padding:1rem 1.5rem;background:rgba(57,255,20,0.03);
+      border:1px solid rgba(57,255,20,0.1);font-family:var(--mono);font-size:0.7rem;
+      color:rgba(232,232,224,0.5);line-height:1.7" class="fade-in">
+      <span style="color:var(--lime)">REGLA:</span> Todo archivo subido a tu API debe pasar por strip antes de guardarse.
+      Las coordenadas GPS en una imagen de un activista, periodista o v&#237;ctima de violencia
+      pueden ser literalmente peligrosas. Proteger a tus usuarios de s&#237; mismos es parte del contrato.
+    </div>
+  </div>
+</section>
+ 
+<!-- FORENSE DIGITAL -->
+<section class="section" id="forense">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 06 &#8212; forense digital</p>
+    <h2 class="sec-h2 fade-in">Forense digital:<br><em>investigar despu&#233;s del incidente</em></h2>
+    <p class="sec-sub fade-in">El forense digital responde &#171;qu&#233; pas&#243; exactamente&#187;. No eliminar evidencia. Documentar todo. Preservar la cadena de custodia.</p>
+ 
+    <div class="forensics-grid">
+      <div class="forensic-card fade-in">
+        <div class="fc-num">01</div>
+        <div class="fc-icon">&#128196;</div>
+        <div class="fc-name">Preservaci&#243;n de Evidencia</div>
+        <div class="fc-desc">Lo primero: no tocar el sistema comprometido m&#225;s de lo necesario. Hacer una imagen forense del disco antes de cualquier acci&#243;n. Los logs son evidencia &#8212; nunca borrarlos durante un incidente activo.</div>
+        <div class="fc-tools">&#8594; dd, dcfldd, FTK Imager<br>&#8594; docker commit cipher_app cipher_forensic:$(date +%s)</div>
+      </div>
+ 
+      <div class="forensic-card fade-in">
+        <div class="fc-num">02</div>
+        <div class="fc-icon">&#128203;</div>
+        <div class="fc-name">An&#225;lisis de Logs</div>
+        <div class="fc-desc">Extraer el per&#237;odo relevante, buscar patrones de ataque, identificar la IP origen, el endpoint afectado, y la secuencia exacta de acciones. Los logs estructurados JSON facilitan el an&#225;lisis.</div>
+        <div class="fc-tools">&#8594; jq, grep, awk<br>&#8594; Splunk, ELK Stack, Loki</div>
+      </div>
+ 
+      <div class="forensic-card fade-in">
+        <div class="fc-num">03</div>
+        <div class="fc-icon">&#128270;</div>
+        <div class="fc-name">Timeline del Ataque</div>
+        <div class="fc-desc">Reconstruir la secuencia temporal exacta: primer acceso, lateraliz&#243;, escal&#243; privilegios, exfiltr&#243; datos. El timestamp de cada log, acceso a DB y cambio de archivo forma el mapa del ataque.</div>
+        <div class="fc-tools">&#8594; Volatility (memoria), Autopsy (disco)<br>&#8594; plaso / log2timeline</div>
+      </div>
+ 
+      <div class="forensic-card fade-in">
+        <div class="fc-num">04</div>
+        <div class="fc-icon">&#127760;</div>
+        <div class="fc-name">An&#225;lisis de Red</div>
+        <div class="fc-desc">Si tienes capturas de red del per&#237;odo, Wireshark permite ver exactamente qu&#233; datos viajaron. Identificar exfiltraci&#243;n de datos, conexiones a C&amp;C, y volumen transferido.</div>
+        <div class="fc-tools">&#8594; Wireshark, tcpdump<br>&#8594; NetworkMiner, Zeek</div>
+      </div>
+ 
+      <div class="forensic-card fade-in">
+        <div class="fc-num">05</div>
+        <div class="fc-icon">&#128202;</div>
+        <div class="fc-name">Evaluaci&#243;n del Impacto</div>
+        <div class="fc-desc">&#191;Qu&#233; datos fueron accedidos? &#191;Modificados? &#191;Exfiltrados? Consultas SQL en el per&#237;odo afectado, archivos con timestamps modificados, usuarios cuyas contrase&#241;as pueden estar comprometidas.</div>
+        <div class="fc-tools">&#8594; PostgreSQL: pg_stat_statements, pg_audit<br>&#8594; SIEM: correlaci&#243;n de eventos</div>
+      </div>
+ 
+      <div class="forensic-card fade-in">
+        <div class="fc-num">06</div>
+        <div class="fc-icon">&#128221;</div>
+        <div class="fc-name">Cadena de Custodia</div>
+        <div class="fc-desc">Documentar qui&#233;n accedi&#243; a la evidencia, cu&#225;ndo y para qu&#233;. Hash SHA-256 de todos los archivos de evidencia antes y despu&#233;s. Esencial si el incidente va a procesos legales.</div>
+        <div class="fc-tools">&#8594; sha256sum evidencia.tar.gz &gt; hashes.txt<br>&#8594; Firmar con GPG</div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- C&#211;DIGO -->
+<section class="section" id="codigo">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 07 &#8212; implementaci&#243;n</p>
+    <h2 class="sec-h2 fade-in">El c&#243;digo<br><em>de OSINT &amp; forense</em></h2>
+ 
+    <div class="code-tabs fade-in">
+      <div class="code-tab active" data-ct="osint">osint_recon.py</div>
+      <div class="code-tab" data-ct="metadata">metadata_cleaner.py</div>
+      <div class="code-tab" data-ct="shodan">exposure_scanner.py</div>
+    </div>
+ 
+    <div class="code-pane active" id="ct-osint">
+      <div class="code-block"><pre># app/tools/osint_recon.py — OSINT pasivo con Python
+# Solo para uso en sistemas propios o con permiso escrito
+<span class="kw">import</span> asyncio, httpx, whois, dns.resolver
+<span class="kw">from</span> urllib.parse <span class="kw">import</span> urlparse
+<span class="kw">from</span> loguru <span class="kw">import</span> logger
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+<span class="kw">from</span> typing <span class="kw">import</span> Optional
+ 
+<span class="dec">@dataclass</span>
+<span class="kw">class</span> <span class="cls">DomainRecon</span>:
+    domain: <span class="cls">str</span>
+    registrar: Optional[<span class="cls">str</span>] = <span class="kw">None</span>
+    creation_date: Optional[<span class="cls">str</span>] = <span class="kw">None</span>
+    name_servers: list[<span class="cls">str</span>] = None
+    mx_records: list[<span class="cls">str</span>] = None
+    subdomains: list[<span class="cls">str</span>] = None
+    open_ports: list[<span class="cls">int</span>] = None
+ 
+<span class="kw">async def</span> <span class="fn">recon_domain</span>(domain: <span class="cls">str</span>) -> <span class="cls">DomainRecon</span>:
+    result = <span class="cls">DomainRecon</span>(domain=domain)
+ 
+    <span class="cm"># 1. WHOIS — información del registrante</span>
+    <span class="kw">try</span>:
+        w = whois.<span class="fn">whois</span>(domain)
+        result.registrar = w.registrar
+        result.creation_date = <span class="fn">str</span>(w.creation_date)
+        result.name_servers = w.name_servers <span class="kw">or</span> []
+        logger.<span class="fn">info</span>(<span class="str">"whois_complete"</span>, domain=domain, registrar=result.registrar)
+    <span class="kw">except</span> Exception <span class="kw">as</span> exc:
+        logger.<span class="fn">warning</span>(<span class="str">"whois_failed"</span>, domain=domain, error=<span class="fn">str</span>(exc))
+ 
+    <span class="cm"># 2. DNS — registros MX, A, TXT, SPF</span>
+    result.mx_records = []
+    <span class="kw">for</span> rtype <span class="kw">in</span> (<span class="str">"MX"</span>, <span class="str">"A"</span>, <span class="str">"TXT"</span>, <span class="str">"NS"</span>):
+        <span class="kw">try</span>:
+            answers = dns.resolver.<span class="fn">resolve</span>(domain, rtype)
+            result.mx_records.<span class="fn">extend</span>([<span class="fn">str</span>(r) <span class="kw">for</span> r <span class="kw">in</span> answers])
+        <span class="kw">except</span>: <span class="kw">pass</span>
+ 
+    <span class="cm"># 3. Subdomain enumeration (pasivo — fuentes públicas)</span>
+    result.subdomains = <span class="kw">await</span> <span class="fn">enumerate_subdomains_passive</span>(domain)
+ 
+    <span class="kw">return</span> result
+ 
+<span class="kw">async def</span> <span class="fn">enumerate_subdomains_passive</span>(domain: <span class="cls">str</span>) -> list[<span class="cls">str</span>]:
+    <span class="cm"># Certificate Transparency Logs — completamente pasivo</span>
+    found = set()
+    url = <span class="fn">f</span><span class="str">"https://crt.sh/?q=%.{domain}&output=json"</span>
+    <span class="kw">async with</span> httpx.<span class="cls">AsyncClient</span>(timeout=<span class="num">15</span>) <span class="kw">as</span> client:
+        <span class="kw">try</span>:
+            r = <span class="kw">await</span> client.<span class="fn">get</span>(url)
+            <span class="kw">for</span> entry <span class="kw">in</span> r.<span class="fn">json</span>():
+                name = entry.<span class="fn">get</span>(<span class="str">"name_value"</span>, <span class="str">""</span>)
+                <span class="kw">for</span> sub <span class="kw">in</span> name.<span class="fn">split</span>(<span class="str">"\n"</span>):
+                    <span class="kw">if</span> sub.<span class="fn">endswith</span>(<span class="fn">f</span><span class="str">".{domain}"</span>):
+                        found.<span class="fn">add</span>(sub.<span class="fn">strip</span>())
+        <span class="kw">except</span>: <span class="kw">pass</span>
+    <span class="kw">return sorted</span>(found)</pre></div>
+    </div>
+    <div class="code-pane" id="ct-metadata">
+      <div class="code-block"><pre># app/tools/metadata_cleaner.py — limpiar metadatos de archivos
+# pip install Pillow python-docx pikepdf
+ 
+<span class="kw">from</span> PIL <span class="kw">import</span> Image
+<span class="kw">import</span> io, json
+ 
+# ── IMÁGENES: extraer y limpiar EXIF
+<span class="kw">def</span> <span class="fn">extract_image_metadata</span>(image_bytes: <span class="cls">bytes</span>) -> <span class="cls">dict</span>:
+    img = Image.<span class="fn">open</span>(io.<span class="fn">BytesIO</span>(image_bytes))
+    exif_raw = img.<span class="fn">getexif</span>()
+ 
+    <span class="cm"># Tags de interés para OSINT</span>
+    TAGS_OSINT = {
+        <span class="num">271</span>: <span class="str">"camera_make"</span>,
+        <span class="num">272</span>: <span class="str">"camera_model"</span>,
+        <span class="num">306</span>: <span class="str">"datetime_original"</span>,
+        <span class="num">34853</span>: <span class="str">"gps_data"</span>,  <span class="cm"># ← coordenadas GPS!</span>
+        <span class="num">37510</span>: <span class="str">"user_comment"</span>,
+        <span class="num">40091</span>: <span class="str">"author"</span>,
+        <span class="num">40094</span>: <span class="str">"keywords"</span>,
+    }
+    metadata = {}
+    <span class="kw">for</span> tag_id, name <span class="kw">in</span> TAGS_OSINT.<span class="fn">items</span>():
+        val = exif_raw.<span class="fn">get</span>(tag_id)
+        <span class="kw">if</span> val: metadata[name] = <span class="fn">str</span>(val)
+    <span class="kw">return</span> metadata
+ 
+<span class="kw">def</span> <span class="fn">strip_image_metadata</span>(image_bytes: <span class="cls">bytes</span>) -> <span class="cls">bytes</span>:
+    <span class="cm"># Abrir y re-guardar elimina TODO el EXIF</span>
+    img = Image.<span class="fn">open</span>(io.<span class="fn">BytesIO</span>(image_bytes))
+    img = img.<span class="fn">convert</span>(<span class="str">"RGB"</span>)  <span class="cm"># elimina canales auxiliares</span>
+    output = io.<span class="fn">BytesIO</span>()
+    img.<span class="fn">save</span>(output, format=<span class="str">"JPEG"</span>, quality=<span class="num">85</span>)
+    <span class="cm"># Resultado: sin EXIF, sin GPS, sin cámara</span>
+    <span class="kw">return</span> output.<span class="fn">getvalue</span>()
+ 
+# ── PDFs: extraer y limpiar metadatos
+<span class="kw">import</span> pikepdf
+ 
+<span class="kw">def</span> <span class="fn">extract_pdf_metadata</span>(pdf_path: <span class="cls">str</span>) -> <span class="cls">dict</span>:
+    <span class="kw">with</span> pikepdf.<span class="fn">open</span>(pdf_path) <span class="kw">as</span> pdf:
+        meta = pdf.docinfo
+        <span class="kw">return</span> {
+            <span class="str">"author"</span>: <span class="fn">str</span>(meta.<span class="fn">get</span>(<span class="str">"/Author"</span>, <span class="str">""</span>)),
+            <span class="str">"creator"</span>: <span class="fn">str</span>(meta.<span class="fn">get</span>(<span class="str">"/Creator"</span>, <span class="str">""</span>)),
+            <span class="str">"created"</span>: <span class="fn">str</span>(meta.<span class="fn">get</span>(<span class="str">"/CreationDate"</span>, <span class="str">""</span>)),
+            <span class="str">"producer"</span>: <span class="fn">str</span>(meta.<span class="fn">get</span>(<span class="str">"/Producer"</span>, <span class="str">""</span>)),
+        }
+ 
+<span class="kw">def</span> <span class="fn">strip_pdf_metadata</span>(pdf_path: <span class="cls">str</span>, output_path: <span class="cls">str</span>):
+    <span class="kw">with</span> pikepdf.<span class="fn">open</span>(pdf_path) <span class="kw">as</span> pdf:
+        <span class="cm"># Eliminar todos los metadatos del documento</span>
+        <span class="kw">del</span> pdf.docinfo
+        pdf.<span class="fn">save</span>(output_path)
+    <span class="cm"># PDF limpio: sin autor, sin empresa, sin software</span>
+ 
+# ── En tu endpoint de upload (Cap.06 + esto):
+# metadata = extract_image_metadata(content)
+# if &quot;gps_data&quot; in metadata:
+#     logger.warning(&quot;gps_in_upload&quot;, user_id=user.id)
+# clean_content = strip_image_metadata(content)
+# # guardar clean_content, nunca content original</pre></div>
+    </div>
+    <div class="code-pane" id="ct-shodan">
+      <div class="code-block"><pre># app/tools/exposure_scanner.py — verificar tu propia exposición
+# pip install shodan
+# Requiere cuenta en shodan.io (plan gratuito disponible)
+ 
+<span class="kw">import</span> shodan, os
+<span class="kw">from</span> loguru <span class="kw">import</span> logger
+ 
+SHODAN_API_KEY = os.getenv(<span class="str">"SHODAN_API_KEY"</span>)
+ 
+<span class="kw">def</span> <span class="fn">scan_my_exposure</span>(ip: <span class="cls">str</span>) -> <span class="cls">dict</span>:
+    <span class="cm"># Busca QUÉ ve Shodan sobre tu IP pública</span>
+    <span class="cm"># Completamente pasivo — solo consulta la base de datos de Shodan</span>
+    api = shodan.<span class="cls">Shodan</span>(SHODAN_API_KEY)
+    <span class="kw">try</span>:
+        host = api.<span class="fn">host</span>(ip)
+        exposure = {
+            <span class="str">"ip"</span>: host[<span class="str">"ip_str"</span>],
+            <span class="str">"org"</span>: host.<span class="fn">get</span>(<span class="str">"org"</span>),
+            <span class="str">"os"</span>: host.<span class="fn">get</span>(<span class="str">"os"</span>),
+            <span class="str">"ports"</span>: host[<span class="str">"ports"</span>],
+            <span class="str">"vulns"</span>: host.<span class="fn">get</span>(<span class="str">"vulns"</span>, []),
+            <span class="str">"hostnames"</span>: host.<span class="fn">get</span>(<span class="str">"hostnames"</span>, []),
+            <span class="str">"last_update"</span>: host[<span class="str">"last_update"</span>],
+        }
+ 
+        <span class="cm"># Alertar si hay puertos peligrosos expuestos</span>
+        DANGEROUS_PORTS = {<span class="num">22</span>, <span class="num">3306</span>, <span class="num">5432</span>, <span class="num">6379</span>, <span class="num">27017</span>, <span class="num">9200</span>}
+        exposed_dangerous = DANGEROUS_PORTS & <span class="fn">set</span>(exposure[<span class="str">"ports"</span>])
+        <span class="kw">if</span> exposed_dangerous:
+            logger.<span class="fn">error</span>(<span class="str">"dangerous_ports_exposed"</span>,
+                ports=<span class="fn">list</span>(exposed_dangerous),
+                ip=ip
+            )
+ 
+        <span class="cm"># Alertar si hay CVEs conocidos</span>
+        <span class="kw">if</span> exposure[<span class="str">"vulns"</span>]:
+            logger.<span class="fn">error</span>(<span class="str">"cves_found_on_ip"</span>,
+                cves=exposure[<span class="str">"vulns"</span>],
+                ip=ip
+            )
+ 
+        <span class="kw">return</span> exposure
+    <span class="kw">except</span> shodan.<span class="cls">APIError</span> <span class="kw">as</span> exc:
+        logger.<span class="fn">warning</span>(<span class="str">"shodan_api_error"</span>, error=<span class="fn">str</span>(exc))
+        <span class="kw">return</span> {}
+ 
+# Úsalo así en tu CI/CD o monitoreo periódico:
+# exposure = scan_my_exposure(&quot;TU_IP_PUBLICA&quot;)
+# if exposure.get(&quot;vulns&quot;):
+#     send_alert(&quot;CVEs en producción&quot;, str(exposure[&quot;vulns&quot;]), &quot;critical&quot;)
+# if 5432 in exposure.get(&quot;ports&quot;, []):
+#     send_alert(&quot;PostgreSQL expuesto públicamente!&quot;, ip, &quot;critical&quot;)</pre></div>
+    </div>
+  </div>
+</section>
+ 
+<!-- &#201;TICA -->
+<section class="section" style="background:linear-gradient(to bottom,transparent,rgba(57,255,20,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 08 &#8212; l&#237;mites &#233;ticos y legales</p>
+    <h2 class="sec-h2 fade-in">La l&#237;nea entre<br><em>investigaci&#243;n y delito</em></h2>
+    <p class="sec-sub fade-in">El mismo conocimiento, diferente aplicaci&#243;n. Entender el l&#237;mite no es opcional &#8212; cruzarlo es un delito en pr&#225;cticamente todos los pa&#237;ses.</p>
+ 
+    <div class="ethics-grid fade-in">
+      <div class="ethics-col">
+        <div class="ethics-title et-legal">&#10003; Legal &#8212; fuentes p&#250;blicas con prop&#243;sito leg&#237;timo</div>
+        <div class="ethics-item"><span class="ei-ok">&#10003;</span>Buscar informaci&#243;n sobre tu propia infraestructura en Shodan</div>
+        <div class="ethics-item"><span class="ei-ok">&#10003;</span>Usar crt.sh para ver tus propios subdominios expuestos</div>
+        <div class="ethics-item"><span class="ei-ok">&#10003;</span>Google dorks en tu propio dominio para auditor&#237;a</div>
+        <div class="ethics-item"><span class="ei-ok">&#10003;</span>WHOIS y DNS lookup de cualquier dominio (dato p&#250;blico)</div>
+        <div class="ethics-item"><span class="ei-ok">&#10003;</span>Buscar en GitHub repositorios p&#250;blicos de tu organizaci&#243;n</div>
+        <div class="ethics-item"><span class="ei-ok">&#10003;</span>Wayback Machine en cualquier URL p&#250;blica</div>
+        <div class="ethics-item"><span class="ei-ok">&#10003;</span>Bug bounty en programas autorizados con scope definido</div>
+        <div class="ethics-item"><span class="ei-ok">&#10003;</span>Pentest con contrato escrito y scope firmado</div>
+      </div>
+      <div class="ethics-col">
+        <div class="ethics-title et-illegal">&#10007; Ilegal &#8212; sin permiso expl&#237;cito por escrito</div>
+        <div class="ethics-item"><span class="ei-no">&#10007;</span>Escanear puertos de sistemas que no te pertenecen (incluso pasivo)</div>
+        <div class="ethics-item"><span class="ei-no">&#10007;</span>Acceder a subdominios de otros aunque est&#233;n sin autenticaci&#243;n</div>
+        <div class="ethics-item"><span class="ei-no">&#10007;</span>Descargar archivos de configuraci&#243;n expuestos accidentalmente</div>
+        <div class="ethics-item"><span class="ei-no">&#10007;</span>Usar credenciales encontradas aunque sean de un breach antiguo</div>
+        <div class="ethics-item"><span class="ei-no">&#10007;</span>Reportar vulnerabilidades sin seguir el proceso de responsible disclosure</div>
+        <div class="ethics-item"><span class="ei-no">&#10007;</span>Hacer web scraping masivo en sistemas de terceros</div>
+        <div class="ethics-item"><span class="ei-no">&#10007;</span>Almacenar o distribuir datos personales encontrados</div>
+        <div class="ethics-item"><span class="ei-no">&#10007;</span>Cualquier explotaci&#243;n activa sin contrato firmado</div>
+      </div>
+    </div>
+ 
+    <div style="margin-top:2rem;padding:1.5rem;background:rgba(239,35,60,0.04);
+      border:1px solid rgba(239,35,60,0.15);font-family:var(--mono);font-size:0.72rem;
+      color:rgba(232,232,224,0.6);line-height:1.8" class="fade-in">
+      <span style="color:var(--red)">&#9888; NOTA LEGAL:</span> La ley de delitos inform&#225;ticos var&#237;a por pa&#237;s. En Espa&#241;a (C&#243;digo Penal art. 197bis), Colombia (Ley 1273), M&#233;xico (CPEUM art. 211bis) y la mayor&#237;a de pa&#237;ses latinoamericanos, el acceso no autorizado a sistemas es delito aunque el sistema no tenga contrase&#241;a. El hecho de que algo sea accesible t&#233;cnicamente no lo hace legal.
+    </div>
+  </div>
+</section>
+ 
+<!-- LOG -->
+<section class="log-section">
+  <div class="log-entry">
+    <div class="log-date">ENTRADA #008 &#8212; CAP&#205;TULO 08 COMPLETADO</div>
+    <p>
+      Busqu&#233; mi propio dominio en theHarvester y encontr&#233; tres emails corporativos, dos subdominios que no sab&#237;a que estaban indexados, y en Shodan aparec&#237;a el puerto 8000 abierto con &#171;uvicorn/0.29.0&#187; en el banner. Eso es exactamente lo que un atacante ver&#237;a antes de atacarme.
+    </p>
+    <p>
+      La revelaci&#243;n de los metadatos fue la m&#225;s impactante: una imagen de perfil subida ten&#237;a coordenadas GPS exactas. Agregué <code style="color:var(--lime)">strip_image_metadata()</code> al pipeline de upload esa misma tarde.
+      OSINT no es atacar &#8212; es ver tu infraestructura desde los ojos de quien quiere entrar.
+    </p>
+  </div>
+</section>
+ 
+<footer>
+  <div class="footer-brand">CIPHER</div>
+  <div class="chapter-nav">
+    <a href="cybersec_chapter7.html" class="ch-link prev">
+      <span class="ch-label">&#8592; Anterior</span>
+      <span class="ch-title">07 &#8212; Monitoreo &amp; Incidentes</span>
+    </a>
+    <a href="#" class="ch-link">
+      <span class="ch-label">Pr&#243;ximo &#8594;</span>
+      <span class="ch-title">09 &#8212; Ingenier&#237;a Social &amp; Phishing</span>
+    </a>
+  </div>
+</footer>
+<div class="footer-copy">CIPHER DOC &#8212; Cap&#237;tulo 08: OSINT &amp; Forense Digital &#183; theHarvester &#183; Shodan &#183; Metadatos &#183; Construido con Claude Pro</div>
+ 
+<script>
+// Hero canvas — matrix de datos OSINT
+const canvas = document.getElementById('hero-canvas');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+resize(); window.addEventListener('resize', resize);
+ 
+const cols = Math.floor(innerWidth / 22);
+const drops = Array.from({length: cols}, () => Math.random() * -80);
+const osintChars = '0123456789abcdef.:@/% ABCDEF';
+ 
+function drawMatrix(){
+  ctx.fillStyle = 'rgba(5,6,8,0.065)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.font = '13px Share Tech Mono';
+  drops.forEach((y, i) => {
+    const ch = osintChars[Math.floor(Math.random() * osintChars.length)];
+    const alpha = Math.random() > 0.97 ? 0.9 : 0.18 + Math.random() * 0.12;
+    ctx.fillStyle = `rgba(57,255,20,${alpha})`;
+    ctx.fillText(ch, i * 22, y * 13);
+    if(y * 13 > canvas.height && Math.random() > 0.97) drops[i] = 0;
+    drops[i] += 0.4;
+  });
+  requestAnimationFrame(drawMatrix);
+}
+drawMatrix();
+ 
+// Google Dorks interaction
+function showDork(el, explanation){
+  document.querySelectorAll('.dork-item').forEach(d => d.style.borderColor = '');
+  el.style.borderColor = 'rgba(57,255,20,0.4)';
+  const res = document.getElementById('dork-result');
+  const dorkText = el.querySelector('.dork-text').textContent;
+  res.innerHTML = '<span class="highlight">' + dorkText + '</span><br><br>' + explanation;
+}
+ 
+// Demo terminal tabs
+document.querySelectorAll('.demo-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.demo-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('dt-' + tab.dataset.dt).classList.add('active');
+  });
+});
+ 
+// Code tabs
+document.querySelectorAll('.code-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.code-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('ct-' + tab.dataset.ct).classList.add('active');
+  });
+});
+ 
+// Scroll observer
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.07, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.fade-in').forEach((el, i) => {
+  el.style.transitionDelay = (i % 5) * 0.07 + 's';
+  obs.observe(el);
+});
+</script>
+</body>
+</html>
