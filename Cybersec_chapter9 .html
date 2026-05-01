@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIPHER &#8212; Cap. 09: Ingenier&#237;a Social &amp; Phishing</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#06050a;--rose:#ff2d6b;--rose2:rgba(255,45,107,0.07);
+  --green:#06d6a0;--red:#ef233c;--amber:#ffb347;--blue:#4cc9f0;
+  --purple:#c77dff;--orange:#ff6b35;--white:#ede8e0;--gray:#484860;
+  --mono:'Share Tech Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+  --body:'Crimson Pro',Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:var(--body);
+  font-weight:300;line-height:1.7;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,
+  rgba(255,45,107,0.007) 2px,rgba(255,45,107,0.007) 4px);
+  pointer-events:none;z-index:9999}
+ 
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;
+  align-items:center;justify-content:space-between;padding:1.2rem 3rem;
+  background:linear-gradient(to bottom,rgba(6,5,10,0.98),transparent);
+  border-bottom:1px solid rgba(255,45,107,0.08)}
+.nav-logo{font-family:var(--display);font-size:1.8rem;letter-spacing:0.3em;
+  color:var(--rose);text-decoration:none}
+.nav-logo span{color:var(--white)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{font-family:var(--mono);font-size:0.68rem;color:var(--gray);
+  text-decoration:none;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s}
+.nav-links a:hover{color:var(--rose)}
+.nav-prev{font-family:var(--mono);font-size:0.65rem;color:var(--gray);
+  text-decoration:none;transition:color 0.2s}
+.nav-prev:hover{color:var(--white)}
+ 
+/* HERO */
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;
+  position:relative;overflow:hidden}
+.hero-left{display:flex;flex-direction:column;justify-content:flex-end;
+  padding:8rem 3rem 5rem;position:relative;z-index:2}
+.hero-right{position:relative;overflow:hidden}
+#hero-canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-right-overlay{position:absolute;inset:0;
+  background:linear-gradient(to right,var(--black) 0%,transparent 30%)}
+.chapter-tag{font-family:var(--mono);font-size:0.65rem;color:var(--rose);
+  letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;
+  display:flex;align-items:center;gap:1rem}
+.chapter-tag::after{content:'';flex:0 0 40px;height:1px;background:var(--rose)}
+.hero h1{font-family:var(--display);font-size:clamp(3.5rem,8.5vw,9rem);
+  line-height:0.88;letter-spacing:0.02em;color:var(--white)}
+.hero h1 .r{color:var(--rose)}.hero h1 .o{color:var(--orange)}
+.hero-sub{font-size:1.1rem;color:rgba(237,232,224,0.45);line-height:1.85;
+  font-style:italic;margin-top:1.5rem;max-width:480px}
+.hero-quote{margin-top:2rem;padding:1.2rem 1.5rem;border-left:3px solid var(--rose);
+  background:rgba(255,45,107,0.04)}
+.hero-quote p{font-family:var(--mono);font-size:0.7rem;color:rgba(237,232,224,0.5);
+  line-height:1.7;font-style:italic}
+.hero-quote cite{font-family:var(--mono);font-size:0.6rem;color:var(--rose);
+  letter-spacing:0.1em;text-transform:uppercase;margin-top:0.5rem;display:block}
+ 
+/* SHARED */
+.section{padding:8rem 3rem;position:relative}
+.section-inner{max-width:1100px;margin:0 auto}
+.sec-label{font-family:var(--mono);font-size:0.6rem;color:var(--rose);
+  letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem}
+.sec-h2{font-family:var(--display);font-size:clamp(2.5rem,5vw,5rem);
+  letter-spacing:0.04em;line-height:1.05;color:var(--white)}
+.sec-h2 em{font-style:normal;color:var(--rose)}
+.sec-sub{font-size:1.05rem;color:rgba(237,232,224,0.4);font-style:italic;
+  margin-top:0.8rem;max-width:620px}
+.fade-in{opacity:0;transform:translateY(16px);transition:opacity 0.6s,transform 0.6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+ 
+/* ATTACK TYPES */
+.attack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:rgba(255,45,107,0.08);margin-top:4rem}
+.attack-card{background:var(--black);padding:2rem;position:relative;
+  overflow:hidden;transition:background 0.3s;cursor:default}
+.attack-card:hover{background:rgba(255,45,107,0.03)}
+.attack-icon{font-size:2rem;margin-bottom:0.8rem}
+.attack-type{font-family:var(--mono);font-size:0.58rem;letter-spacing:0.2em;
+  text-transform:uppercase;padding:0.15rem 0.5rem;margin-bottom:0.8rem;
+  display:inline-block}
+.at-phish{background:rgba(255,45,107,0.1);border:1px solid rgba(255,45,107,0.25);color:var(--rose)}
+.at-pretxt{background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.25);color:var(--orange)}
+.at-vish{background:rgba(199,125,255,0.1);border:1px solid rgba(199,125,255,0.25);color:var(--purple)}
+.at-smish{background:rgba(76,201,240,0.1);border:1px solid rgba(76,201,240,0.25);color:var(--blue)}
+.at-bait{background:rgba(255,179,71,0.1);border:1px solid rgba(255,179,71,0.25);color:var(--amber)}
+.at-tail{background:rgba(6,214,160,0.08);border:1px solid rgba(6,214,160,0.2);color:var(--green)}
+.attack-name{font-family:var(--mono);font-size:0.82rem;color:var(--white);
+  letter-spacing:0.08em;margin-bottom:0.5rem}
+.attack-desc{font-size:0.9rem;color:rgba(237,232,224,0.45);line-height:1.6;margin-bottom:0.8rem}
+.attack-stat{font-family:var(--mono);font-size:0.68rem;color:var(--rose);
+  border-top:1px solid rgba(255,255,255,0.05);padding-top:0.8rem;margin-top:0.8rem}
+ 
+/* PHISHING ANATOMY */
+.email-anatomy{margin-top:4rem;border:1px solid rgba(255,45,107,0.15);overflow:hidden}
+.email-head-bar{background:rgba(255,45,107,0.05);border-bottom:1px solid rgba(255,45,107,0.1);
+  padding:0.8rem 1.2rem;display:flex;align-items:center;justify-content:space-between}
+.email-bar-title{font-family:var(--mono);font-size:0.65rem;color:var(--rose);
+  letter-spacing:0.15em;text-transform:uppercase}
+.email-bar-warn{font-family:var(--mono);font-size:0.6rem;color:var(--amber);
+  display:flex;align-items:center;gap:0.4rem}
+.email-content{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.email-panel{padding:2rem}
+.email-panel+.email-panel{border-left:1px solid rgba(255,255,255,0.05)}
+.email-field{margin-bottom:1rem}
+.ef-label{font-family:var(--mono);font-size:0.58rem;color:var(--gray);
+  letter-spacing:0.15em;text-transform:uppercase;display:block;margin-bottom:0.3rem}
+.ef-val{font-family:var(--mono);font-size:0.78rem;line-height:1.5}
+.ev-safe{color:rgba(237,232,224,0.7)}.ev-danger{color:var(--rose)}
+.ev-warn{color:var(--amber)}.ev-ok{color:var(--green)}
+.email-body-box{background:rgba(6,5,10,0.7);border:1px solid rgba(255,255,255,0.06);
+  padding:1.2rem;font-size:0.88rem;line-height:1.8;color:rgba(237,232,224,0.6);margin-top:0.5rem}
+.eb-highlight{color:var(--rose);font-weight:bold}
+.eb-link{color:var(--rose);text-decoration:underline;cursor:pointer}
+.annotation{font-family:var(--mono);font-size:0.62rem;color:var(--rose);
+  background:rgba(255,45,107,0.08);border:1px solid rgba(255,45,107,0.15);
+  padding:0.4rem 0.8rem;margin-top:0.5rem;line-height:1.6}
+.annotation::before{content:'⚠ '}
+ 
+/* PSYCHOLOGY */
+.psych-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:4rem}
+.psych-card{border:1px solid rgba(255,255,255,0.06);padding:2rem;
+  position:relative;overflow:hidden;transition:border-color 0.3s}
+.psych-card:hover{border-color:rgba(255,45,107,0.2)}
+.psych-num{font-family:var(--display);font-size:3.5rem;
+  color:rgba(255,45,107,0.07);position:absolute;top:0.5rem;right:1rem;line-height:1}
+.psych-trigger{font-family:var(--mono);font-size:0.58rem;letter-spacing:0.2em;
+  text-transform:uppercase;padding:0.15rem 0.5rem;margin-bottom:0.8rem;
+  display:inline-block;background:rgba(255,45,107,0.08);
+  border:1px solid rgba(255,45,107,0.2);color:var(--rose)}
+.psych-name{font-family:var(--mono);font-size:0.78rem;color:var(--white);
+  letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem}
+.psych-desc{font-size:0.9rem;color:rgba(237,232,224,0.45);line-height:1.65;margin-bottom:0.8rem}
+.psych-example{font-family:var(--mono);font-size:0.65rem;color:var(--rose);
+  background:rgba(255,45,107,0.04);border:1px solid rgba(255,45,107,0.1);
+  padding:0.5rem 0.8rem;line-height:1.7;font-style:italic}
+.psych-example::before{content:'"';color:var(--rose)}
+.psych-example::after{content:'"';color:var(--rose)}
+.psych-defense{margin-top:0.8rem;font-family:var(--mono);font-size:0.62rem;
+  color:var(--green);line-height:1.5}
+ 
+/* PHISHING SIMULATOR */
+.sim-wrap{margin-top:4rem;border:1px solid rgba(255,45,107,0.15);overflow:hidden}
+.sim-head{background:rgba(255,45,107,0.05);border-bottom:1px solid rgba(255,45,107,0.1);
+  padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.sim-title{font-family:var(--mono);font-size:0.7rem;color:var(--rose);
+  letter-spacing:0.15em;text-transform:uppercase}
+.sim-body{padding:2rem;display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+.sim-inbox{border:1px solid rgba(255,255,255,0.06);overflow:hidden}
+.sim-inbox-head{background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.05);
+  padding:0.7rem 1rem;font-family:var(--mono);font-size:0.6rem;color:var(--gray);
+  letter-spacing:0.1em;text-transform:uppercase}
+.email-row{padding:0.8rem 1rem;border-bottom:1px solid rgba(255,255,255,0.04);
+  cursor:pointer;transition:background 0.2s;position:relative}
+.email-row:hover{background:rgba(255,45,107,0.03)}
+.email-row.selected{background:rgba(255,45,107,0.05);border-left:2px solid var(--rose)}
+.email-row.phishing::after{content:'PHISHING';position:absolute;right:0.8rem;top:50%;
+  transform:translateY(-50%);font-family:var(--mono);font-size:0.5rem;
+  padding:0.1rem 0.4rem;background:rgba(255,45,107,0.1);
+  border:1px solid rgba(255,45,107,0.3);color:var(--rose);letter-spacing:0.08em}
+.email-row.legit::after{content:'LEGÍTIMO';position:absolute;right:0.8rem;top:50%;
+  transform:translateY(-50%);font-family:var(--mono);font-size:0.5rem;
+  padding:0.1rem 0.4rem;background:rgba(6,214,160,0.08);
+  border:1px solid rgba(6,214,160,0.2);color:var(--green);letter-spacing:0.08em}
+.er-from{font-family:var(--mono);font-size:0.68rem;color:var(--white);margin-bottom:0.2rem}
+.er-subject{font-size:0.85rem;color:rgba(237,232,224,0.5)}
+.sim-preview{border:1px solid rgba(255,255,255,0.06);padding:1.5rem;
+  font-family:var(--mono);font-size:0.72rem;line-height:1.8;
+  background:rgba(6,5,10,0.5);min-height:300px}
+.preview-placeholder{color:var(--gray);text-align:center;padding-top:4rem;font-style:italic}
+.red-flags{margin-top:1rem;padding:0.8rem 1rem;background:rgba(255,45,107,0.04);
+  border:1px solid rgba(255,45,107,0.12)}
+.rf-title{font-family:var(--mono);font-size:0.6rem;color:var(--rose);
+  letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.5rem}
+.rf-item{font-size:0.82rem;color:rgba(237,232,224,0.5);display:flex;gap:0.5rem;
+  margin-bottom:0.3rem}
+.rf-bullet{color:var(--rose);flex-shrink:0}
+ 
+/* DEFENSE CHECKLIST */
+.defense-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:4rem}
+.defense-group h3{font-family:var(--mono);font-size:0.68rem;color:var(--rose);
+  letter-spacing:0.2em;text-transform:uppercase;margin-bottom:1rem;
+  padding-bottom:0.5rem;border-bottom:1px solid rgba(255,45,107,0.1)}
+.defense-item{display:flex;align-items:flex-start;gap:0.8rem;padding:0.7rem 0;
+  border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.9rem;
+  color:rgba(237,232,224,0.5);line-height:1.5}
+.def-chk{flex-shrink:0;width:18px;height:18px;border:1px solid rgba(255,45,107,0.3);
+  display:flex;align-items:center;justify-content:center;font-size:0.6rem;
+  color:var(--rose);cursor:pointer;transition:all 0.2s;margin-top:0.1rem}
+.def-chk.done{background:rgba(255,45,107,0.15);border-color:var(--rose)}
+.def-chk.done::after{content:'✓'}
+ 
+/* SPEAR PHISHING FLOW */
+.spear-flow{margin-top:4rem;position:relative}
+.spear-flow::before{content:'';position:absolute;left:28px;top:0;bottom:0;
+  width:1px;background:linear-gradient(to bottom,transparent,rgba(255,45,107,0.3) 5%,
+  rgba(255,45,107,0.3) 95%,transparent)}
+.spear-step{display:grid;grid-template-columns:56px 1fr;
+  align-items:stretch;gap:0;margin-bottom:3px}
+.spear-icon{width:56px;display:flex;align-items:flex-start;justify-content:center;
+  padding-top:1rem}
+.spear-dot{width:12px;height:12px;border-radius:50%;border:1px solid var(--rose);
+  background:var(--black);position:relative;z-index:1}
+.spear-content{border:1px solid rgba(255,255,255,0.04);border-left:none;
+  padding:1.2rem 1.5rem;transition:background 0.2s}
+.spear-step:hover .spear-content{background:rgba(255,45,107,0.02)}
+.spear-phase{font-family:var(--mono);font-size:0.58rem;color:var(--rose);
+  letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.3rem}
+.spear-title{font-family:var(--mono);font-size:0.78rem;color:var(--white);margin-bottom:0.4rem}
+.spear-desc{font-size:0.9rem;color:rgba(237,232,224,0.45);line-height:1.6}
+.spear-example{font-family:var(--mono);font-size:0.65rem;color:var(--rose);
+  background:rgba(255,45,107,0.04);border:1px solid rgba(255,45,107,0.1);
+  padding:0.4rem 0.8rem;margin-top:0.5rem;line-height:1.7}
+ 
+/* CODE */
+.code-tabs{display:flex;flex-wrap:wrap;gap:0;margin-top:4rem;
+  border-bottom:1px solid rgba(255,255,255,0.06)}
+.code-tab{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;
+  text-transform:uppercase;padding:0.7rem 1.2rem;color:var(--gray);cursor:pointer;
+  border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap}
+.code-tab.active{color:var(--rose);border-bottom-color:var(--rose)}
+.code-tab:hover{color:var(--white)}
+.code-pane{display:none}.code-pane.active{display:block}
+.code-block{background:rgba(6,5,10,0.97);border:1px solid rgba(255,255,255,0.06);
+  border-top:none;padding:2rem;font-family:var(--mono);font-size:0.76rem;
+  line-height:1.95;overflow-x:auto;max-height:540px;overflow-y:auto}
+.code-block::-webkit-scrollbar{width:3px}
+.code-block::-webkit-scrollbar-thumb{background:rgba(255,45,107,0.2);border-radius:2px}
+.code-block pre{margin:0;white-space:pre-wrap;word-break:break-word}
+.kw{color:#c792ea}.fn{color:#ffb347}.str{color:#06d6a0}.cm{color:#484860;font-style:italic}
+.dec{color:#4cc9f0}.cls{color:#82aaff}.num{color:#ef233c}
+.rs{color:#ff2d6b}.gd{color:#06d6a0}
+ 
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;
+  background:rgba(255,45,107,0.08);margin-top:4rem}
+.stat-box{background:var(--black);padding:2.5rem 2rem;text-align:center}
+.stat-num{font-family:var(--display);font-size:3.5rem;line-height:1;
+  letter-spacing:0.02em;margin-bottom:0.4rem}
+.sn-rose{color:var(--rose)}.sn-amber{color:var(--amber)}
+.sn-green{color:var(--green)}.sn-blue{color:var(--blue)}
+.stat-label{font-family:var(--mono);font-size:0.58rem;color:var(--gray);
+  letter-spacing:0.12em;text-transform:uppercase}
+ 
+/* LOG & FOOTER */
+.log-section{padding:5rem 3rem;border-top:1px solid rgba(255,255,255,0.04)}
+.log-entry{max-width:800px;margin:3rem auto 0;background:rgba(255,45,107,0.02);
+  border:1px solid rgba(255,45,107,0.1);padding:3rem;position:relative}
+.log-entry::before{content:'ENTRADA DE APRENDIZAJE // CAPcdTULO 09';
+  font-family:var(--mono);font-size:0.55rem;color:var(--rose);letter-spacing:0.25em;
+  position:absolute;top:-0.5rem;left:2rem;background:var(--black);padding:0 0.8rem}
+.log-date{font-family:var(--mono);font-size:0.65rem;color:var(--gray);margin-bottom:1.5rem}
+.log-entry p{font-size:1.05rem;color:rgba(237,232,224,0.65);line-height:1.85;font-style:italic}
+.log-entry p+p{margin-top:1rem}
+footer{padding:4rem 3rem;border-top:1px solid rgba(255,255,255,0.04);
+  display:flex;justify-content:space-between;align-items:center}
+.footer-brand{font-family:var(--display);font-size:1.5rem;letter-spacing:0.3em;
+  color:rgba(255,45,107,0.3)}
+.chapter-nav{display:flex;gap:3rem}
+.ch-link{display:flex;flex-direction:column;gap:0.3rem;text-decoration:none}
+.ch-label{font-family:var(--mono);font-size:0.6rem;color:var(--gray);
+  letter-spacing:0.2em;text-transform:uppercase}
+.ch-title{font-family:var(--display);font-size:1.1rem;letter-spacing:0.1em;
+  color:var(--white);transition:color 0.2s}
+.ch-link:hover .ch-title{color:var(--rose)}
+.ch-link.prev .ch-title{color:rgba(237,232,224,0.3)}
+.footer-copy{font-family:var(--mono);font-size:0.6rem;color:var(--gray);
+  letter-spacing:0.1em;text-align:center;padding:1.5rem 3rem;
+  border-top:1px solid rgba(255,255,255,0.03)}
+ 
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+ 
+@media(max-width:900px){
+  nav{padding:1rem 1.5rem}.nav-links{display:none}
+  .hero{grid-template-columns:1fr}.hero-right{display:none}
+  .hero-left{padding:6rem 1.5rem 4rem}
+  .section{padding:5rem 1.5rem}
+  .attack-grid,.psych-grid{grid-template-columns:1fr}
+  .email-content,.sim-body,.defense-grid,.stats-row{grid-template-columns:1fr}
+  .email-panel+.email-panel{border-left:none;border-top:1px solid rgba(255,255,255,0.05)}
+  footer{flex-direction:column;gap:2rem;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+ 
+<nav>
+  <a href="#" class="nav-logo">CIPHER<span>DOC</span></a>
+  <ul class="nav-links">
+    <li><a href="#tipos">Tipos</a></li>
+    <li><a href="#psicologia">Psicolog&#237;a</a></li>
+    <li><a href="#spear">Spear Phishing</a></li>
+    <li><a href="#simulador">Simulador</a></li>
+    <li><a href="#defensa">Defensa</a></li>
+  </ul>
+  <a href="cybersec_chapter8.html" class="nav-prev">&#8592; Cap. 08</a>
+</nav>
+ 
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <p class="chapter-tag">Cap&#237;tulo 09 &#8212; El factor humano</p>
+    <h1>
+      <span class="r">INGENIER&#205;A</span><br>
+      <span class="o">SOCIAL</span><br>
+      <span style="font-size:0.35em;letter-spacing:0.1em;color:rgba(237,232,224,0.18)">&#183; PHISHING &#183; PRETEXTING &#183; VISHING &#183;</span>
+    </h1>
+    <p class="hero-sub">
+      El 95% de los ciberataques exitosos comienzan con ingenier&#237;a social.
+      No hackean servidores &#8212; hackean personas. El eslab&#243;n m&#225;s d&#233;bil
+      no es el c&#243;digo, es el humano que escribe ese c&#243;digo.
+    </p>
+    <div class="hero-quote">
+      <p>Puedes tener la mejor tecnolog&#237;a del mundo. Los firewalls, sistemas de detecci&#243;n de intrusos, dispositivos biom&#233;tricos... todo eso es irrelevante si alguien llama a un empleado que confunde ser parte del equipo de IT e ingresa su contrase&#241;a.</p>
+      <cite>&#8212; Kevin Mitnick, El arte del enga&#241;o</cite>
+    </div>
+  </div>
+  <div class="hero-right">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-right-overlay"></div>
+  </div>
+</section>
+ 
+<!-- STATS -->
+<section class="section" style="padding-bottom:2rem">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// el problema en n&#250;meros</p>
+    <div class="stats-row fade-in">
+      <div class="stat-box">
+        <div class="stat-num sn-rose">95%</div>
+        <div class="stat-label">de brechas inician con ingenier&#237;a social</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num sn-amber">3.4B</div>
+        <div class="stat-label">emails de phishing enviados cada d&#237;a</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num sn-rose">17 min</div>
+        <div class="stat-label">tiempo hasta el primer click en phishing</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num sn-green">82%</div>
+        <div class="stat-label">reducible con entrenamiento correcto</div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- TIPOS DE ATAQUE -->
+<section class="section" id="tipos">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 01 &#8212; vectores</p>
+    <h2 class="sec-h2 fade-in">Los <em>6 vectores</em><br>de ingenier&#237;a social</h2>
+    <p class="sec-sub fade-in">Cada uno explota una debilidad diferente del comportamiento humano. Ning&#250;n firewall los bloquea todos.</p>
+ 
+    <div class="attack-grid">
+      <div class="attack-card fade-in">
+        <div class="attack-icon">&#128248;</div>
+        <span class="attack-type at-phish">Phishing</span>
+        <div class="attack-name">Email Phishing</div>
+        <div class="attack-desc">Emails que imitan marcas conocidas para robar credenciales o instalar malware. El m&#225;s com&#250;n. Completamente automatizable con kits de phishing.</div>
+        <div class="attack-stat">&#8594; Presente en 36% de todas las brechas (Verizon DBIR 2024)</div>
+      </div>
+ 
+      <div class="attack-card fade-in">
+        <div class="attack-icon">&#127919;</div>
+        <span class="attack-type at-phish">Spear Phishing</span>
+        <div class="attack-name">Phishing Dirigido</div>
+        <div class="attack-desc">El mismo email pero personalizado con tu nombre, empresa, jefe y contexto real extra&#237;do de OSINT. Tasa de &#233;xito 9x mayor que phishing gen&#233;rico.</div>
+        <div class="attack-stat">&#8594; Preferido para espionaje corporativo y APTs</div>
+      </div>
+ 
+      <div class="attack-card fade-in">
+        <div class="attack-icon">&#128222;</div>
+        <span class="attack-type at-vish">Vishing</span>
+        <div class="attack-name">Voice Phishing</div>
+        <div class="attack-desc">Llamadas telef&#243;nicas que suplantan soporte t&#233;cnico, banco, o reclutadores. Con IA de voz, ahora pueden clonar la voz de tu CEO. Deepfake de audio.</div>
+        <div class="attack-stat">&#8594; +500% desde 2022 con IA generativa</div>
+      </div>
+ 
+      <div class="attack-card fade-in">
+        <div class="attack-icon">&#128241;</div>
+        <span class="attack-type at-smish">Smishing</span>
+        <div class="attack-name">SMS Phishing</div>
+        <div class="attack-desc">SMS que suplanta bancos, correos, o servicios de entrega. Las personas conf&#237;an m&#225;s en SMS que en email. Tasa de apertura del 98% vs 20% email.</div>
+        <div class="attack-stat">&#8594; "Tu paquete SEUR no pudo entregarse..." &#8592; cl&#225;sico</div>
+      </div>
+ 
+      <div class="attack-card fade-in">
+        <div class="attack-icon">&#128190;</div>
+        <span class="attack-type at-bait">Baiting</span>
+        <div class="attack-name">Cebo F&#237;sico/Digital</div>
+        <div class="attack-desc">USBs con malware dejados en parkings y ascensores. Descargas de software pirata con RATs incluidos. La curiosidad mata al gato &#8212; y al servidor.</div>
+        <div class="attack-stat">&#8594; 60% de los USBs abandonados se conectan (estudio IBM)</div>
+      </div>
+ 
+      <div class="attack-card fade-in">
+        <div class="attack-icon">&#129333;</div>
+        <span class="attack-type at-pretxt">Pretexting</span>
+        <div class="attack-name">Pretexto / CEO Fraud</div>
+        <div class="attack-desc">Crear un escenario falso para extraer informaci&#243;n. El BEC (Business Email Compromise) cost&#243; $2.9 billones en 2023. "Soy el CEO, transfiere urgente."</div>
+        <div class="attack-stat">&#8594; $2.9B en p&#233;rdidas por BEC en 2023 (FBI IC3)</div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- PSICOLOG&#205;A -->
+<section class="section" id="psicologia" style="background:linear-gradient(to bottom,transparent,rgba(255,45,107,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 02 &#8212; el motor del ataque</p>
+    <h2 class="sec-h2 fade-in">Los 6 gatillos<br><em>psicol&#243;gicos</em></h2>
+    <p class="sec-sub fade-in">Todo ataque de ingenier&#237;a social activa al menos uno de estos mecanismos cognitivos. Reconocerlos es la defensa m&#225;s efectiva.</p>
+ 
+    <div class="psych-grid">
+      <div class="psych-card fade-in">
+        <div class="psych-num">01</div>
+        <span class="psych-trigger">Urgencia</span>
+        <div class="psych-name">Presi&#243;n de Tiempo</div>
+        <div class="psych-desc">El cerebro bajo presi&#243;n de tiempo bypasea el pensamiento cr&#237;tico. "Tienes 24 horas" desactiva la verificaci&#243;n. Dise&#241;ado para que act&#250;es antes de pensar.</div>
+        <div class="psych-example">Tu cuenta ser&#225; suspendida en 24 horas. Activa ahora.</div>
+        <div class="psych-defense">&#10003; Defensa: La urgencia real nunca llega por email. Pausa = protecci&#243;n.</div>
+      </div>
+ 
+      <div class="psych-card fade-in">
+        <div class="psych-num">02</div>
+        <span class="psych-trigger">Autoridad</span>
+        <div class="psych-name">Obediencia Jer&#225;rquica</div>
+        <div class="psych-desc">Suplantamos a figuras de autoridad: CEO, IT, banco, gobierno. El instinto de obedecer a la jerarqu&#237;a es profundamente humano y socialmente reforzado.</div>
+        <div class="psych-example">Mensaje del CEO: necesito que transfieras $45,000 hoy.</div>
+        <div class="psych-defense">&#10003; Defensa: Verificar siempre por canal alternativo, sin importar qui&#233;n sea.</div>
+      </div>
+ 
+      <div class="psych-card fade-in">
+        <div class="psych-num">03</div>
+        <span class="psych-trigger">Miedo</span>
+        <div class="psych-name">Amenaza / P&#225;nico</div>
+        <div class="psych-desc">"Tu cuenta fue hackeada", "tienes un virus", "hay una orden judicial". El miedo genera respuestas impulsivas. El objetivo es que act&#250;es sin verificar.</div>
+        <div class="psych-example">Detectamos acceso no autorizado. Verifica o perder&#225;s el acceso.</div>
+        <div class="psych-defense">&#10003; Defensa: Cuanto m&#225;s urgente y aterrador, m&#225;s sospechoso. Respira primero.</div>
+      </div>
+ 
+      <div class="psych-card fade-in">
+        <div class="psych-num">04</div>
+        <span class="psych-trigger">Confianza</span>
+        <div class="psych-name">Familiaridad / Reciprocidad</div>
+        <div class="psych-desc">Usamos nombres de marcas conocidas, colegas, o mencionamos informaci&#243;n real extra&#237;da de OSINT. "Vi tu perfil en LinkedIn" genera confianza instant&#225;nea.</div>
+        <div class="psych-example">Hola Carlos, tu jefa Ana me pidi&#243; contactarte sobre el proyecto.</div>
+        <div class="psych-defense">&#10003; Defensa: Informaci&#243;n real no significa mensaje leg&#237;timo. Verificar siempre.</div>
+      </div>
+ 
+      <div class="psych-card fade-in">
+        <div class="psych-num">05</div>
+        <span class="psych-trigger">Curiosidad</span>
+        <div class="psych-name">Apetito de Informaci&#243;n</div>
+        <div class="psych-desc">"Mira qui&#233;n vio tu perfil", "tienes un paquete pendiente", "alguien compartio algo tuyo". La curiosidad es un instinto poderoso que ignora las se&#241;ales de alerta.</div>
+        <div class="psych-example">Tienes 3 mensajes sin leer. Ver ahora &#8594;</div>
+        <div class="psych-defense">&#10003; Defensa: Si no lo esperabas, es sospechoso. Ir directo a la app oficial.</div>
+      </div>
+ 
+      <div class="psych-card fade-in">
+        <div class="psych-num">06</div>
+        <span class="psych-trigger">Recompensa</span>
+        <div class="psych-name">Codicia / Premio</div>
+        <div class="psych-desc">"Ganaste un iPhone", "tienes un reembolso pendiente de $2,400", "oferta exclusiva por tiempo limitado". Combina curiosidad con urgencia y expectativa de ganancia.</div>
+        <div class="psych-example">Tienes un reembolso de $2,400 pendiente. Recl&#225;malo hoy.</div>
+        <div class="psych-defense">&#10003; Defensa: Si es demasiado bueno para ser verdad, no lo es. Regla universal.</div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- ANATOM&#205;A DE EMAIL DE PHISHING -->
+<section class="section" id="anatomia">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 03 &#8212; diseccionando el ataque</p>
+    <h2 class="sec-h2 fade-in">Anatom&#237;a de un<br><em>email de phishing real</em></h2>
+    <p class="sec-sub fade-in">Cada elemento est&#225; dise&#241;ado. Cada palabra elegida para manipular. Aprende a leer las se&#241;ales.</p>
+ 
+    <div class="email-anatomy fade-in">
+      <div class="email-head-bar">
+        <span class="email-bar-title">&#128248; Phishing Email &#8212; Diseccionado</span>
+        <span class="email-bar-warn">&#9888; Email real de muestra con datos modificados</span>
+      </div>
+      <div class="email-content">
+        <div class="email-panel">
+          <div class="email-field">
+            <span class="ef-label">De (From)</span>
+            <div class="ef-val ev-danger">
+              Seguridad PayPal &lt;security@<span style="text-decoration:underline">paypa1-secure.com</span>&gt;
+            </div>
+            <div class="annotation">Dominio falso: paypa1 (con el n&#250;mero 1) &#8800; paypal.com. Typosquatting.</div>
+          </div>
+          <div class="email-field">
+            <span class="ef-label">Reply-To</span>
+            <div class="ef-val ev-danger">harvest@collect-data.ru</div>
+            <div class="annotation">Diferente de From &#8212; tus respuestas van al atacante, no a PayPal.</div>
+          </div>
+          <div class="email-field">
+            <span class="ef-label">Asunto</span>
+            <div class="ef-val ev-warn">&#9888; URGENTE: Tu cuenta ser&#225; suspendida en 24 horas</div>
+            <div class="annotation">Gatillos psicol&#243;gicos combinados: urgencia + miedo + tiempo limitado.</div>
+          </div>
+          <div class="email-field">
+            <span class="ef-label">Autenticaci&#243;n (headers)</span>
+            <div class="ef-val">
+              <span style="color:var(--red)">SPF: FAIL</span> &#183;
+              <span style="color:var(--red)">DKIM: FAIL</span> &#183;
+              <span style="color:var(--red)">DMARC: FAIL</span>
+            </div>
+            <div class="annotation">Triple fallo de autenticaci&#243;n &#8212; este email no viene de PayPal. Bloqueado por buenos filtros.</div>
+          </div>
+        </div>
+        <div class="email-panel">
+          <div class="email-field">
+            <span class="ef-label">Cuerpo del mensaje</span>
+            <div class="email-body-box">
+              Estimado cliente,<br><br>
+              Hemos detectado <span class="eb-highlight">actividad inusual</span> en tu cuenta de PayPal.
+              Para proteger tu cuenta, debes verificar tu identidad en las pr&#243;ximas
+              <span class="eb-highlight">24 horas</span>.<br><br>
+              Si no verificas, tu cuenta quedar&#225; <span class="eb-highlight">suspendida permanentemente</span>.<br><br>
+              <span class="eb-link">&#8594; Verificar mi cuenta ahora</span><br>
+              <small style="color:rgba(237,232,224,0.3)">
+                (http://paypa1-secure.com/verify?user=victim@email.com&session=abc123)
+              </small>
+            </div>
+          </div>
+          <div class="annotation" style="margin-top:0.8rem">
+            URL larga con par&#225;metros &#8212; incluye tu email para pre-llenar el formulario falso.
+            El dominio real est&#225; oculto por la longitud.
+          </div>
+          <div class="annotation">
+            El enlace lleva a una copia id&#233;ntica de la web de PayPal que roba usuario y contrase&#241;a.
+          </div>
+          <div style="margin-top:1rem;padding:0.8rem 1rem;background:rgba(6,214,160,0.04);
+            border:1px solid rgba(6,214,160,0.12);font-family:var(--mono);font-size:0.68rem;
+            color:var(--green);line-height:1.7">
+            &#10003; Defensa: Ir directamente a paypal.com escribiendo en el navegador.
+            Nunca desde el enlace del email. Activar MFA en todas las cuentas.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- SPEAR PHISHING FLOW -->
+<section class="section" id="spear" style="background:linear-gradient(to bottom,transparent,rgba(255,45,107,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 04 &#8212; ataque dirigido</p>
+    <h2 class="sec-h2 fade-in">Spear Phishing:<br><em>cuando te conocen</em></h2>
+    <p class="sec-sub fade-in">Un atacante dedicado puede preparar un spear phishing convincente en 2 horas usando solo fuentes p&#250;blicas. As&#237; es el proceso.</p>
+ 
+    <div class="spear-flow fade-in">
+      <div class="spear-step">
+        <div class="spear-icon"><div class="spear-dot"></div></div>
+        <div class="spear-content">
+          <div class="spear-phase">Fase 1 &#8212; Reconocimiento (30 min)</div>
+          <div class="spear-title">Recopilar informaci&#243;n del objetivo con OSINT</div>
+          <div class="spear-desc">LinkedIn: nombre completo, cargo, jefe directo, proyectos actuales, tecnolog&#237;as que usa.
+          Twitter/X: intereses, quejas recientes, viajes. GitHub: proyectos, lenguajes, colaboradores.
+          theHarvester: email corporativo real.</div>
+          <div class="spear-example">
+            Carlos M&#233;ndez, Senior Backend Dev @CipherCorp. Jefa: Ana Torres (CTO).
+            Acaba de publicar: "Finalmente desplegamos el nuevo sistema de pagos &#127881;" &#8212; Twitter hace 2 horas.
+          </div>
+        </div>
+      </div>
+ 
+      <div class="spear-step">
+        <div class="spear-icon"><div class="spear-dot"></div></div>
+        <div class="spear-content">
+          <div class="spear-phase">Fase 2 &#8212; Construir el pretexto (20 min)</div>
+          <div class="spear-title">Crear un escenario creible con el contexto real</div>
+          <div class="spear-desc">El atacante tiene suficiente contexto para crear un email que Carlos espera.
+          El sistema de pagos que acaba de desplegar. Un supuesto error en el mismo.
+          Suplantando a un proveedor de pagos o al equipo de seguridad.</div>
+          <div class="spear-example">
+            "Hola Carlos, soy David del equipo de seguridad de Stripe.
+            Detectamos un error de configuraci&#243;n en la integraci&#243;n que desplegaron hoy.
+            Necesitamos verificar las credenciales de API lo antes posible."
+          </div>
+        </div>
+      </div>
+ 
+      <div class="spear-step">
+        <div class="spear-icon"><div class="spear-dot"></div></div>
+        <div class="spear-content">
+          <div class="spear-phase">Fase 3 &#8212; Preparar infraestructura (30 min)</div>
+          <div class="spear-title">Dominio falso + p&#225;gina de captura + email spoofing</div>
+          <div class="spear-desc">Registrar stripe-security-alerts.com. Clonar la p&#225;gina real de Stripe con HTTrack.
+          Configurar un servidor SMTP con el dominio falso. El email llegar&#225; con "De: Stripe" pero
+          el dominio real es stripe-security-alerts.com.</div>
+          <div class="spear-example">
+            Costo total de la infraestructura: $12/mes. Tiempo de preparaci&#243;n: ~30 minutos.
+          </div>
+        </div>
+      </div>
+ 
+      <div class="spear-step">
+        <div class="spear-icon"><div class="spear-dot"></div></div>
+        <div class="spear-content">
+          <div class="spear-phase">Fase 4 &#8212; Lanzar el ataque (5 min)</div>
+          <div class="spear-title">Email personalizado con urgencia y contexto real</div>
+          <div class="spear-desc">El email llega justo despu&#233;s del deploy &#8212; cuando Carlos est&#225; en modo "resolver problemas".
+          Menciona el deploy de hoy, el sistema de pagos, el nombre de su jefa. La urgencia es m&#225;xima.</div>
+          <div class="spear-example">
+            Asunto: "Acci&#243;n requerida: error de configuraci&#243;n en deploy de hoy &#8212; sistema de pagos"
+          </div>
+        </div>
+      </div>
+ 
+      <div class="spear-step">
+        <div class="spear-icon"><div class="spear-dot" style="border-color:var(--red);box-shadow:0 0 8px rgba(239,35,60,0.4)"></div></div>
+        <div class="spear-content">
+          <div class="spear-phase" style="color:var(--red)">Fase 5 &#8212; Compromiso</div>
+          <div class="spear-title">Carlos hace click &#8212; credenciales capturadas</div>
+          <div class="spear-desc">La p&#225;gina falsa captura usuario y API key. El atacante los tiene en tiempo real.
+          Carlos ve un mensaje de &#233;xito y cree que resolvi&#243; el problema. En ese momento,
+          el atacante ya est&#225; usando las credenciales en el sistema real.</div>
+          <div class="spear-example" style="color:var(--red)">
+            MTTC (Mean Time to Compromise): 47 minutos desde el primer email.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- SIMULADOR INTERACTIVO -->
+<section class="section" id="simulador">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 05 &#8212; entrenamiento</p>
+    <h2 class="sec-h2 fade-in">Simulador:<br><em>&#191;phishing o leg&#237;timo?</em></h2>
+    <p class="sec-sub fade-in">Haz click en cada email para ver el an&#225;lisis completo. Identifica las se&#241;ales antes de revelar el veredicto.</p>
+ 
+    <div class="sim-wrap fade-in">
+      <div class="sim-head">
+        <span class="sim-title">&#128248; Bandeja de entrada &#8212; 4 emails para analizar</span>
+        <span style="font-family:var(--mono);font-size:0.62rem;color:var(--gray)">Haz click para ver el an&#225;lisis</span>
+      </div>
+      <div class="sim-body">
+        <div>
+          <div class="sim-inbox">
+            <div class="sim-inbox-head">Bandeja de entrada (4)</div>
+            <div class="email-row phishing" onclick="selectEmail('e1')" id="row-e1">
+          <div class="er-from">Seguridad PayPal</div>
+          <div class="er-subject">⚠ Tu cuenta será suspendida en 24 horas</div>
+        </div>
+<div class="email-row legit" onclick="selectEmail('e2')" id="row-e2">
+          <div class="er-from">GitHub</div>
+          <div class="er-subject">Tu pull request fue aprobado</div>
+        </div>
+<div class="email-row phishing" onclick="selectEmail('e3')" id="row-e3">
+          <div class="er-from">IT Support - Tu empresa</div>
+          <div class="er-subject">URGENTE: Actualiza tu contraseña AHORA</div>
+        </div>
+<div class="email-row legit" onclick="selectEmail('e4')" id="row-e4">
+          <div class="er-from">Render</div>
+          <div class="er-subject">Deploy exitoso - cipher-api</div>
+        </div>
+          </div>
+        </div>
+        <div>
+          <div class="sim-preview" id="sim-preview">
+            <div class="preview-placeholder">
+              &#8592; Selecciona un email para ver el an&#225;lisis detallado
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- DEFENSA -->
+<section class="section" id="defensa" style="background:linear-gradient(to bottom,transparent,rgba(255,45,107,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 06 &#8212; protecci&#243;n</p>
+    <h2 class="sec-h2 fade-in">C&#243;mo <em>defenderse</em><br>de la ingenier&#237;a social</h2>
+    <p class="sec-sub fade-in">Dos capas: la t&#233;cnica (sistemas) y la humana (comportamiento). Las dos son necesarias. Ninguna sola es suficiente.</p>
+ 
+    <div class="defense-grid fade-in">
+      <div class="defense-group">
+        <h3>Defensa t&#233;cnica &#8212; sistemas</h3>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>Activar MFA en todas las cuentas cr&#237;ticas (app, no SMS)</div>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>Configurar SPF, DKIM y DMARC en tu dominio</div>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>Filtro antispam con an&#225;lisis de headers (Google Workspace / Microsoft 365)</div>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>Password manager &#8212; contrase&#241;as &#250;nicas por servicio</div>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>DNS filtering (Cloudflare 1.1.1.1 for Families, Pi-hole)</div>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>Monitoreo de dominios similares al tuyo (typosquatting alerts)</div>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>Protocolo de verificaci&#243;n para transferencias bancarias</div>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>Privilegios m&#237;nimos &#8212; empleados solo acceden a lo que necesitan</div>
+      </div>
+      <div class="defense-group">
+        <h3>Defensa humana &#8212; comportamiento</h3>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>Verificar SIEMPRE por canal alternativo ante solicitudes urgentes</div>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>Pausa obligatoria ante cualquier urgencia: la prisa es la trampa</div>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>Ir directamente a la web oficial, nunca desde el link del email</div>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>Formaci&#243;n trimestral de concienciaci&#243;n para todo el equipo</div>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>Simulacros de phishing internos para medir y mejorar</div>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>Cultura de "reportar sin miedo" &#8212; no penalizar al que cae</div>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>Verificar manualmente el dominio del remitente, no solo el nombre</div>
+        <div class="defense-item"><div class="def-chk" onclick="this.classList.toggle('done')"></div>Limitar informaci&#243;n personal en redes sociales (OSINT prevention)</div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- C&#211;DIGO -->
+<section class="section" id="codigo">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 07 &#8212; implementaci&#243;n</p>
+    <h2 class="sec-h2 fade-in">C&#243;digo para<br><em>detectar &amp; prevenir</em></h2>
+ 
+    <div class="code-tabs fade-in">
+      <div class="code-tab active" data-ct="detect">phishing_detector.py</div>
+      <div class="code-tab" data-ct="awareness">awareness_training.py</div>
+      <div class="code-tab" data-ct="headers">email_headers_analyzer.py</div>
+    </div>
+    <div class="code-pane active" id="ct-detect">
+      <div class="code-block"><pre># app/security/phishing_detector.py
+# Detectar intentos de phishing y ingeniería social en tu API
+<span class="kw">import</span> re
+<span class="kw">from</span> urllib.parse <span class="kw">import</span> urlparse
+<span class="kw">from</span> loguru <span class="kw">import</span> logger
+<span class="kw">import</span> sentry_sdk
+ 
+# ── Detectar URLs sospechosas en inputs del usuario
+SUSPICIOUS_PATTERNS = [
+    re.<span class="fn">compile</span>(<span class="str">r"paypal.*security.*verify"</span>, re.IGNORECASE),
+    re.<span class="fn">compile</span>(<span class="str">r"account.*suspend.*click"</span>, re.IGNORECASE),
+    re.<span class="fn">compile</span>(<span class="str">r"urgent.*action.*required"</span>, re.IGNORECASE),
+    re.<span class="fn">compile</span>(<span class="str">r"verify.*identity.*immediately"</span>, re.IGNORECASE),
+    re.<span class="fn">compile</span>(<span class="str">r"password.*expire.*24.*hour"</span>, re.IGNORECASE),
+]
+ 
+HOMOGRAPH_DOMAINS = {
+    <span class="str">"paypa1.com"</span>, <span class="str">"amazon-security.net"</span>,
+    <span class="str">"netflix-billing.com"</span>, <span class="str">"g00gle.com"</span>,
+    <span class="str">"microѕoft.com"</span>, <span class="cm"># Cyrillic 's'</span>
+}
+ 
+<span class="kw">def</span> <span class="fn">analyze_url_for_phishing</span>(url: <span class="cls">str</span>) -> <span class="cls">dict</span>:
+    <span class="cm"># Analiza una URL por indicadores de phishing</span>
+    parsed = <span class="fn">urlparse</span>(url)
+    domain = parsed.netloc.lower()
+    flags = []
+ 
+    <span class="cm"># Credenciales en URL (user:pass@dominio.com)</span>
+    <span class="kw">if</span> <span class="str">"@"</span> <span class="kw">in</span> parsed.netloc:
+        flags.<span class="fn">append</span>(<span class="str">"credentials_in_url"</span>)
+ 
+    <span class="cm"># Demasiados subdominios (paypal.secure.login.attacker.com)</span>
+    <span class="kw">if</span> domain.<span class="fn">count</span>(<span class="str">"."</span>) > <span class="num">3</span>:
+        flags.<span class="fn">append</span>(<span class="str">"excessive_subdomains"</span>)
+ 
+    <span class="cm"># IP como host en lugar de dominio</span>
+    <span class="kw">if</span> re.<span class="fn">match</span>(<span class="str">r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$"</span>, domain):
+        flags.<span class="fn">append</span>(<span class="str">"ip_as_host"</span>)
+ 
+    <span class="cm"># Dominio en lista de homógrafos conocidos</span>
+    <span class="kw">if</span> domain <span class="kw">in</span> HOMOGRAPH_DOMAINS:
+        flags.<span class="fn">append</span>(<span class="str">"known_phishing_domain"</span>)
+ 
+    <span class="cm"># Palabras de phishing en el path</span>
+    full_url = url.lower()
+    phish_words = [<span class="str">"login"</span>, <span class="str">"signin"</span>, <span class="str">"verify"</span>, <span class="str">"secure"</span>, <span class="str">"account"</span>]
+    matches = [w <span class="kw">for</span> w <span class="kw">in</span> phish_words <span class="kw">if</span> w <span class="kw">in</span> full_url]
+    <span class="kw">if</span> <span class="fn">len</span>(matches) > <span class="num">2</span>:
+        flags.<span class="fn">append</span>(<span class="fn">f</span><span class="str">"multiple_phish_keywords: {matches}"</span>)
+ 
+    risk = <span class="str">"high"</span> <span class="kw">if</span> <span class="fn">len</span>(flags) > <span class="num">2</span> <span class="kw">else</span> <span class="str">"medium"</span> <span class="kw">if</span> flags <span class="kw">else</span> <span class="str">"low"</span>
+ 
+    <span class="kw">if</span> risk != <span class="str">"low"</span>:
+        logger.<span class="fn">warning</span>(<span class="str">"suspicious_url_submitted"</span>,
+            url=url, flags=flags, risk=risk)
+ 
+    <span class="kw">return</span> {<span class="str">"risk"</span>: risk, <span class="str">"flags"</span>: flags, <span class="str">"url"</span>: url}</pre></div>
+    </div>
+    <div class="code-pane" id="ct-awareness">
+      <div class="code-block"><pre># app/security/awareness_training.py
+# Tests de concienciación para usuarios de la plataforma
+<span class="kw">from</span> fastapi <span class="kw">import</span> APIRouter, Depends
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+<span class="kw">from</span> app.core.secure_deps <span class="kw">import</span> get_current_user
+ 
+router = <span class="cls">APIRouter</span>(prefix=<span class="str">"/security"</span>, tags=[<span class="str">"security"</span>])
+ 
+# Banco de preguntas de phishing awareness
+PHISHING_QUIZ = [
+    {
+        <span class="str">"id"</span>: <span class="num">1</span>,
+        <span class="str">"scenario"</span>: <span class="str">"Recibes un email de 'support@paypa1.com' pidiendo verificar tu cuenta"</span>,
+        <span class="str">"options"</span>: [
+            <span class="str">"Hago click en el enlace y verifico"</span>,
+            <span class="str">"Verifico el dominio: paypa1 ≠ paypal → phishing"</span>,
+            <span class="str">"Lo ignoro pero no hago nada"</span>,
+        ],
+        <span class="str">"correct"</span>: <span class="num">1</span>,
+        <span class="str">"explanation"</span>: <span class="str">"El dominio paypa1.com usa '1' en lugar de 'l'. Técnica llamada typosquatting."</span>
+    },
+    {
+        <span class="str">"id"</span>: <span class="num">2</span>,
+        <span class="str">"scenario"</span>: <span class="str">"Tu 'CEO' te escribe por WhatsApp pidiendo una transferencia urgente"</span>,
+        <span class="str">"options"</span>: [
+            <span class="str">"Transfiero, es urgente y es el CEO"</span>,
+            <span class="str">"Verifico por canal oficial (llamada directa al CEO)"</span>,
+            <span class="str">"Pregunto más detalles por WhatsApp antes de transferir"</span>,
+        ],
+        <span class="str">"correct"</span>: <span class="num">1</span>,
+        <span class="str">"explanation"</span>: <span class="str">"CEO fraud: siempre verificar por otro canal. La urgencia es la señal de alarma."</span>
+    },
+    {
+        <span class="str">"id"</span>: <span class="num">3</span>,
+        <span class="str">"scenario"</span>: <span class="str">"Encuentras un USB en el parking de la empresa"</span>,
+        <span class="str">"options"</span>: [
+            <span class="str">"Lo conecto para ver de quién es y devolverlo"</span>,
+            <span class="str">"Lo entrego al departamento de IT sin conectarlo"</span>,
+            <span class="str">"Lo tiro a la basura"</span>,
+        ],
+        <span class="str">"correct"</span>: <span class="num">1</span>,
+        <span class="str">"explanation"</span>: <span class="str">"Baiting: USBs con malware dejados intencionalmente. Nunca conectar dispositivos desconocidos."</span>
+    },
+]
+ 
+<span class="dec">@router.get</span>(<span class="str">"/quiz"</span>)
+<span class="kw">async def</span> <span class="fn">get_phishing_quiz</span>(user=<span class="fn">Depends</span>(get_current_user)):
+    <span class="cm"># Devolver quiz sin respuestas correctas</span>
+    <span class="kw">return</span> [
+        {<span class="str">"id"</span>: q[<span class="str">"id"</span>], <span class="str">"scenario"</span>: q[<span class="str">"scenario"</span>], <span class="str">"options"</span>: q[<span class="str">"options"</span>]}
+        <span class="kw">for</span> q <span class="kw">in</span> PHISHING_QUIZ
+    ]
+ 
+<span class="kw">class</span> <span class="cls">QuizAnswer</span>(BaseModel):
+    question_id: <span class="cls">int</span>
+    answer: <span class="cls">int</span>
+ 
+<span class="dec">@router.post</span>(<span class="str">"/quiz/check"</span>)
+<span class="kw">async def</span> <span class="fn">check_answer</span>(answer: QuizAnswer, user=<span class="fn">Depends</span>(get_current_user)):
+    q = next((x <span class="kw">for</span> x <span class="kw">in</span> PHISHING_QUIZ <span class="kw">if</span> x[<span class="str">"id"</span>] == answer.question_id), <span class="kw">None</span>)
+    <span class="kw">if not</span> q: <span class="kw">return</span> {<span class="str">"error"</span>: <span class="str">"Pregunta no encontrada"</span>}
+    correct = answer.answer == q[<span class="str">"correct"</span>]
+    <span class="kw">return</span> {
+        <span class="str">"correct"</span>: correct,
+        <span class="str">"explanation"</span>: q[<span class="str">"explanation"</span>],
+        <span class="str">"score_delta"</span>: <span class="num">10</span> <span class="kw">if</span> correct <span class="kw">else</span> <span class="num">0</span>
+    }</pre></div>
+    </div>
+    <div class="code-pane" id="ct-headers">
+      <div class="code-block"><pre># app/security/email_headers_analyzer.py
+# Analizar headers de email para detectar spoofing
+# Útil para investigar correos sospechosos recibidos
+ 
+<span class="kw">import</span> email, re
+<span class="kw">from</span> email.header <span class="kw">import</span> decode_header
+ 
+<span class="kw">def</span> <span class="fn">analyze_email_headers</span>(raw_headers: <span class="cls">str</span>) -> <span class="cls">dict</span>:
+    findings = []
+    risk_score = <span class="num">0</span>
+ 
+    <span class="cm"># Parsear los headers</span>
+    msg = email.<span class="fn">message_from_string</span>(raw_headers)
+ 
+    from_addr = msg.<span class="fn">get</span>(<span class="str">"From"</span>, <span class="str">""</span>)
+    reply_to  = msg.<span class="fn">get</span>(<span class="str">"Reply-To"</span>, <span class="str">""</span>)
+    return_path = msg.<span class="fn">get</span>(<span class="str">"Return-Path"</span>, <span class="str">""</span>)
+ 
+    <span class="cm"># ⚠ Reply-To distinto de From → clásico de phishing</span>
+    <span class="kw">if</span> reply_to <span class="kw">and</span> reply_to != from_addr:
+        findings.<span class="fn">append</span>({
+            <span class="str">"flag"</span>: <span class="str">"reply_to_mismatch"</span>,
+            <span class="str">"detail"</span>: <span class="fn">f</span><span class="str">"From: {from_addr} pero Reply-To: {reply_to}"</span>,
+            <span class="str">"risk"</span>: <span class="str">"high"</span>
+        })
+        risk_score += <span class="num">40</span>
+ 
+    <span class="cm"># ⚠ SPF / DKIM / DMARC fallidos</span>
+    auth_results = msg.<span class="fn">get</span>(<span class="str">"Authentication-Results"</span>, <span class="str">""</span>)
+    <span class="kw">for</span> check <span class="kw">in</span> (<span class="str">"spf=fail"</span>, <span class="str">"dkim=fail"</span>, <span class="str">"dmarc=fail"</span>):
+        <span class="kw">if</span> check <span class="kw">in</span> auth_results.lower():
+            findings.<span class="fn">append</span>({<span class="str">"flag"</span>: check, <span class="str">"risk"</span>: <span class="str">"critical"</span>})
+            risk_score += <span class="num">30</span>
+ 
+    <span class="cm"># ⚠ X-Mailer revela cliente de correo inusual</span>
+    x_mailer = msg.<span class="fn">get</span>(<span class="str">"X-Mailer"</span>, <span class="str">""</span>)
+    <span class="kw">if</span> any(s <span class="kw">in</span> x_mailer.lower() <span class="kw">for</span> s <span class="kw">in</span> [<span class="str">"massmailer"</span>, <span class="str">"bulk"</span>, <span class="str">"phpmailer"</span>]):
+        findings.<span class="fn">append</span>({<span class="str">"flag"</span>: <span class="str">"bulk_mailer_detected"</span>, <span class="str">"risk"</span>: <span class="str">"medium"</span>})
+        risk_score += <span class="num">20</span>
+ 
+    risk_level = <span class="str">"critical"</span> <span class="kw">if</span> risk_score > <span class="num">60</span> <span class="kw">else</span> \
+                 <span class="str">"high"</span> <span class="kw">if</span> risk_score > <span class="num">30</span> <span class="kw">else</span> \
+                 <span class="str">"medium"</span> <span class="kw">if</span> risk_score > <span class="num">10</span> <span class="kw">else</span> <span class="str">"low"</span>
+ 
+    <span class="kw">return</span> {
+        <span class="str">"risk_level"</span>: risk_level,
+        <span class="str">"risk_score"</span>: risk_score,
+        <span class="str">"findings"</span>: findings,
+        <span class="str">"from"</span>: from_addr,
+        <span class="str">"spf_dkim_dmarc"</span>: auth_results,
+    }</pre></div>
+    </div>
+  </div>
+</section>
+ 
+<!-- LOG -->
+<section class="log-section">
+  <div class="log-entry">
+    <div class="log-date">ENTRADA #009 &#8212; CAP&#205;TULO 09 COMPLETADO</div>
+    <p>
+      La lecci&#243;n m&#225;s dura de este cap&#237;tulo: despu&#233;s de leer sobre Kevin Mitnick y el spear phishing,
+      busc&#233; mi propio nombre en LinkedIn, Twitter y GitHub. En 20 minutos ten&#237;a suficiente informaci&#243;n
+      para construir un email convincente dirigido a m&#237; mismo. Nombre del jefe, proyecto actual,
+      tecnolog&#237;as que uso, email corporativo. Todo p&#250;blico, todo disponible.
+    </p>
+    <p>
+      La ingenier&#237;a social no hackea c&#243;digo &#8212; hackea el modelo mental del desarrollador.
+      Activ&#233; MFA en todas las cuentas, configur&#233; SPF/DKIM/DMARC en mi dominio,
+      y la primera pregunta que me hago cuando llega algo urgente es: &#171;&#191;por qu&#233; me urge tanto aceptar esto?&#187;
+      Esa pausa es la defensa m&#225;s poderosa.
+    </p>
+  </div>
+</section>
+ 
+<footer>
+  <div class="footer-brand">CIPHER</div>
+  <div class="chapter-nav">
+    <a href="cybersec_chapter8.html" class="ch-link prev">
+      <span class="ch-label">&#8592; Anterior</span>
+      <span class="ch-title">08 &#8212; OSINT &amp; Forense Digital</span>
+    </a>
+    <a href="#" class="ch-link">
+      <span class="ch-label">Pr&#243;ximo &#8594;</span>
+      <span class="ch-title">10 &#8212; Seguridad en la Nube</span>
+    </a>
+  </div>
+</footer>
+<div class="footer-copy">CIPHER DOC &#8212; Cap&#237;tulo 09: Ingenier&#237;a Social &amp; Phishing &#183; Psicolog&#237;a &#183; Detecci&#243;n &#183; Defensa &#183; Construido con Claude Pro</div>
+ 
+<script>
+// Hero canvas — floating "fake" emails
+const canvas = document.getElementById('hero-canvas');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
+resize(); new ResizeObserver(resize).observe(canvas);
+ 
+const particles = Array.from({length: 20}, (_, i) => ({
+  x: Math.random() * 100, y: Math.random() * 100,
+  speed: 0.02 + Math.random() * 0.03,
+  text: ['security@paypa1.com','URGENT: Verify now','Click here to confirm',
+    'Your account is at risk','CEO: Transfer $45k','Free iPhone winner!',
+    'SPF: FAIL','Reply-To: evil@hacker.ru','Verify your identity',
+    'Account suspended in 24h','Unusual activity detected'][i % 11],
+  alpha: 0.04 + Math.random() * 0.08,
+  size: 9 + Math.random() * 3,
+}));
+ 
+function drawHero(){
+  if(!canvas.width) return requestAnimationFrame(drawHero);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+ 
+  ctx.strokeStyle = 'rgba(255,45,107,0.03)';
+  ctx.lineWidth = 0.5;
+  for(let x=0; x<canvas.width; x+=50){
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke();
+  }
+  for(let y=0; y<canvas.height; y+=50){
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
+  }
+ 
+  particles.forEach(p => {
+    const x = (p.x/100)*canvas.width;
+    const y = (p.y/100)*canvas.height;
+    ctx.font = `${p.size}px 'Share Tech Mono'`;
+    ctx.fillStyle = `rgba(255,45,107,${p.alpha})`;
+    ctx.fillText(p.text, x, y);
+    p.y += p.speed;
+    if(p.y > 105) p.y = -5;
+    if(Math.random() > 0.998) p.alpha = 0.04 + Math.random() * 0.08;
+  });
+  requestAnimationFrame(drawHero);
+}
+drawHero();
+ 
+// Email simulator
+const emailData = {
+  e1: {
+    preview: `<div style="color:rgba(237,232,224,0.55);font-family:var(--mono);font-size:0.72rem;line-height:1.9">
+<span style="color:var(--rose)">De:</span> Seguridad PayPal &lt;security@<u style="color:var(--rose)">paypa1-secure.com</u>&gt;<br>
+<span style="color:var(--rose)">Reply-To:</span> <span style="color:var(--red)">harvester@malicious.ru</span><br>
+<span style="color:var(--rose)">Asunto:</span> &#9888; Tu cuenta ser&aacute; suspendida en 24 horas<br>
+<span style="color:var(--red)">SPF: FAIL</span> &middot; <span style="color:var(--red)">DKIM: FAIL</span>
+<br><br>
+Estimado cliente,<br><br>
+Hemos detectado actividad <span style="color:var(--rose);font-weight:bold">inusual</span> en tu cuenta.
+Para evitar la suspensi&oacute;n debes verificar tu identidad en las pr&oacute;ximas
+<span style="color:var(--rose);font-weight:bold">24 horas</span>.<br><br>
+<span style="color:var(--rose);text-decoration:underline">&rarr; Verificar mi cuenta ahora</span><br>
+<small style="color:rgba(237,232,224,0.3)">(http://paypa1-secure.com/verify?token=abc&redirect=login)</small>
+</div>`,
+    flags: `<div class="red-flags"><div class="rf-title" style="color:var(--rose)">&#9888; Se&ntilde;ales de PHISHING detectadas</div>
+<div class="rf-item"><span class="rf-bullet">&#9888;</span>Dominio: paypa1-secure.com &ne; paypal.com (typosquatting con n&uacute;mero 1)</div>
+<div class="rf-item"><span class="rf-bullet">&#9888;</span>Reply-To diferente de From &mdash; respuestas van al atacante</div>
+<div class="rf-item"><span class="rf-bullet">&#9888;</span>SPF y DKIM fallidos &mdash; no viene de servidores de PayPal</div>
+<div class="rf-item"><span class="rf-bullet">&#9888;</span>Urgencia artificial: '24 horas' (gatillo psicol&oacute;gico)</div>
+<div class="rf-item"><span class="rf-bullet">&#9888;</span>URL larga oculta el dominio real del destino</div>
+<div style="margin-top:0.8rem;padding:0.6rem;background:rgba(255,45,107,0.05);font-family:var(--mono);font-size:0.68rem;color:var(--rose)">&#9888; PHISHING &mdash; No hagas click. Ve directamente a paypal.com</div></div>`
+  },
+  e2: {
+    preview: `<div style="color:rgba(237,232,224,0.55);font-family:var(--mono);font-size:0.72rem;line-height:1.9">
+<span style="color:var(--green)">De:</span> GitHub &lt;noreply@<span style="color:var(--green)">github.com</span>&gt;<br>
+<span style="color:var(--green)">Reply-To:</span> <span style="color:var(--green)">(no configurado)</span><br>
+<span style="color:var(--green)">Asunto:</span> Tu pull request #142 fue aprobado<br>
+<span style="color:var(--green)">SPF: PASS</span> &middot; <span style="color:var(--green)">DKIM: PASS</span> &middot; <span style="color:var(--green)">DMARC: PASS</span>
+<br><br>
+@cipher_dev aprob&oacute; tu PR #142: "Add security headers middleware"<br><br>
+<span style="color:var(--blue)">&rarr; Ver el PR en GitHub</span><br>
+<small style="color:rgba(237,232,224,0.3)">(https://github.com/tu-org/cipher-api/pull/142)</small>
+</div>`,
+    flags: `<div class="red-flags"><div class="rf-title" style="color:var(--green)">&#10003; Por qu&eacute; es LEG&Iacute;TIMO</div>
+<div class="rf-item"><span style="color:var(--green)">&#10003;</span>Dominio: github.com leg&iacute;timo, no subdominio extra&ntilde;o</div>
+<div class="rf-item"><span style="color:var(--green)">&#10003;</span>SPF, DKIM y DMARC todos en PASS</div>
+<div class="rf-item"><span style="color:var(--green)">&#10003;</span>Sin Reply-To externo &mdash; respuestas van al remitente</div>
+<div class="rf-item"><span style="color:var(--green)">&#10003;</span>URL coincide exactamente con el dominio del remitente</div>
+<div class="rf-item"><span style="color:var(--green)">&#10003;</span>Sin urgencia artificial ni amenazas</div>
+<div style="margin-top:0.8rem;padding:0.6rem;background:rgba(6,214,160,0.05);font-family:var(--mono);font-size:0.68rem;color:var(--green)">&#10003; EMAIL LEG&Iacute;TIMO &mdash; Indicadores de autenticidad presentes</div></div>`
+  },
+  e3: {
+    preview: `<div style="color:rgba(237,232,224,0.55);font-family:var(--mono);font-size:0.72rem;line-height:1.9">
+<span style="color:var(--rose)">De:</span> IT Support &lt;it-support@<u style="color:var(--rose)">tu-empresa-security.com</u>&gt;<br>
+<span style="color:var(--rose)">Reply-To:</span> <span style="color:var(--red)">collect@phisher.xyz</span><br>
+<span style="color:var(--rose)">Asunto:</span> URGENTE: Actualiza tu contrase&ntilde;a AHORA<br>
+<span style="color:var(--red)">SPF: FAIL</span>
+<br><br>
+Hola equipo,<br><br>
+<span style="color:var(--rose);font-weight:bold">ALERTA DE SEGURIDAD:</span> Detectamos acceso no autorizado.
+Todos deben actualizar la contrase&ntilde;a <span style="color:var(--rose);font-weight:bold">inmediatamente</span>.<br><br>
+Contrase&ntilde;a temporal: <span style="color:var(--rose)">TempPass2024!</span><br>
+<span style="color:var(--rose);text-decoration:underline">http://tu-empresa-security.com/reset</span>
+</div>`,
+    flags: `<div class="red-flags"><div class="rf-title" style="color:var(--rose)">&#9888; Se&ntilde;ales de PHISHING detectadas</div>
+<div class="rf-item"><span class="rf-bullet">&#9888;</span>Dominio impostor: tu-empresa-security.com &ne; dominio real de la empresa</div>
+<div class="rf-item"><span class="rf-bullet">&#9888;</span>Proporciona contrase&ntilde;a temporal &mdash; t&eacute;cnica de credential harvesting</div>
+<div class="rf-item"><span class="rf-bullet">&#9888;</span>Reply-To externo: collect@phisher.xyz</div>
+<div class="rf-item"><span class="rf-bullet">&#9888;</span>SPF FAIL &mdash; no viene de los servidores de la empresa</div>
+<div class="rf-item"><span class="rf-bullet">&#9888;</span>Urgencia extrema + miedo como vectores psicol&oacute;gicos</div>
+<div style="margin-top:0.8rem;padding:0.6rem;background:rgba(255,45,107,0.05);font-family:var(--mono);font-size:0.68rem;color:var(--rose)">&#9888; PHISHING &mdash; Llamar al IT real por tel&eacute;fono para verificar</div></div>`
+  },
+  e4: {
+    preview: `<div style="color:rgba(237,232,224,0.55);font-family:var(--mono);font-size:0.72rem;line-height:1.9">
+<span style="color:var(--green)">De:</span> Render &lt;notifications@<span style="color:var(--green)">render.com</span>&gt;<br>
+<span style="color:var(--green)">Asunto:</span> Deploy exitoso &mdash; cipher-api &middot; commit a3f2b1c<br>
+<span style="color:var(--green)">SPF: PASS</span> &middot; <span style="color:var(--green)">DKIM: PASS</span>
+<br><br>
+Tu servicio <strong>cipher-api</strong> fue desplegado exitosamente.<br><br>
+Commit: a3f2b1c &mdash; "Add rate limiting to auth endpoints"<br>
+Duraci&oacute;n: 2m 34s &mdash; Estado: &#10003; Health check OK<br><br>
+<span style="color:var(--blue)">&rarr; Ver deploy en dashboard</span><br>
+<small style="color:rgba(237,232,224,0.3)">(https://dashboard.render.com/web/srv-xxx)</small>
+</div>`,
+    flags: `<div class="red-flags"><div class="rf-title" style="color:var(--green)">&#10003; Por qu&eacute; es LEG&Iacute;TIMO</div>
+<div class="rf-item"><span style="color:var(--green)">&#10003;</span>Dominio render.com leg&iacute;timo</div>
+<div class="rf-item"><span style="color:var(--green)">&#10003;</span>SPF y DKIM en PASS</div>
+<div class="rf-item"><span style="color:var(--green)">&#10003;</span>URL apunta a dashboard.render.com (subdominio leg&iacute;timo)</div>
+<div class="rf-item"><span style="color:var(--green)">&#10003;</span>Informaci&oacute;n espec&iacute;fica del contexto real (hash del commit)</div>
+<div class="rf-item"><span style="color:var(--green)">&#10003;</span>Sin urgencia, sin amenazas, sin solicitud de credenciales</div>
+<div style="margin-top:0.8rem;padding:0.6rem;background:rgba(6,214,160,0.05);font-family:var(--mono);font-size:0.68rem;color:var(--green)">&#10003; EMAIL LEG&Iacute;TIMO &mdash; Notificaci&oacute;n autom&aacute;tica leg&iacute;tima de Render</div></div>`
+  }
+};
+ 
+function selectEmail(id){
+  document.querySelectorAll('.email-row').forEach(r => r.classList.remove('selected'));
+  const row = document.getElementById('row-' + id);
+  if(row) row.classList.add('selected');
+  const data = emailData[id];
+  if(!data) return;
+  document.getElementById('sim-preview').innerHTML =
+    data.preview + data.flags;
+}
+ 
+// Code tabs
+document.querySelectorAll('.code-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.code-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('ct-' + tab.dataset.ct).classList.add('active');
+  });
+});
+ 
+// Scroll observer
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.07, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.fade-in').forEach((el, i) => {
+  el.style.transitionDelay = (i % 5) * 0.07 + 's';
+  obs.observe(el);
+});
+</script>
+</body>
+</html>
