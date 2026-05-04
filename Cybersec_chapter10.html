@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIPHER &#8212; Cap. 10: Seguridad en la Nube</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#050709;--sky:#00b4d8;--sky2:rgba(0,180,216,0.07);
+  --green:#06d6a0;--red:#ef233c;--amber:#ffb347;--purple:#c77dff;
+  --orange:#ff6b35;--white:#eae8e2;--gray:#484860;
+  --mono:'Share Tech Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+  --body:'Crimson Pro',Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:var(--body);
+  font-weight:300;line-height:1.7;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,
+  rgba(0,180,216,0.006) 2px,rgba(0,180,216,0.006) 4px);
+  pointer-events:none;z-index:9999}
+ 
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;
+  align-items:center;justify-content:space-between;padding:1.2rem 3rem;
+  background:linear-gradient(to bottom,rgba(5,7,9,0.98),transparent);
+  border-bottom:1px solid rgba(0,180,216,0.08)}
+.nav-logo{font-family:var(--display);font-size:1.8rem;letter-spacing:0.3em;
+  color:var(--sky);text-decoration:none}
+.nav-logo span{color:var(--white)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{font-family:var(--mono);font-size:0.68rem;color:var(--gray);
+  text-decoration:none;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s}
+.nav-links a:hover{color:var(--sky)}
+.nav-prev{font-family:var(--mono);font-size:0.65rem;color:var(--gray);
+  text-decoration:none;transition:color 0.2s}
+.nav-prev:hover{color:var(--white)}
+ 
+.hero{min-height:100vh;display:flex;flex-direction:column;
+  justify-content:flex-end;padding:8rem 3rem 5rem;position:relative;overflow:hidden}
+#hero-canvas{position:absolute;inset:0;z-index:0}
+.hero-overlay{position:absolute;inset:0;z-index:1;
+  background:linear-gradient(to top,var(--black) 38%,rgba(5,7,9,0.1) 100%)}
+.hero-content{position:relative;z-index:2}
+.chapter-tag{font-family:var(--mono);font-size:0.65rem;color:var(--sky);
+  letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;
+  display:flex;align-items:center;gap:1rem}
+.chapter-tag::after{content:'';flex:0 0 40px;height:1px;background:var(--sky)}
+.hero h1{font-family:var(--display);font-size:clamp(3.5rem,10vw,10rem);
+  line-height:0.88;letter-spacing:0.02em;color:var(--white)}
+.hero h1 .s{color:var(--sky)}.hero h1 .g{color:var(--green)}
+.hero-cols{display:grid;grid-template-columns:1fr 1fr;gap:4rem;
+  margin-top:3rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.05)}
+.hero-desc{font-size:1.1rem;color:rgba(234,232,226,0.45);line-height:1.85;font-style:italic}
+.providers{display:flex;flex-direction:column;gap:0.5rem}
+.prov-row{font-family:var(--mono);font-size:0.7rem;display:flex;align-items:center;
+  gap:0.8rem;color:var(--gray);padding:0.45rem 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.prov-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pd-aws{background:#ff9900}.pd-gcp{background:#4285f4}
+.pd-az{background:#0089d6}.pd-do{background:#0080ff}
+.prov-row .val{margin-left:auto;color:var(--white)}
+ 
+.section{padding:8rem 3rem;position:relative}
+.section-inner{max-width:1100px;margin:0 auto}
+.sec-label{font-family:var(--mono);font-size:0.6rem;color:var(--sky);
+  letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem}
+.sec-h2{font-family:var(--display);font-size:clamp(2.5rem,5vw,5rem);
+  letter-spacing:0.04em;line-height:1.05;color:var(--white)}
+.sec-h2 em{font-style:normal;color:var(--sky)}
+.sec-sub{font-size:1.05rem;color:rgba(234,232,226,0.4);font-style:italic;
+  margin-top:0.8rem;max-width:620px}
+.fade-in{opacity:0;transform:translateY(16px);transition:opacity 0.6s,transform 0.6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+ 
+/* SHARED MODEL */
+.model-visual{margin-top:4rem;display:flex;flex-direction:column;gap:2px}
+.model-row{display:grid;grid-template-columns:160px 1fr 160px;
+  align-items:stretch;gap:0;border:1px solid rgba(255,255,255,0.04);border-top:none;
+  transition:background 0.2s}
+.model-row:first-child{border-top:1px solid rgba(255,255,255,0.04)}
+.model-row:hover{background:rgba(0,180,216,0.01)}
+.model-who{padding:1.2rem 1.5rem;border-right:1px solid rgba(255,255,255,0.04);
+  display:flex;flex-direction:column;justify-content:center}
+.mw-label{font-family:var(--mono);font-size:0.62rem;color:var(--sky);
+  letter-spacing:0.1em;text-transform:uppercase}
+.mw-icon{font-size:1.5rem;margin-bottom:0.3rem}
+.model-content{padding:1.2rem 1.5rem;font-size:0.9rem;color:rgba(234,232,226,0.5);line-height:1.65}
+.model-content strong{color:var(--white);font-weight:400}
+.model-content code{font-family:var(--mono);font-size:0.78rem;color:var(--sky)}
+.model-resp{padding:1.2rem 1.5rem;border-left:1px solid rgba(255,255,255,0.04);
+  display:flex;align-items:center;justify-content:center}
+.resp-badge{font-family:var(--mono);font-size:0.55rem;padding:0.2rem 0.5rem;
+  letter-spacing:0.1em;text-transform:uppercase;text-align:center;white-space:nowrap}
+.rb-prov{background:rgba(0,180,216,0.06);border:1px solid rgba(0,180,216,0.15);color:var(--sky)}
+.rb-shared{background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.2);color:var(--amber)}
+.rb-you{background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.15);color:var(--green)}
+ 
+/* THREATS GRID */
+.threats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:rgba(0,180,216,0.07);margin-top:4rem}
+.threat-card{background:var(--black);padding:2rem;position:relative;
+  overflow:hidden;transition:background 0.3s}
+.threat-card:hover{background:rgba(0,180,216,0.02)}
+.tc-sev{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.2em;
+  text-transform:uppercase;padding:0.15rem 0.5rem;margin-bottom:0.8rem;
+  display:inline-block}
+.sev-c{background:rgba(239,35,60,0.1);border:1px solid rgba(239,35,60,0.25);color:var(--red)}
+.sev-h{background:rgba(255,107,53,0.1);border:1px solid rgba(255,107,53,0.25);color:var(--orange)}
+.sev-m{background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.2);color:var(--amber)}
+.tc-name{font-family:var(--mono);font-size:0.8rem;color:var(--white);
+  letter-spacing:0.08em;margin-bottom:0.5rem}
+.tc-desc{font-size:0.9rem;color:rgba(234,232,226,0.45);line-height:1.6;margin-bottom:0.8rem}
+.tc-example{font-family:var(--mono);font-size:0.65rem;color:var(--sky);
+  background:rgba(0,180,216,0.04);border:1px solid rgba(0,180,216,0.1);
+  padding:0.4rem 0.8rem;line-height:1.7}
+ 
+/* IAM VISUAL */
+.iam-demo{margin-top:4rem;border:1px solid rgba(0,180,216,0.15);overflow:hidden}
+.iam-head{background:rgba(0,180,216,0.05);border-bottom:1px solid rgba(0,180,216,0.1);
+  padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.iam-title{font-family:var(--mono);font-size:0.7rem;color:var(--sky);
+  letter-spacing:0.15em;text-transform:uppercase}
+.iam-body{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.iam-col{padding:2rem}
+.iam-col+.iam-col{border-left:1px solid rgba(0,180,216,0.08)}
+.iam-section-title{font-family:var(--mono);font-size:0.62rem;color:var(--sky);
+  letter-spacing:0.15em;text-transform:uppercase;margin-bottom:1rem;
+  padding-bottom:0.4rem;border-bottom:1px solid rgba(0,180,216,0.08)}
+.policy-block{background:rgba(5,7,9,0.8);border:1px solid rgba(255,255,255,0.06);
+  padding:1.2rem;font-family:var(--mono);font-size:0.72rem;line-height:1.85;margin-bottom:1rem}
+.policy-block pre{margin:0;white-space:pre-wrap;word-break:break-word}
+.pb-bad{border-color:rgba(239,35,60,0.15)}
+.pb-good{border-color:rgba(6,214,160,0.12)}
+.pb-label{font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;
+  margin-bottom:0.5rem;display:block}
+.lbl-bad{color:var(--red)}.lbl-good{color:var(--green)}
+.jk{color:#c792ea}.jf{color:#ffb347}.js{color:#06d6a0}
+.jcm{color:#484860;font-style:italic}.jb{color:#4cc9f0}.jn{color:#ef233c}
+ 
+/* NETWORKING DIAGRAM */
+.net-svg-wrap{margin-top:4rem;width:100%;overflow:hidden}
+ 
+/* CHECKLIST */
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:4rem}
+.check-group h3{font-family:var(--mono);font-size:0.68rem;color:var(--sky);
+  letter-spacing:0.2em;text-transform:uppercase;margin-bottom:1rem;
+  padding-bottom:0.5rem;border-bottom:1px solid rgba(0,180,216,0.1)}
+.check-item{display:flex;align-items:flex-start;gap:0.8rem;padding:0.65rem 0;
+  border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.9rem;
+  color:rgba(234,232,226,0.5);line-height:1.4}
+.chk{flex-shrink:0;width:18px;height:18px;border:1px solid rgba(0,180,216,0.3);
+  display:flex;align-items:center;justify-content:center;font-size:0.6rem;
+  color:var(--sky);cursor:pointer;transition:all 0.2s;margin-top:0.1rem}
+.chk.done{background:rgba(0,180,216,0.15);border-color:var(--sky)}
+.chk.done::after{content:'✓'}
+ 
+/* CODE */
+.code-tabs{display:flex;flex-wrap:wrap;gap:0;margin-top:4rem;
+  border-bottom:1px solid rgba(255,255,255,0.06)}
+.code-tab{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;
+  text-transform:uppercase;padding:0.7rem 1.2rem;color:var(--gray);cursor:pointer;
+  border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap}
+.code-tab.active{color:var(--sky);border-bottom-color:var(--sky)}
+.code-tab:hover{color:var(--white)}
+.code-pane{display:none}.code-pane.active{display:block}
+.code-block{background:rgba(5,7,9,0.97);border:1px solid rgba(255,255,255,0.06);
+  border-top:none;padding:2rem;font-family:var(--mono);font-size:0.76rem;
+  line-height:1.95;overflow-x:auto;max-height:560px;overflow-y:auto}
+.code-block::-webkit-scrollbar{width:3px}
+.code-block::-webkit-scrollbar-thumb{background:rgba(0,180,216,0.2);border-radius:2px}
+.code-block pre{margin:0;white-space:pre-wrap;word-break:break-word}
+.kw{color:#c792ea}.fn{color:#ffb347}.str{color:#06d6a0}.cm{color:#484860;font-style:italic}
+.dec{color:#4cc9f0}.cls{color:#82aaff}.num{color:#ef233c}.sk{color:#00b4d8}
+ 
+/* INCIDENT STEPS */
+.incidents-flow{display:flex;flex-direction:column;gap:2px;margin-top:4rem}
+.inc-step{display:grid;grid-template-columns:56px 1fr;align-items:stretch;gap:0}
+.inc-num-col{display:flex;flex-direction:column;align-items:center;padding-top:1.1rem}
+.inc-num{width:36px;height:36px;border:1px solid rgba(0,180,216,0.3);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);
+  font-size:0.7rem;color:var(--sky);flex-shrink:0}
+.inc-connector{flex:1;width:1px;background:rgba(0,180,216,0.1);margin-top:0.4rem}
+.inc-step:last-child .inc-connector{display:none}
+.inc-body{padding:0 0 2.5rem 1.5rem}
+.inc-title{font-family:var(--mono);font-size:0.8rem;color:var(--white);
+  letter-spacing:0.08em;margin-bottom:0.4rem}
+.inc-desc{font-size:0.95rem;color:rgba(234,232,226,0.5);line-height:1.65;margin-bottom:0.7rem}
+.inc-cmd{background:rgba(5,7,9,0.9);border:1px solid rgba(0,180,216,0.1);
+  padding:0.7rem 1.1rem;font-family:var(--mono);font-size:0.73rem;color:var(--sky);line-height:1.7}
+ 
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;
+  background:rgba(0,180,216,0.07);margin-top:4rem}
+.stat-box{background:var(--black);padding:2.5rem 2rem;text-align:center}
+.stat-num{font-family:var(--display);font-size:3.5rem;line-height:1;
+  letter-spacing:0.02em;margin-bottom:0.4rem}
+.sn-sky{color:var(--sky)}.sn-red{color:var(--red)}
+.sn-green{color:var(--green)}.sn-amber{color:var(--amber)}
+.stat-label{font-family:var(--mono);font-size:0.58rem;color:var(--gray);
+  letter-spacing:0.12em;text-transform:uppercase;line-height:1.5}
+ 
+/* LOG & FOOTER */
+.log-section{padding:5rem 3rem;border-top:1px solid rgba(255,255,255,0.04)}
+.log-entry{max-width:800px;margin:3rem auto 0;background:rgba(0,180,216,0.02);
+  border:1px solid rgba(0,180,216,0.1);padding:3rem;position:relative}
+.log-entry::before{content:'ENTRADA DE APRENDIZAJE // CAPcdTULO 10';
+  font-family:var(--mono);font-size:0.55rem;color:var(--sky);letter-spacing:0.25em;
+  position:absolute;top:-0.5rem;left:2rem;background:var(--black);padding:0 0.8rem}
+.log-date{font-family:var(--mono);font-size:0.65rem;color:var(--gray);margin-bottom:1.5rem}
+.log-entry p{font-size:1.05rem;color:rgba(234,232,226,0.65);line-height:1.85;font-style:italic}
+.log-entry p+p{margin-top:1rem}
+footer{padding:4rem 3rem;border-top:1px solid rgba(255,255,255,0.04);
+  display:flex;justify-content:space-between;align-items:center}
+.footer-brand{font-family:var(--display);font-size:1.5rem;letter-spacing:0.3em;
+  color:rgba(0,180,216,0.3)}
+.chapter-nav{display:flex;gap:3rem}
+.ch-link{display:flex;flex-direction:column;gap:0.3rem;text-decoration:none}
+.ch-label{font-family:var(--mono);font-size:0.6rem;color:var(--gray);
+  letter-spacing:0.2em;text-transform:uppercase}
+.ch-title{font-family:var(--display);font-size:1.1rem;letter-spacing:0.1em;
+  color:var(--white);transition:color 0.2s}
+.ch-link:hover .ch-title{color:var(--sky)}
+.ch-link.prev .ch-title{color:rgba(234,232,226,0.3)}
+.footer-copy{font-family:var(--mono);font-size:0.6rem;color:var(--gray);
+  letter-spacing:0.1em;text-align:center;padding:1.5rem 3rem;
+  border-top:1px solid rgba(255,255,255,0.03)}
+ 
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+ 
+@media(max-width:900px){
+  nav{padding:1rem 1.5rem}.nav-links{display:none}
+  .section{padding:5rem 1.5rem}
+  .hero-cols,.iam-body,.check-grid,.model-row{grid-template-columns:1fr}
+  .threats-grid{grid-template-columns:1fr}
+  .model-resp{border-left:none;border-top:1px solid rgba(255,255,255,0.04)}
+  .iam-col+.iam-col{border-left:none;border-top:1px solid rgba(0,180,216,0.08)}
+  footer{flex-direction:column;gap:2rem;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+ 
+<nav>
+  <a href="#" class="nav-logo">CIPHER<span>DOC</span></a>
+  <ul class="nav-links">
+    <li><a href="#modelo">Modelo</a></li>
+    <li><a href="#amenazas">Amenazas</a></li>
+    <li><a href="#iam">IAM</a></li>
+    <li><a href="#red">Red</a></li>
+    <li><a href="#codigo">C&#243;digo</a></li>
+  </ul>
+  <a href="cybersec_chapter9.html" class="nav-prev">&#8592; Cap. 09</a>
+</nav>
+ 
+<!-- HERO -->
+<section class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="chapter-tag">Cap&#237;tulo 10 &#8212; Infraestructura moderna</p>
+    <h1>
+      <span class="s">SEGURIDAD</span><br>
+      <span class="g">EN LA</span><br>
+      NUBE<br>
+      <span style="font-size:0.35em;letter-spacing:0.1em;color:rgba(234,232,226,0.18)">AWS &#183; GCP &#183; Azure &#183; Render &#183; DigitalOcean</span>
+    </h1>
+    <div class="hero-cols">
+      <p class="hero-desc">
+        La nube no es inherentemente m&#225;s segura ni menos segura que on-premise.
+        Es diferente. Los mismos principios aplicados mal en un servidor f&#237;sico
+        se aplican mal en AWS &#8212; pero el blast radius es mucho mayor.
+        Un bucket S3 mal configurado puede exponer terabytes de datos a internet.
+      </p>
+      <div class="providers">
+        <div class="prov-row"><span class="prov-dot pd-aws"></span>Amazon Web Services<span class="val">EC2 &#183; RDS &#183; S3 &#183; IAM &#183; WAF</span></div>
+        <div class="prov-row"><span class="prov-dot pd-gcp"></span>Google Cloud<span class="val">GCE &#183; Cloud SQL &#183; GCS &#183; IAP</span></div>
+        <div class="prov-row"><span class="prov-dot pd-az"></span>Microsoft Azure<span class="val">App Service &#183; Key Vault &#183; NSG</span></div>
+        <div class="prov-row"><span class="prov-dot pd-do"></span>Render / Railway<span class="val">Tu stack actual &#8592;</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- STATS -->
+<section class="section" style="padding-bottom:2rem">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// el problema en n&#250;meros</p>
+    <div class="stats-row fade-in">
+      <div class="stat-box">
+        <div class="stat-num sn-red">77%</div>
+        <div class="stat-label">brechas en la nube por misconfiguraci&#243;n</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num sn-amber">3B</div>
+        <div class="stat-label">registros expuestos por buckets S3 p&#250;blicos en 2023</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num sn-sky">$4.8M</div>
+        <div class="stat-label">costo promedio de brecha en entorno cloud</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num sn-green">200s</div>
+        <div class="stat-label">tiempo hasta que un key expuesto en GitHub es explotado</div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- MODELO DE RESPONSABILIDAD COMPARTIDA -->
+<section class="section" id="modelo">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 01 &#8212; el contrato</p>
+    <h2 class="sec-h2 fade-in">Responsabilidad<br><em>compartida</em></h2>
+    <p class="sec-sub fade-in">El error m&#225;s com&#250;n en cloud: asumir que el proveedor se ocupa de la seguridad. Se ocupan de su parte. La tuya sigue siendo tuya.</p>
+ 
+    <div class="model-visual fade-in">
+      <div class="model-row">
+        <div class="model-who"><div class="mw-icon">&#127968;</div><div class="mw-label">F&#237;sico</div></div>
+        <div class="model-content">
+          <strong>Data centers, hardware, switches, servidores f&#237;sicos, alimentaci&#243;n, refrigeraci&#243;n.</strong>
+          El proveedor de cloud tiene m&#225;s seguridad f&#237;sica que cualquier empresa privada.
+          Guardas, biometr&#237;a, c&#225;maras, jaulas. T&#250; nunca ves el hardware.
+        </div>
+        <div class="model-resp"><span class="resp-badge rb-prov">PROVEEDOR</span></div>
+      </div>
+      <div class="model-row">
+        <div class="model-who"><div class="mw-icon">&#129504;</div><div class="mw-label">Virtualizaci&#243;n</div></div>
+        <div class="model-content">
+          <strong>Hipervisores, aislamiento de VMs, red virtual, almacenamiento distribuido.</strong>
+          AWS, GCP, Azure se ocupan de que tu instancia no pueda leer la memoria del vecino.
+          Esto es responsabilidad completa del proveedor.
+        </div>
+        <div class="model-resp"><span class="resp-badge rb-prov">PROVEEDOR</span></div>
+      </div>
+      <div class="model-row">
+        <div class="model-who"><div class="mw-icon">&#127758;</div><div class="mw-label">Red</div></div>
+        <div class="model-content">
+          <strong>VPC, subredes, security groups, NACLs, route tables.</strong>
+          La infraestructura de red existe, pero <strong>t&#250; la configuras.</strong>
+          Un security group abierto a 0.0.0.0/0 en el puerto 5432 es tu error, no de AWS.
+        </div>
+        <div class="model-resp"><span class="resp-badge rb-shared">COMPARTIDA</span></div>
+      </div>
+      <div class="model-row">
+        <div class="model-who"><div class="mw-icon">&#128274;</div><div class="mw-label">IAM</div></div>
+        <div class="model-content">
+          <strong>Identidades, roles, pol&#237;ticas, permisos.</strong>
+          AWS tiene el sistema, pero t&#250; decides qui&#233;n puede hacer qu&#233;.
+          Un usuario con <code>*:*</code> en producción es tu decision &#8212; y tu vulnerabilidad.
+        </div>
+        <div class="model-resp"><span class="resp-badge rb-you">T&#218;</span></div>
+      </div>
+      <div class="model-row">
+        <div class="model-who"><div class="mw-icon">&#128190;</div><div class="mw-label">Datos</div></div>
+        <div class="model-content">
+          <strong>Cifrado, backups, acceso, clasificaci&#243;n de datos, retenci&#243;n.</strong>
+          Un bucket S3 p&#250;blico es completamente tu responsabilidad.
+          AWS provee las herramientas de cifrado. T&#250; decides activarlas.
+        </div>
+        <div class="model-resp"><span class="resp-badge rb-you">T&#218;</span></div>
+      </div>
+      <div class="model-row">
+        <div class="model-who"><div class="mw-icon">&#128187;</div><div class="mw-label">Aplicaci&#243;n</div></div>
+        <div class="model-content">
+          <strong>C&#243;digo, dependencias, configuraci&#243;n, secrets, actualizaciones.</strong>
+          FastAPI, PostgreSQL, Redis, tus librer&#237;as de Python. Los CVEs de tu c&#243;digo,
+          los secrets en variables de entorno, el OWASP Top 10. Todo tuyo.
+        </div>
+        <div class="model-resp"><span class="resp-badge rb-you">T&#218;</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- AMENAZAS CLOUD -->
+<section class="section" id="amenazas" style="background:linear-gradient(to bottom,transparent,rgba(0,180,216,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 02 &#8212; vectores</p>
+    <h2 class="sec-h2 fade-in">Las <em>9 amenazas</em><br>m&#225;s comunes en cloud</h2>
+    <p class="sec-sub fade-in">El OWASP Cloud Top 10 revisado. Cada una tiene un ejemplo real y ocurre m&#225;s de lo que crees.</p>
+ 
+    <div class="threats-grid">
+      <div class="threat-card fade-in">
+        <span class="tc-sev sev-c">CR&#205;TICO</span>
+        <div class="tc-name">Bucket S3 P&#250;blico</div>
+        <div class="tc-desc">Configuraci&#243;n por defecto incorrecta expone datos a todo internet. En 2023 m&#225;s de 3 billones de registros expuestos por este error.</div>
+        <div class="tc-example">aws s3api put-bucket-acl --bucket mi-bucket --acl public-read<br><span style="color:var(--red)">&#8592; Una sola l&#237;nea lo compromete todo</span></div>
+      </div>
+      <div class="threat-card fade-in">
+        <span class="tc-sev sev-c">CR&#205;TICO</span>
+        <div class="tc-name">Credenciales en C&#243;digo</div>
+        <div class="tc-desc">AWS Access Keys commiteadas a GitHub. Bots escanean GitHub 24/7. En 200 segundos de media el key es explotado para minar criptomonedas a tu costa.</div>
+        <div class="tc-example">AWS_ACCESS_KEY_ID=AKIA... en .env commiteado<br>Costo de mining: $50,000/mes en tu cuenta</div>
+      </div>
+      <div class="threat-card fade-in">
+        <span class="tc-sev sev-c">CR&#205;TICO</span>
+        <div class="tc-name">IAM Overpermissioned</div>
+        <div class="tc-desc">Roles con permisos de administrador cuando solo necesitan leer un secret. Si ese rol se compromete, el atacante tiene acceso total a toda la cuenta AWS.</div>
+        <div class="tc-example">Effect: Allow, Action: "*", Resource: "*"<br><span style="color:var(--red)">&#8592; Admin total — nunca en producci&#243;n</span></div>
+      </div>
+      <div class="threat-card fade-in">
+        <span class="tc-sev sev-h">ALTO</span>
+        <div class="tc-name">Security Groups Abiertos</div>
+        <div class="tc-desc">Puertos de base de datos, Redis, o administraci&#243;n expuestos a 0.0.0.0/0. Shodan indexa esto en horas. PostgreSQL p&#250;blico = datos comprometidos.</div>
+        <div class="tc-example">port 5432: 0.0.0.0/0 &#8592; PostgreSQL p&#250;blico<br>port 6379: 0.0.0.0/0 &#8592; Redis sin auth p&#250;blico</div>
+      </div>
+      <div class="threat-card fade-in">
+        <span class="tc-sev sev-h">ALTO</span>
+        <div class="tc-name">IMDS v1 / Metadata API</div>
+        <div class="tc-desc">En AWS, SSRF puede acceder a http://169.254.169.254/ y robar credenciales IAM temporales del servidor. IMDSv2 require un token de sesión, mitiga esto.</div>
+        <div class="tc-example">curl http://169.254.169.254/latest/meta-data/iam/<br>&#8594; credentials del servidor en JSON</div>
+      </div>
+      <div class="threat-card fade-in">
+        <span class="tc-sev sev-h">ALTO</span>
+        <div class="tc-name">Logs Desactivados</div>
+        <div class="tc-desc">CloudTrail apagado = sin audit trail. Un atacante puede cubrir sus rastros borrando logs. Sin logs, no puedes reconstruir qu&#233; pas&#243; en un incidente.</div>
+        <div class="tc-example">Primer acci&#243;n del atacante con acceso AWS:<br>aws cloudtrail delete-trail --name prod</div>
+      </div>
+      <div class="threat-card fade-in">
+        <span class="tc-sev sev-m">MEDIO</span>
+        <div class="tc-name">Snapshots P&#250;blicos</div>
+        <div class="tc-desc">Snapshots de RDS o EBS marcados como p&#250;blicos accidentalmente. Cualquiera puede crear una instancia desde ese snapshot y acceder a todos los datos.</div>
+        <div class="tc-example">aws rds describe-db-snapshots --include-public<br>&#8594; Snapshots con datos de producci&#243;n visibles</div>
+      </div>
+      <div class="threat-card fade-in">
+        <span class="tc-sev sev-m">MEDIO</span>
+        <div class="tc-name">Secrets en Variables de Entorno</div>
+        <div class="tc-desc">Variables de entorno visibles en logs de ECS, Lambda, o en la consola AWS. Usar Secrets Manager o Parameter Store con cifrado KMS.</div>
+        <div class="tc-example">DATABASE_URL=postgresql://user:pass@... en env<br>&#8594; Visible en CloudWatch logs si se loguea</div>
+      </div>
+      <div class="threat-card fade-in">
+        <span class="tc-sev sev-m">MEDIO</span>
+        <div class="tc-name">Sin MFA en Root Account</div>
+        <div class="tc-desc">La cuenta root de AWS sin MFA es el punto de fallo m&#225;s cr&#237;tico. Si la contrase&#241;a del root se compromete sin MFA, el atacante controla toda la infraestructura.</div>
+        <div class="tc-example">Root account: usar SOLO para emergencias<br>MFA hardware (YubiKey) obligatorio en root</div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- IAM PROFUNDO -->
+<section class="section" id="iam">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 03 &#8212; identidad y acceso</p>
+    <h2 class="sec-h2 fade-in">IAM:<br><em>least privilege en la nube</em></h2>
+    <p class="sec-sub fade-in">El principio de m&#237;nimo privilegio aplicado a cloud. Cada rol, usuario y servicio debe tener exactamente los permisos que necesita &#8212; ni uno m&#225;s.</p>
+ 
+    <div class="iam-demo fade-in">
+      <div class="iam-head">
+        <span class="iam-title">&#128274; Comparaci&#243;n de pol&#237;ticas IAM &#8212; Vulnerable vs Segura</span>
+        <span style="font-family:var(--mono);font-size:0.62rem;color:var(--gray)">AWS IAM Policy JSON</span>
+      </div>
+      <div class="iam-body">
+        <div class="iam-col">
+          <div class="iam-section-title">&#10007; Pol&#237;tica peligrosa &#8212; Admin total</div>
+          <div class="policy-block pb-bad">
+            <span class="pb-label lbl-bad">&#10007; NUNCA en producci&#243;n</span>
+            <pre><span class="jb">{</span>
+  <span class="jf">"Version"</span>: <span class="js">"2012-10-17"</span>,
+  <span class="jf">"Statement"</span>: [<span class="jb">{</span>
+    <span class="jf">"Effect"</span>: <span class="js">"Allow"</span>,
+    <span class="jf">"Action"</span>: <span class="jn">"*"</span>,
+    <span class="jf">"Resource"</span>: <span class="jn">"*"</span>
+    <span class="jcm">// Acceso total a TODO en AWS</span>
+    <span class="jcm">// S3, RDS, IAM, EC2, facturación...</span>
+  <span class="jb">}]</span>
+<span class="jb">}</span></pre>
+          </div>
+          <div style="font-family:var(--mono);font-size:0.68rem;color:var(--red);
+            padding:0.8rem;background:rgba(239,35,60,0.04);border:1px solid rgba(239,35,60,0.12);
+            line-height:1.7">
+            Si este rol se compromete: el atacante puede borrar toda tu infraestructura,
+            exfiltrar todos tus datos, crear nuevos usuarios admin, y vaciar tu cuenta de AWS.
+          </div>
+ 
+          <div style="margin-top:1.5rem">
+          <div class="iam-section-title">&#10007; Access Keys en c&#243;digo</div>
+          <div class="policy-block pb-bad" style="margin-top:0">
+            <pre><span class="jcm"># ❌ Nunca hardcodear credenciales</span>
+AWS_ACCESS_KEY_ID = <span class="jn">"AKIAIOSFODNN7EXAMPLE"</span>
+AWS_SECRET_KEY    = <span class="jn">"wJalrXUtnFEMI/K7MDENG"</span>
+ 
+<span class="jcm"># ❌ Tampoco en variables de entorno planas</span>
+<span class="jcm"># AWS_ACCESS_KEY_ID en .env → visible en logs</span></pre>
+          </div>
+          </div>
+        </div>
+        <div class="iam-col">
+          <div class="iam-section-title">&#10003; Pol&#237;tica segura &#8212; M&#237;nimo privilegio</div>
+          <div class="policy-block pb-good">
+            <span class="pb-label lbl-good">&#10003; Solo lo que la app necesita</span>
+            <pre><span class="jb">{</span>
+  <span class="jf">"Version"</span>: <span class="js">"2012-10-17"</span>,
+  <span class="jf">"Statement"</span>: [
+    <span class="jb">{</span>
+      <span class="jf">"Effect"</span>: <span class="js">"Allow"</span>,
+      <span class="jf">"Action"</span>: [
+        <span class="js">"secretsmanager:GetSecretValue"</span>
+      ],
+      <span class="jf">"Resource"</span>:
+        <span class="js">"arn:aws:secretsmanager:*:*:secret:cipher/prod/*"</span>
+    <span class="jb">}</span>,
+    <span class="jb">{</span>
+      <span class="jf">"Effect"</span>: <span class="js">"Allow"</span>,
+      <span class="jf">"Action"</span>: [
+        <span class="js">"s3:PutObject"</span>,
+        <span class="js">"s3:GetObject"</span>
+      ],
+      <span class="jf">"Resource"</span>: <span class="js">"arn:aws:s3:::cipher-uploads/*"</span>
+    <span class="jb">}</span>
+  ]
+<span class="jb">}</span></pre>
+          </div>
+          <div style="font-family:var(--mono);font-size:0.68rem;color:var(--green);
+            padding:0.8rem;background:rgba(6,214,160,0.04);border:1px solid rgba(6,214,160,0.12);
+            line-height:1.7">
+            &#10003; Solo puede leer sus secrets y operar en su bucket. Nada m&#225;s.
+            Si este rol se compromete: el da&#241;o est&#225; contenido a esos dos recursos.
+          </div>
+ 
+          <div style="margin-top:1.5rem">
+          <div class="iam-section-title">&#10003; IAM Role &#8212; sin Access Keys</div>
+          <div class="policy-block pb-good" style="margin-top:0">
+            <pre><span class="jcm"># ✓ En ECS/EC2: usar IAM Role</span>
+<span class="jcm"># No hay credenciales hardcodeadas</span>
+<span class="jcm"># boto3 las obtiene del metadata service</span>
+ 
+import boto3
+<span class="jcm"># boto3 detecta el rol automáticamente</span>
+client = boto3.client(<span class="js">"secretsmanager"</span>)
+ 
+<span class="jcm"># ✓ IMDSv2 activado (obligatorio)</span>
+<span class="jcm"># http_tokens = "required"</span>
+<span class="jcm"># Previene SSRF hacia metadata API</span></pre>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- RED Y VPC -->
+<section class="section" id="red" style="background:linear-gradient(to bottom,transparent,rgba(0,180,216,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 04 &#8212; aislamiento de red</p>
+    <h2 class="sec-h2 fade-in">VPC y Seguridad<br><em>de Red en Cloud</em></h2>
+    <p class="sec-sub fade-in">La defensa en profundidad en cloud empieza con la red. P&#250;blico vs privado, security groups como firewall, sin rutas innecesarias.</p>
+ 
+    <div class="net-svg-wrap fade-in">
+      <svg viewBox="0 0 960 500" xmlns="http://www.w3.org/2000/svg"
+        style="width:100%;border:1px solid rgba(0,180,216,0.07);background:rgba(5,7,9,0.9)">
+        <defs>
+          <pattern id="g3" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M40 0L0 0 0 40" fill="none" stroke="rgba(0,180,216,0.03)" stroke-width="0.5"/>
+          </pattern>
+          <marker id="a1" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+            <path d="M0,0 L0,7 L7,3.5 z" fill="rgba(0,180,216,0.5)"/>
+          </marker>
+          <marker id="a2" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+            <path d="M0,0 L0,7 L7,3.5 z" fill="rgba(6,214,160,0.5)"/>
+          </marker>
+          <marker id="a3" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+            <path d="M0,0 L0,7 L7,3.5 z" fill="rgba(255,179,71,0.5)"/>
+          </marker>
+        </defs>
+        <rect width="960" height="500" fill="url(#g3)"/>
+ 
+        <!-- Internet -->
+        <rect x="10" y="10" width="100" height="480" fill="rgba(255,255,255,0.01)"
+          stroke="rgba(255,255,255,0.05)" stroke-dasharray="4,4" rx="2"/>
+        <text x="60" y="32" text-anchor="middle" font-family="Share Tech Mono" font-size="9"
+          fill="rgba(255,255,255,0.2)" letter-spacing="2">INTERNET</text>
+ 
+        <!-- VPC border -->
+        <rect x="120" y="10" width="830" height="480" fill="rgba(0,180,216,0.015)"
+          stroke="rgba(0,180,216,0.15)" stroke-width="1.5" stroke-dasharray="5,4" rx="4"/>
+        <text x="535" y="32" text-anchor="middle" font-family="Share Tech Mono" font-size="9"
+          fill="rgba(0,180,216,0.4)" letter-spacing="3">VPC 10.0.0.0/16</text>
+ 
+        <!-- Public subnet -->
+        <rect x="140" y="55" width="240" height="420" fill="rgba(255,179,71,0.02)"
+          stroke="rgba(255,179,71,0.12)" stroke-width="1" stroke-dasharray="4,3" rx="3"/>
+        <text x="260" y="76" text-anchor="middle" font-family="Share Tech Mono" font-size="8"
+          fill="rgba(255,179,71,0.4)" letter-spacing="1">PUBLIC SUBNET 10.0.1.0/24</text>
+ 
+        <!-- Private subnet -->
+        <rect x="400" y="55" width="530" height="420" fill="rgba(6,214,160,0.01)"
+          stroke="rgba(6,214,160,0.1)" stroke-width="1" stroke-dasharray="4,3" rx="3"/>
+        <text x="665" y="76" text-anchor="middle" font-family="Share Tech Mono" font-size="8"
+          fill="rgba(6,214,160,0.35)" letter-spacing="1">PRIVATE SUBNET 10.0.10.0/24</text>
+ 
+        <!-- User -->
+        <circle cx="60" cy="180" r="28" fill="rgba(234,232,226,0.02)"
+          stroke="rgba(234,232,226,0.15)" stroke-width="1"/>
+        <text x="60" y="175" text-anchor="middle" font-size="18">&#128100;</text>
+        <text x="60" y="193" text-anchor="middle" font-family="Share Tech Mono" font-size="7"
+          fill="rgba(234,232,226,0.3)">USER</text>
+ 
+        <!-- ALB -->
+        <rect x="160" y="140" width="180" height="70" rx="3"
+          fill="rgba(255,179,71,0.05)" stroke="rgba(255,179,71,0.3)" stroke-width="1.5"/>
+        <text x="250" y="170" text-anchor="middle" font-family="Share Tech Mono" font-size="11"
+          fill="rgba(255,179,71,0.9)">&#128260; ALB</text>
+        <text x="250" y="189" text-anchor="middle" font-family="Share Tech Mono" font-size="7.5"
+          fill="rgba(255,179,71,0.4)">:443 HTTPS + WAF</text>
+ 
+        <!-- WAF badge -->
+        <rect x="295" y="130" width="40" height="14" rx="2"
+          fill="rgba(0,180,216,0.1)" stroke="rgba(0,180,216,0.25)" stroke-width="0.5"/>
+        <text x="315" y="141" text-anchor="middle" font-family="Share Tech Mono" font-size="6.5"
+          fill="rgba(0,180,216,0.8)">+ WAF</text>
+ 
+        <!-- Nginx / FastAPI -->
+        <rect x="420" y="100" width="200" height="90" rx="3"
+          fill="rgba(0,180,216,0.05)" stroke="rgba(0,180,216,0.35)" stroke-width="2"/>
+        <text x="520" y="133" text-anchor="middle" font-family="Share Tech Mono" font-size="11"
+          fill="rgba(0,180,216,0.9)">&#9889; FastAPI</text>
+        <text x="520" y="152" text-anchor="middle" font-family="Share Tech Mono" font-size="7.5"
+          fill="rgba(0,180,216,0.4)">Uvicorn :8000 (interno)</text>
+        <text x="520" y="169" text-anchor="middle" font-family="Share Tech Mono" font-size="7"
+          fill="rgba(0,180,216,0.3)">SG: solo desde ALB</text>
+ 
+        <!-- RDS PostgreSQL -->
+        <rect x="660" y="100" width="170" height="75" rx="3"
+          fill="rgba(6,214,160,0.04)" stroke="rgba(6,214,160,0.3)" stroke-width="1.5"/>
+        <text x="745" y="132" text-anchor="middle" font-family="Share Tech Mono" font-size="10"
+          fill="rgba(6,214,160,0.8)">&#128024; RDS Postgres</text>
+        <text x="745" y="151" text-anchor="middle" font-family="Share Tech Mono" font-size="7.5"
+          fill="rgba(6,214,160,0.35)">:5432 solo desde app SG</text>
+        <text x="745" y="167" text-anchor="middle" font-family="Share Tech Mono" font-size="7"
+          fill="rgba(6,214,160,0.3)">Multi-AZ &#183; encrypted &#183; backup</text>
+ 
+        <!-- ElastiCache Redis -->
+        <rect x="660" y="220" width="170" height="65" rx="3"
+          fill="rgba(239,35,60,0.04)" stroke="rgba(239,35,60,0.2)" stroke-width="1.5"/>
+        <text x="745" y="250" text-anchor="middle" font-family="Share Tech Mono" font-size="10"
+          fill="rgba(239,35,60,0.7)">&#128308; ElastiCache</text>
+        <text x="745" y="268" text-anchor="middle" font-family="Share Tech Mono" font-size="7.5"
+          fill="rgba(239,35,60,0.3)">Redis :6379 (solo interno)</text>
+ 
+        <!-- S3 (external) -->
+        <rect x="660" y="340" width="170" height="60" rx="3"
+          fill="rgba(255,179,71,0.04)" stroke="rgba(255,179,71,0.2)" stroke-width="1.5"/>
+        <text x="745" y="368" text-anchor="middle" font-family="Share Tech Mono" font-size="10"
+          fill="rgba(255,179,71,0.7)">&#128230; S3 Bucket</text>
+        <text x="745" y="385" text-anchor="middle" font-family="Share Tech Mono" font-size="7.5"
+          fill="rgba(255,179,71,0.3)">Privado &#183; KMS &#183; URL firmadas</text>
+ 
+        <!-- Secrets Manager -->
+        <rect x="420" y="260" width="200" height="55" rx="2"
+          fill="rgba(199,125,255,0.04)" stroke="rgba(199,125,255,0.2)" stroke-width="1"
+          stroke-dasharray="3,2"/>
+        <text x="520" y="285" text-anchor="middle" font-family="Share Tech Mono" font-size="9"
+          fill="rgba(199,125,255,0.6)">&#128273; Secrets Manager</text>
+        <text x="520" y="302" text-anchor="middle" font-family="Share Tech Mono" font-size="7.5"
+          fill="rgba(199,125,255,0.35)">KMS-encrypted secrets</text>
+ 
+        <!-- CloudWatch / CloudTrail -->
+        <rect x="420" y="360" width="200" height="55" rx="2"
+          fill="rgba(0,180,216,0.03)" stroke="rgba(0,180,216,0.12)" stroke-width="1"
+          stroke-dasharray="3,2"/>
+        <text x="520" y="383" text-anchor="middle" font-family="Share Tech Mono" font-size="9"
+          fill="rgba(0,180,216,0.5)">&#128202; CloudWatch</text>
+        <text x="520" y="400" text-anchor="middle" font-family="Share Tech Mono" font-size="7.5"
+          fill="rgba(0,180,216,0.3)">Logs &#183; Metrics &#183; Alerts</text>
+ 
+        <!-- CONNECTIONS -->
+        <path d="M88 180 L160 175" stroke="rgba(255,179,71,0.4)" stroke-width="1.5"
+          marker-end="url(#a3)"/>
+        <text x="120" y="168" text-anchor="middle" font-family="Share Tech Mono" font-size="7"
+          fill="rgba(255,179,71,0.4)">HTTPS</text>
+ 
+        <path d="M340 175 L420 155" stroke="rgba(0,180,216,0.4)" stroke-width="1.5"
+          marker-end="url(#a1)"/>
+        <text x="382" y="158" text-anchor="middle" font-family="Share Tech Mono" font-size="7"
+          fill="rgba(0,180,216,0.4)">HTTP</text>
+ 
+        <path d="M620 145 L660 140" stroke="rgba(6,214,160,0.4)" stroke-width="1.5"
+          marker-end="url(#a2)"/>
+        <text x="640" y="132" text-anchor="middle" font-family="Share Tech Mono" font-size="7"
+          fill="rgba(6,214,160,0.4)">SQL</text>
+ 
+        <path d="M590 185 L590 245 L660 255" stroke="rgba(6,214,160,0.2)" stroke-width="1"
+          stroke-dasharray="3,2" marker-end="url(#a2)"/>
+ 
+        <path d="M590 185 L590 370 L660 370" stroke="rgba(255,179,71,0.2)" stroke-width="1"
+          stroke-dasharray="3,2" marker-end="url(#a3)"/>
+ 
+        <path d="M520 210 L520 260" stroke="rgba(199,125,255,0.3)" stroke-width="1"
+          stroke-dasharray="3,2" marker-end="url(#a1)"/>
+ 
+        <!-- Legend -->
+        <rect x="120" y="440" width="830" height="45" rx="2"
+          fill="rgba(255,255,255,0.01)" stroke="rgba(255,255,255,0.04)"/>
+        <text x="140" y="460" font-family="Share Tech Mono" font-size="8"
+          fill="rgba(255,179,71,0.5)">Internet-facing: ALB (:443)</text>
+        <text x="310" y="460" font-family="Share Tech Mono" font-size="8"
+          fill="rgba(239,35,60,0.5)">Nunca exponer: RDS (:5432), Redis (:6379)</text>
+        <text x="560" y="460" font-family="Share Tech Mono" font-size="8"
+          fill="rgba(0,180,216,0.5)">FastAPI: solo desde ALB security group</text>
+        <text x="140" y="477" font-family="Share Tech Mono" font-size="7.5"
+          fill="rgba(255,255,255,0.15)">Todo dentro de la VPC privada &#8212; sin acceso p&#250;blico directo a la app ni a las bases de datos</text>
+      </svg>
+    </div>
+  </div>
+</section>
+ 
+<!-- PASOS PARA SECURIZAR -->
+<section class="section">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 05 &#8212; h&#225;zlo ahora</p>
+    <h2 class="sec-h2 fade-in">Securizar tu cuenta<br><em>paso a paso</em></h2>
+    <p class="sec-sub fade-in">En este orden. Los primeros cinco cubren el 80% del riesgo. Todos los dem&#225;s cubren el 20% restante.</p>
+ 
+    <div class="incidents-flow fade-in">
+      <div class="inc-step">
+        <div class="inc-num-col"><div class="inc-num">01</div><div class="inc-connector"></div></div>
+        <div class="inc-body">
+          <div class="inc-title">Activar MFA en la cuenta root &#8212; inmediatamente</div>
+          <div class="inc-desc">La cuenta root es el acceso total a toda tu infraestructura AWS. Sin MFA, una contrase&#241;a comprometida = todo comprometido. Usar hardware key (YubiKey) si es posible.</div>
+          <div class="inc-cmd">AWS Console &#8594; IAM &#8594; Root user &#8594; Enable MFA</div>
+        </div>
+      </div>
+      <div class="inc-step">
+        <div class="inc-num-col"><div class="inc-num">02</div><div class="inc-connector"></div></div>
+        <div class="inc-body">
+          <div class="inc-title">Eliminar Access Keys del root y del c&#243;digo</div>
+          <div class="inc-desc">Nunca usar access keys del root. Crear usuarios IAM con permisos m&#237;nimos para operaciones espec&#237;ficas. En EC2/ECS usar IAM Roles, nunca access keys hardcodeadas.</div>
+          <div class="inc-cmd">aws iam delete-access-key --access-key-id AKIA...
+# Auditar: git log -S "AKIA" para buscar en historial</div>
+        </div>
+      </div>
+      <div class="inc-step">
+        <div class="inc-num-col"><div class="inc-num">03</div><div class="inc-connector"></div></div>
+        <div class="inc-body">
+          <div class="inc-title">Revisar y cerrar Security Groups abiertos</div>
+          <div class="inc-desc">Ninguna base de datos, cache, o servicio interno debe ser accesible desde 0.0.0.0/0. Solo el load balancer debe estar en la subred p&#250;blica. PostgreSQL y Redis: solo desde el security group de la app.</div>
+          <div class="inc-cmd">aws ec2 describe-security-groups --query   "SecurityGroups[?IpPermissions[?IpRanges[?CidrIp=='0.0.0.0/0']]]"</div>
+        </div>
+      </div>
+      <div class="inc-step">
+        <div class="inc-num-col"><div class="inc-num">04</div><div class="inc-connector"></div></div>
+        <div class="inc-body">
+          <div class="inc-title">Activar CloudTrail en todas las regiones</div>
+          <div class="inc-desc">CloudTrail registra cada llamada a la API de AWS. Sin &#233;l no puedes reconstruir qu&#233; pas&#243; en un incidente. Activarlo en todas las regiones, no solo la principal. Logs a S3 con MFA delete.</div>
+          <div class="inc-cmd">aws cloudtrail create-trail --name cipher-audit   --s3-bucket-name cipher-cloudtrail-logs   --is-multi-region-trail   --enable-log-file-validation</div>
+        </div>
+      </div>
+      <div class="inc-step">
+        <div class="inc-num-col"><div class="inc-num">05</div><div class="inc-connector"></div></div>
+        <div class="inc-body">
+          <div class="inc-title">Bloquear acceso p&#250;blico a todos los buckets S3</div>
+          <div class="inc-desc">En AWS hay una opci&#243;n de bloqueo p&#250;blico a nivel de cuenta que aplica a todos los buckets actuales y futuros. Activarla es la acci&#243;n con mayor impacto en el menor tiempo.</div>
+          <div class="inc-cmd">aws s3control put-public-access-block   --account-id TU_ACCOUNT_ID   --public-access-block-configuration   "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"</div>
+        </div>
+      </div>
+      <div class="inc-step">
+        <div class="inc-num-col"><div class="inc-num">06</div><div class="inc-connector"></div></div>
+        <div class="inc-body">
+          <div class="inc-title">Migrar secrets a Secrets Manager / Parameter Store</div>
+          <div class="inc-desc">Variables de entorno para secrets es c&#243;modo pero peligroso. AWS Secrets Manager con rotaci&#243;n autom&#225;tica es el est&#225;ndar. Para Render/Railway: usar el sistema de secrets del proveedor, nunca .env en el repo.</div>
+          <div class="inc-cmd">aws secretsmanager create-secret   --name "cipher/prod/app"   --secret-string '{"SECRET_KEY":"...","DB_PASSWORD":"..."}' </div>
+        </div>
+      </div>
+      <div class="inc-step">
+        <div class="inc-num-col"><div class="inc-num">07</div><div class="inc-connector"></div></div>
+        <div class="inc-body">
+          <div class="inc-title">Activar AWS GuardDuty (detecci&#243;n de amenazas)</div>
+          <div class="inc-desc">GuardDuty analiza CloudTrail, DNS y VPC Flow Logs con machine learning para detectar actividad an&#243;mala. Encuentra mineros de crypto, accesos desde IPs maliciosas, y movimiento lateral.</div>
+          <div class="inc-cmd">aws guardduty create-detector --enable
+# Costo: ~$4/mes en cuenta peque&ntilde;a
+# Ahorro potencial: miles en crypto mining bloqueado</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- C&#211;DIGO -->
+<section class="section" id="codigo" style="background:linear-gradient(to bottom,transparent,rgba(0,180,216,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 06 &#8212; implementaci&#243;n</p>
+    <h2 class="sec-h2 fade-in">Infraestructura<br><em>como c&#243;digo seguro</em></h2>
+ 
+    <div class="code-tabs fade-in">
+      <div class="code-tab active" data-ct="tf">main.tf (Terraform)</div>
+      <div class="code-tab" data-ct="iam">aws_secrets.py</div>
+      <div class="code-tab" data-ct="cw">monitoring_aws.py</div>
+      <div class="code-tab" data-ct="s3">storage.py (S3)</div>
+    </div>
+    <div class="code-pane active" id="ct-tf">
+      <div class="code-block"><pre># infra/main.tf — Infraestructura segura con Terraform
+# terraform init &amp;&amp; terraform plan &amp;&amp; terraform apply
+ 
+<span class="cm"># ── Configuración del provider</span>
+terraform {
+  required_providers {
+    aws = { source = <span class="str">"hashicorp/aws"</span>, version = <span class="str">"~> 5.0"</span> }
+  }
+  <span class="cm"># Estado remoto y encriptado</span>
+  backend <span class="str">"s3"</span> {
+    bucket         = <span class="str">"cipher-terraform-state"</span>
+    key            = <span class="str">"prod/terraform.tfstate"</span>
+    region         = <span class="str">"us-east-1"</span>
+    encrypt        = <span class="kw">true</span>
+    dynamodb_table = <span class="str">"cipher-tf-lock"</span>
+  }
+}
+ 
+<span class="cm"># ── VPC con subredes públicas y privadas</span>
+resource <span class="str">"aws_vpc"</span> <span class="str">"cipher"</span> {
+  cidr_block           = <span class="str">"10.0.0.0/16"</span>
+  enable_dns_hostnames = <span class="kw">true</span>
+  tags = { Name = <span class="str">"cipher-vpc"</span>, Environment = <span class="str">"production"</span> }
+}
+ 
+<span class="cm"># Subred pública — solo el ALB va aquí</span>
+resource <span class="str">"aws_subnet"</span> <span class="str">"public"</span> {
+  vpc_id            = aws_vpc.cipher.id
+  cidr_block        = <span class="str">"10.0.1.0/24"</span>
+  availability_zone = <span class="str">"us-east-1a"</span>
+}
+ 
+<span class="cm"># Subred privada — FastAPI y PostgreSQL NUNCA expuestos</span>
+resource <span class="str">"aws_subnet"</span> <span class="str">"private"</span> {
+  vpc_id            = aws_vpc.cipher.id
+  cidr_block        = <span class="str">"10.0.10.0/24"</span>
+  availability_zone = <span class="str">"us-east-1a"</span>
+}
+ 
+<span class="cm"># ── Security Groups — principio de mínimo acceso</span>
+resource <span class="str">"aws_security_group"</span> <span class="str">"app"</span> {
+  name   = <span class="str">"cipher-app-sg"</span>
+  vpc_id = aws_vpc.cipher.id
+ 
+  <span class="cm"># Solo aceptar tráfico del ALB, no de internet</span>
+  ingress {
+    from_port       = <span class="num">8000</span>
+    to_port         = <span class="num">8000</span>
+    protocol        = <span class="str">"tcp"</span>
+    security_groups = [aws_security_group.alb.id]
+  }
+  egress {
+    from_port = <span class="num">0</span>; to_port = <span class="num">0</span>; protocol = <span class="str">"-1"</span>
+    cidr_blocks = [<span class="str">"0.0.0.0/0"</span>]
+  }
+}
+ 
+resource <span class="str">"aws_security_group"</span> <span class="str">"db"</span> {
+  name   = <span class="str">"cipher-db-sg"</span>
+  vpc_id = aws_vpc.cipher.id
+ 
+  <span class="cm"># Solo aceptar conexiones de la app — nunca de internet</span>
+  ingress {
+    from_port       = <span class="num">5432</span>
+    to_port         = <span class="num">5432</span>
+    protocol        = <span class="str">"tcp"</span>
+    security_groups = [aws_security_group.app.id]
+  }
+}
+ 
+<span class="cm"># ── Secrets Manager en lugar de variables de entorno</span>
+resource <span class="str">"aws_secretsmanager_secret"</span> <span class="str">"db_creds"</span> {
+  name                    = <span class="str">"cipher/prod/db"</span>
+  recovery_window_in_days = <span class="num">7</span>
+  <span class="cm"># Rotación automática cada 90 días</span>
+}</pre></div>
+    </div>
+    <div class="code-pane" id="ct-iam">
+      <div class="code-block"><pre># app/cloud/aws_secrets.py — integración con AWS Secrets Manager
+<span class="kw">import</span> boto3, json, os
+<span class="kw">from</span> functools <span class="kw">import</span> lru_cache
+<span class="kw">from</span> loguru <span class="kw">import</span> logger
+ 
+<span class="cm"># Caché para evitar llamadas repetidas a Secrets Manager</span>
+<span class="dec">@lru_cache</span>(maxsize=<span class="num">10</span>)
+<span class="kw">def</span> <span class="fn">get_secret</span>(secret_name: <span class="cls">str</span>) -> <span class="cls">dict</span>:
+    <span class="cm"># En ECS/Lambda usa el IAM Role — sin credenciales hardcodeadas</span>
+    client = boto3.<span class="fn">client</span>(<span class="str">"secretsmanager"</span>, region_name=<span class="str">"us-east-1"</span>)
+    <span class="kw">try</span>:
+        response = client.<span class="fn">get_secret_value</span>(SecretId=secret_name)
+        <span class="kw">return</span> json.<span class="fn">loads</span>(response[<span class="str">"SecretString"</span>])
+    <span class="kw">except</span> Exception <span class="kw">as</span> exc:
+        logger.<span class="fn">error</span>(<span class="str">"secrets_manager_error"</span>, secret=secret_name, error=<span class="fn">str</span>(exc))
+        <span class="kw">raise</span>
+ 
+<span class="cm"># app/core/config.py — usar Secrets Manager en producción</span>
+<span class="kw">from</span> pydantic_settings <span class="kw">import</span> BaseSettings
+ 
+<span class="kw">class</span> <span class="cls">Settings</span>(BaseSettings):
+    ENVIRONMENT: <span class="cls">str</span> = <span class="str">"development"</span>
+ 
+    <span class="dec">@property</span>
+    <span class="kw">def</span> <span class="fn">SECRET_KEY</span>(<span class="kw">self</span>) -> <span class="cls">str</span>:
+        <span class="kw">if</span> <span class="kw">self</span>.ENVIRONMENT == <span class="str">"production"</span>:
+            <span class="cm"># En prod: obtener de Secrets Manager</span>
+            secrets = <span class="fn">get_secret</span>(<span class="str">"cipher/prod/app"</span>)
+            <span class="kw">return</span> secrets[<span class="str">"SECRET_KEY"</span>]
+        <span class="kw">return</span> os.getenv(<span class="str">"SECRET_KEY"</span>, <span class="str">"dev-only-key"</span>)
+ 
+<span class="cm"># IAM Policy mínima para la app — principio de least privilege</span>
+<span class="cm"># Solo puede leer el secreto que necesita, nada más</span>
+<span class="cm"># {</span>
+<span class="cm">#   "Version": "2012-10-17",</span>
+<span class="cm">#   "Statement": [{</span>
+<span class="cm">#     "Effect": "Allow",</span>
+<span class="cm">#     "Action": "secretsmanager:GetSecretValue",</span>
+<span class="cm">#     "Resource": "arn:aws:secretsmanager:us-east-1:*:secret:cipher/prod/*"</span>
+<span class="cm">#   }]</span>
+<span class="cm"># }</span></pre></div>
+    </div>
+    <div class="code-pane" id="ct-cw">
+      <div class="code-block"><pre># app/cloud/monitoring_aws.py — CloudWatch + AWS WAF config
+<span class="kw">import</span> boto3, json
+<span class="kw">from</span> loguru <span class="kw">import</span> logger
+ 
+<span class="cm"># ── Publicar métricas custom en CloudWatch</span>
+cloudwatch = boto3.<span class="fn">client</span>(<span class="str">"cloudwatch"</span>, region_name=<span class="str">"us-east-1"</span>)
+ 
+<span class="kw">def</span> <span class="fn">push_metric</span>(name: <span class="cls">str</span>, value: <span class="cls">float</span>, unit: <span class="cls">str</span> = <span class="str">"Count"</span>):
+    cloudwatch.<span class="fn">put_metric_data</span>(
+        Namespace=<span class="str">"CipherAPI"</span>,
+        MetricData=[{
+            <span class="str">"MetricName"</span>: name,
+            <span class="str">"Value"</span>: value,
+            <span class="str">"Unit"</span>: unit,
+            <span class="str">"Dimensions"</span>: [{
+                <span class="str">"Name"</span>: <span class="str">"Environment"</span>,
+                <span class="str">"Value"</span>: <span class="str">"production"</span>
+            }]
+        }]
+    )
+ 
+<span class="cm"># En tu middleware FastAPI — trackear auth failures</span>
+<span class="kw">async def</span> <span class="fn">dispatch</span>(<span class="kw">self</span>, request, call_next):
+    response = <span class="kw">await</span> <span class="fn">call_next</span>(request)
+    <span class="kw">if</span> response.status_code == <span class="num">401</span>:
+        <span class="fn">push_metric</span>(<span class="str">"AuthFailures"</span>, <span class="num">1</span>)
+    <span class="kw">elif</span> response.status_code == <span class="num">429</span>:
+        <span class="fn">push_metric</span>(<span class="str">"RateLimitHits"</span>, <span class="num">1</span>)
+    <span class="kw">return</span> response
+ 
+# ── AWS WAF rules (via Terraform o consola)
+# WAF se pone delante del ALB — filtra antes de llegar a nginx
+#
+# Reglas recomendadas para FastAPI:
+# 1. AWSManagedRulesCommonRuleSet  → OWASP Top 10 básico
+# 2. AWSManagedRulesKnownBadInputsRuleSet → Log4j, SQLi, path traversal
+# 3. AWSManagedRulesSQLiRuleSet → SQL injection específico
+# 4. Rate-based rule → max 2000 req/5min por IP
+# 5. Geo-blocking si tu app es solo para un país
+#
+# Costo: ~$5/mes base + $0.60/1M requests</pre></div>
+    </div>
+    <div class="code-pane" id="ct-s3">
+      <div class="code-block"><pre># app/cloud/storage.py — S3 con seguridad máxima para uploads
+<span class="kw">import</span> boto3, uuid, magic
+<span class="kw">from</span> botocore.exceptions <span class="kw">import</span> ClientError
+<span class="kw">from</span> loguru <span class="kw">import</span> logger
+ 
+S3_BUCKET  = <span class="str">"cipher-uploads-prod"</span>
+CDN_DOMAIN = <span class="str">"https://cdn.tudominio.com"</span>
+ 
+<span class="kw">def</span> <span class="fn">upload_to_s3</span>(content: <span class="cls">bytes</span>, filename: <span class="cls">str</span>, user_id: <span class="cls">int</span>) -> <span class="cls">str</span>:
+    <span class="cm"># Nombre del objeto: nunca el filename original</span>
+    object_key = <span class="fn">f</span><span class="str">"uploads/{user_id}/{uuid.uuid4()}.jpg"</span>
+ 
+    s3 = boto3.<span class="fn">client</span>(<span class="str">"s3"</span>)
+    <span class="kw">try</span>:
+        s3.<span class="fn">put_object</span>(
+            Bucket=S3_BUCKET,
+            Key=object_key,
+            Body=content,
+            ContentType=<span class="str">"image/jpeg"</span>,
+            <span class="cm"># Nunca público directo — solo vía URL firmada</span>
+            ACL=<span class="str">"private"</span>,
+            <span class="cm"># Encriptación server-side automática</span>
+            ServerSideEncryption=<span class="str">"aws:kms"</span>,
+            <span class="cm"># Metadata sin PII</span>
+            Metadata={<span class="str">"uploaded-by"</span>: <span class="fn">str</span>(user_id)},
+        )
+        logger.<span class="fn">info</span>(<span class="str">"s3_upload_ok"</span>, key=object_key, user_id=user_id)
+        <span class="kw">return</span> object_key
+    <span class="kw">except</span> <span class="cls">ClientError</span> <span class="kw">as</span> exc:
+        logger.<span class="fn">error</span>(<span class="str">"s3_upload_failed"</span>, error=<span class="fn">str</span>(exc))
+        <span class="kw">raise</span>
+ 
+<span class="kw">def</span> <span class="fn">get_signed_url</span>(object_key: <span class="cls">str</span>, expires_in: <span class="cls">int</span> = <span class="num">3600</span>) -> <span class="cls">str</span>:
+    <span class="cm"># URL firmada con expiración — acceso temporal sin exponer el bucket</span>
+    s3 = boto3.<span class="fn">client</span>(<span class="str">"s3"</span>)
+    <span class="kw">return</span> s3.<span class="fn">generate_presigned_url</span>(
+        <span class="str">"get_object"</span>,
+        Params={<span class="str">"Bucket"</span>: S3_BUCKET, <span class="str">"Key"</span>: object_key},
+        ExpiresIn=expires_in  <span class="cm"># 1 hora por defecto</span>
+    )
+ 
+# Política del bucket S3 — bloquear acceso público total
+# {
+#   &quot;BlockPublicAcls&quot;: true,
+#   &quot;IgnorePublicAcls&quot;: true,
+#   &quot;BlockPublicPolicy&quot;: true,
+#   &quot;RestrictPublicBuckets&quot;: true
+# }
+# Versioning activado — recovery ante borrado accidental
+# Lifecycle: mover a Glacier después de 90 días</pre></div>
+    </div>
+  </div>
+</section>
+ 
+<!-- CHECKLIST -->
+<section class="section">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 07 &#8212; lista de verificaci&#243;n</p>
+    <h2 class="sec-h2 fade-in">Checklist de<br><em>seguridad cloud</em></h2>
+    <div class="check-grid fade-in">
+      <div class="check-group">
+        <h3>Identidad &amp; Acceso (IAM)</h3>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>MFA en cuenta root con hardware key</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Sin Access Keys del root activas</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Principio de menor privilegio en todos los roles</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>IAM Roles en lugar de Access Keys para servicios</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Revisar permisos con IAM Access Analyzer</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Rotar Access Keys de usuarios cada 90 d&#237;as</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>IMDSv2 activado (previene SSRF a metadata)</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Service Control Policies (SCPs) en organizaci&#243;n</div>
+      </div>
+      <div class="check-group">
+        <h3>Red, Datos &amp; Monitoreo</h3>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>VPC con subredes p&#250;blicas y privadas separadas</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Security Groups con m&#237;nimo acceso necesario</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Bloqueo p&#250;blico en todos los buckets S3</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Cifrado en reposo: RDS, S3, EBS con KMS</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Secrets en Secrets Manager, no en env vars</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>CloudTrail activo en todas las regiones</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>GuardDuty activado para detecci&#243;n de amenazas</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>AWS Config para compliance continuo</div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- LOG -->
+<section class="log-section">
+  <div class="log-entry">
+    <div class="log-date">ENTRADA #010 &#8212; CAP&#205;TULO 10 COMPLETADO</div>
+    <p>
+      El modelo de responsabilidad compartida fue el cambio de perspectiva m&#225;s importante:
+      AWS se ocupa del datacenter f&#237;sico, del hardware, de la virtualizaci&#243;n.
+      Yo me ocupo de todo lo dem&#225;s. Un bucket S3 p&#250;blico es completamente mi error &#8212; AWS me dio las herramientas para bloquearlo y no las us&#233;.
+    </p>
+    <p>
+      Auditar&#233; mi cuenta con <code style="color:var(--sky)">aws iam generate-credential-report</code> esta semana.
+      El siguiente paso del documental: aplicar todo lo aprendido en los 10 cap&#237;tulos
+      para construir la versi&#243;n final del stack con security posture A+.
+    </p>
+  </div>
+</section>
+ 
+<footer>
+  <div class="footer-brand">CIPHER</div>
+  <div class="chapter-nav">
+    <a href="cybersec_chapter9.html" class="ch-link prev">
+      <span class="ch-label">&#8592; Anterior</span>
+      <span class="ch-title">09 &#8212; Ingenier&#237;a Social</span>
+    </a>
+    <a href="#" class="ch-link">
+      <span class="ch-label">Ep&#237;logo &#8594;</span>
+      <span class="ch-title">El Stack Final &#8212; Security A+</span>
+    </a>
+  </div>
+</footer>
+<div class="footer-copy">CIPHER DOC &#8212; Cap&#237;tulo 10: Seguridad en la Nube &#183; AWS &#183; IAM &#183; VPC &#183; S3 &#183; Terraform &#183; Construido con Claude Pro</div>
+ 
+<script>
+// Hero canvas — cloud nodes and data flows
+const canvas = document.getElementById('hero-canvas');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+resize(); window.addEventListener('resize', resize);
+ 
+const nodes = Array.from({length: 30}, () => ({
+  x: Math.random() * innerWidth, y: Math.random() * innerHeight,
+  vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.2,
+  r: 1.5 + Math.random() * 2.5,
+  color: ['rgba(0,180,216,', 'rgba(6,214,160,', 'rgba(255,179,71,'][Math.floor(Math.random()*3)],
+}));
+ 
+function draw(){
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for(let i=0; i<nodes.length; i++){
+    for(let j=i+1; j<nodes.length; j++){
+      const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if(d < 170){
+        ctx.beginPath(); ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y);
+        ctx.strokeStyle = `rgba(0,180,216,${0.06*(1-d/170)})`;
+        ctx.lineWidth = 0.5; ctx.stroke();
+      }
+    }
+  }
+  nodes.forEach(n => {
+    ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
+    ctx.fillStyle = n.color + '0.5)'; ctx.fill();
+    n.x += n.vx; n.y += n.vy;
+    if(n.x < 0 || n.x > canvas.width) n.vx *= -1;
+    if(n.y < 0 || n.y > canvas.height) n.vy *= -1;
+  });
+  requestAnimationFrame(draw);
+}
+draw();
+ 
+// Code tabs
+document.querySelectorAll('.code-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.code-pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('ct-' + tab.dataset.ct).classList.add('active');
+  });
+});
+ 
+// Scroll observer
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.07, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.fade-in').forEach((el, i) => {
+  el.style.transitionDelay = (i % 5) * 0.07 + 's';
+  obs.observe(el);
+});
+</script>
+</body>
+</html>
