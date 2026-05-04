@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIPHER &#8212; Ep&#237;logo: El Stack Final Security A+</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#04050a;--gold:#ffd700;--gold2:rgba(255,215,0,0.07);
+  --green:#06d6a0;--red:#ef233c;--amber:#ffb347;--blue:#4cc9f0;
+  --purple:#c77dff;--white:#ede9e0;--gray:#484862;
+  --mono:'Share Tech Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+  --body:'Crimson Pro',Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:var(--body);
+  font-weight:300;line-height:1.7;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,
+  rgba(255,215,0,0.005) 2px,rgba(255,215,0,0.005) 4px);
+  pointer-events:none;z-index:9999}
+ 
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;
+  align-items:center;justify-content:space-between;padding:1.2rem 3rem;
+  background:linear-gradient(to bottom,rgba(4,5,10,0.98),transparent);
+  border-bottom:1px solid rgba(255,215,0,0.08)}
+.nav-logo{font-family:var(--display);font-size:1.8rem;letter-spacing:0.3em;
+  color:var(--gold);text-decoration:none}
+.nav-logo span{color:var(--white)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{font-family:var(--mono);font-size:0.68rem;color:var(--gray);
+  text-decoration:none;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s}
+.nav-links a:hover{color:var(--gold)}
+.nav-prev{font-family:var(--mono);font-size:0.65rem;color:var(--gray);
+  text-decoration:none;transition:color 0.2s}
+.nav-prev:hover{color:var(--white)}
+ 
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;
+  position:relative;overflow:hidden;padding:6rem 3rem 4rem}
+#hero-canvas{position:absolute;inset:0;z-index:0}
+.hero-overlay{position:absolute;inset:0;z-index:1;
+  background:radial-gradient(ellipse at center,transparent 0%,var(--black) 75%)}
+.hero-content{position:relative;z-index:2;max-width:900px}
+.epilog-tag{font-family:var(--mono);font-size:0.65rem;color:var(--gold);
+  letter-spacing:0.4em;text-transform:uppercase;margin-bottom:2rem;
+  display:flex;align-items:center;justify-content:center;gap:1rem}
+.epilog-tag::before,.epilog-tag::after{content:'';flex:0 0 40px;height:1px;background:var(--gold)}
+.hero h1{font-family:var(--display);font-size:clamp(3.5rem,9vw,8.5rem);
+  line-height:0.9;letter-spacing:0.04em;color:var(--white);margin-bottom:1.5rem}
+.hero h1 .g{color:var(--gold)}
+.hero-sub{font-size:1.2rem;color:rgba(237,233,224,0.5);line-height:1.9;
+  font-style:italic;max-width:680px;margin:0 auto 3rem}
+.hero-grade{display:inline-flex;align-items:center;gap:1.5rem;
+  border:1px solid rgba(255,215,0,0.25);padding:1.2rem 2.5rem;
+  background:rgba(255,215,0,0.04)}
+.grade-letter{font-family:var(--display);font-size:5rem;color:var(--gold);line-height:1}
+.grade-info{text-align:left}
+.grade-title{font-family:var(--mono);font-size:0.8rem;color:var(--white);
+  letter-spacing:0.1em;text-transform:uppercase}
+.grade-sub{font-family:var(--mono);font-size:0.62rem;color:var(--gray);
+  letter-spacing:0.08em;margin-top:0.2rem}
+ 
+/* SHARED */
+.section{padding:8rem 3rem;position:relative}
+.section-inner{max-width:1100px;margin:0 auto}
+.sec-label{font-family:var(--mono);font-size:0.6rem;color:var(--gold);
+  letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem}
+.sec-h2{font-family:var(--display);font-size:clamp(2.5rem,5vw,5rem);
+  letter-spacing:0.04em;line-height:1.05;color:var(--white)}
+.sec-h2 em{font-style:normal;color:var(--gold)}
+.sec-sub{font-size:1.05rem;color:rgba(237,233,224,0.4);font-style:italic;
+  margin-top:0.8rem;max-width:640px}
+.fade-in{opacity:0;transform:translateY(16px);transition:opacity 0.6s,transform 0.6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+ 
+/* CHAPTER TIMELINE */
+.chapters-timeline{margin-top:4rem;display:flex;flex-direction:column;gap:2px}
+.chapter-row{display:grid;grid-template-columns:60px 80px 1fr auto;
+  align-items:center;gap:0;border:1px solid rgba(255,255,255,0.04);
+  border-top:none;transition:background 0.2s;padding:1rem 1.5rem;cursor:default}
+.chapter-row:first-child{border-top:1px solid rgba(255,255,255,0.04)}
+.chapter-row:hover{background:rgba(255,215,0,0.01)}
+.cr-num{font-family:var(--display);font-size:1.8rem;color:rgba(255,215,0,0.12);line-height:1}
+.cr-color{width:8px;height:8px;border-radius:50%;margin:0 1rem}
+.cr-info{padding:0 1rem}
+.cr-title{font-family:var(--mono);font-size:0.75rem;color:var(--white);
+  letter-spacing:0.06em;margin-bottom:0.2rem}
+.cr-desc{font-size:0.85rem;color:rgba(237,233,224,0.4);line-height:1.4}
+.cr-badge{font-family:var(--mono);font-size:0.55rem;padding:0.2rem 0.6rem;
+  letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap}
+.cb-done{background:rgba(6,214,160,0.08);border:1px solid rgba(6,214,160,0.2);color:var(--green)}
+ 
+/* SCORECARD */
+.scorecard{margin-top:4rem;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:rgba(255,215,0,0.08)}
+.score-card{background:var(--black);padding:2rem;text-align:center;
+  transition:background 0.3s}
+.score-card:hover{background:rgba(255,215,0,0.02)}
+.sc-area{font-family:var(--mono);font-size:0.6rem;color:var(--gray);
+  letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.8rem}
+.sc-grade{font-family:var(--display);font-size:4rem;line-height:1;margin-bottom:0.4rem}
+.sg-aplus{color:var(--gold)}.sg-a{color:var(--green)}.sg-b{color:var(--blue)}
+.sc-desc{font-size:0.82rem;color:rgba(237,233,224,0.4);line-height:1.5}
+ 
+/* STACK VISUAL */
+.stack-layers{margin-top:4rem;display:flex;flex-direction:column;gap:2px}
+.stack-layer{display:grid;grid-template-columns:180px 1fr;align-items:stretch;
+  gap:0;border:1px solid rgba(255,255,255,0.04);border-top:none;transition:background 0.2s}
+.stack-layer:first-child{border-top:1px solid rgba(255,255,255,0.04)}
+.stack-layer:hover{background:rgba(255,215,0,0.01)}
+.sl-label{padding:1.2rem 1.5rem;border-right:1px solid rgba(255,255,255,0.04);
+  display:flex;flex-direction:column;justify-content:center;position:relative}
+.sl-label::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.sl-net::before{background:#4cc9f0}.sl-app::before{background:#c77dff}
+.sl-data::before{background:#06d6a0}.sl-ops::before{background:#ffd700}
+.sl-iam::before{background:#ff6b35}.sl-mon::before{background:#ff2d6b}
+.sl-name{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--white)}
+.sl-sub{font-family:var(--mono);font-size:0.58rem;color:var(--gray);margin-top:0.2rem}
+.sl-items{padding:1.2rem 1.5rem;display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center}
+.sl-item{font-family:var(--mono);font-size:0.65rem;padding:0.2rem 0.6rem;
+  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);
+  color:rgba(237,233,224,0.6);white-space:nowrap;transition:all 0.2s}
+.sl-item:hover{border-color:rgba(255,215,0,0.2);color:var(--white)}
+.sl-item.done{border-color:rgba(6,214,160,0.2);color:var(--green);
+  background:rgba(6,214,160,0.04)}
+.sl-item.key{border-color:rgba(255,215,0,0.25);color:var(--gold);
+  background:rgba(255,215,0,0.04)}
+ 
+/* SECURITY POSTURE GAUGE */
+.posture-wrap{margin-top:4rem;display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+.posture-gauge{border:1px solid rgba(255,215,0,0.12);padding:2rem;text-align:center}
+.gauge-svg-wrap{width:200px;margin:0 auto 1rem}
+.posture-metrics{display:flex;flex-direction:column;gap:0.6rem}
+.pm-row{display:flex;align-items:center;gap:0.8rem;font-family:var(--mono);font-size:0.68rem}
+.pm-label{color:var(--gray);flex:1;text-align:right;font-size:0.62rem;letter-spacing:0.05em}
+.pm-bar-wrap{flex:2;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden}
+.pm-bar{height:100%;border-radius:3px;transition:width 1.5s ease}
+.pm-val{color:var(--white);min-width:32px;text-align:left}
+ 
+/* PRINCIPLES */
+.principles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:4rem}
+.principle-card{border:1px solid rgba(255,255,255,0.05);padding:2rem;
+  position:relative;overflow:hidden;transition:border-color 0.3s}
+.principle-card:hover{border-color:rgba(255,215,0,0.15)}
+.pc-num{font-family:var(--display);font-size:3.5rem;color:rgba(255,215,0,0.06);
+  position:absolute;top:0.5rem;right:1rem;line-height:1}
+.pc-icon{font-size:1.5rem;margin-bottom:0.8rem}
+.pc-name{font-family:var(--mono);font-size:0.72rem;color:var(--gold);
+  letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.5rem}
+.pc-desc{font-size:0.9rem;color:rgba(237,233,224,0.45);line-height:1.65}
+ 
+/* LEARNING PATH */
+.path-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:4rem}
+.path-card{border:1px solid rgba(255,255,255,0.05);padding:2rem;
+  position:relative;transition:border-color 0.3s}
+.path-card:hover{border-color:rgba(255,215,0,0.2)}
+.path-level{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.2em;
+  text-transform:uppercase;padding:0.15rem 0.5rem;margin-bottom:0.8rem;display:inline-block}
+.pl-next{background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);color:var(--gold)}
+.pl-adv{background:rgba(0,180,216,0.08);border:1px solid rgba(0,180,216,0.2);color:var(--blue)}
+.pl-expert{background:rgba(199,125,255,0.08);border:1px solid rgba(199,125,255,0.2);color:var(--purple)}
+.path-title{font-family:var(--mono);font-size:0.78rem;color:var(--white);
+  letter-spacing:0.08em;margin-bottom:0.6rem}
+.path-items{display:flex;flex-direction:column;gap:0.3rem}
+.pi{font-family:var(--mono);font-size:0.65rem;color:rgba(237,233,224,0.4);
+  display:flex;align-items:flex-start;gap:0.5rem;line-height:1.5}
+.pi-dot{color:var(--gold);flex-shrink:0}
+ 
+/* FINAL MESSAGE */
+.final-section{padding:10rem 3rem;text-align:center;position:relative;overflow:hidden}
+.final-inner{max-width:700px;margin:0 auto;position:relative;z-index:2}
+.final-quote{font-family:var(--body);font-size:1.4rem;line-height:1.85;
+  color:rgba(237,233,224,0.65);font-style:italic;margin-bottom:2rem}
+.final-quote span{color:var(--gold)}
+.final-sig{font-family:var(--mono);font-size:0.65rem;color:var(--gray);
+  letter-spacing:0.25em;text-transform:uppercase}
+.final-divider{width:40px;height:1px;background:var(--gold);margin:2rem auto}
+ 
+/* INDEX GRID */
+.index-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;
+  background:rgba(255,215,0,0.08);margin-top:4rem}
+.index-card{background:var(--black);padding:1.5rem;cursor:pointer;
+  text-decoration:none;display:flex;flex-direction:column;gap:0.4rem;
+  transition:background 0.2s;border-bottom:2px solid transparent}
+.index-card:hover{background:rgba(255,215,0,0.03);border-bottom-color:var(--gold)}
+.ic-num{font-family:var(--display);font-size:1.5rem;line-height:1}
+.ic-title{font-family:var(--mono);font-size:0.6rem;color:rgba(237,233,224,0.4);
+  letter-spacing:0.06em;text-transform:uppercase;line-height:1.4}
+ 
+/* LOG & FOOTER */
+.log-section{padding:5rem 3rem;border-top:1px solid rgba(255,255,255,0.04)}
+.log-entry{max-width:800px;margin:3rem auto 0;background:rgba(255,215,0,0.02);
+  border:1px solid rgba(255,215,0,0.1);padding:3rem;position:relative}
+.log-entry::before{content:'ENTRADA FINAL // EPcdLOGO';
+  font-family:var(--mono);font-size:0.55rem;color:var(--gold);letter-spacing:0.25em;
+  position:absolute;top:-0.5rem;left:2rem;background:var(--black);padding:0 0.8rem}
+.log-date{font-family:var(--mono);font-size:0.65rem;color:var(--gray);margin-bottom:1.5rem}
+.log-entry p{font-size:1.05rem;color:rgba(237,233,224,0.65);line-height:1.85;font-style:italic}
+.log-entry p+p{margin-top:1rem}
+footer{padding:4rem 3rem;border-top:1px solid rgba(255,255,255,0.04);
+  display:flex;justify-content:space-between;align-items:center}
+.footer-brand{font-family:var(--display);font-size:1.5rem;letter-spacing:0.3em;
+  color:rgba(255,215,0,0.3)}
+.footer-copy{font-family:var(--mono);font-size:0.6rem;color:var(--gray);
+  letter-spacing:0.1em;text-align:center;padding:1.5rem 3rem;
+  border-top:1px solid rgba(255,255,255,0.03)}
+ 
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes glow{0%,100%{text-shadow:0 0 20px rgba(255,215,0,0.3)}
+  50%{text-shadow:0 0 40px rgba(255,215,0,0.6)}}
+@keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+ 
+@media(max-width:900px){
+  nav{padding:1rem 1.5rem}.nav-links{display:none}
+  .section{padding:5rem 1.5rem}
+  .scorecard,.principles-grid,.path-cards,.index-grid{grid-template-columns:1fr 1fr}
+  .posture-wrap,.stack-layer{grid-template-columns:1fr}
+  .chapter-row{grid-template-columns:50px 1fr;padding:0.8rem 1rem}
+  .cr-color{display:none}
+  footer{flex-direction:column;gap:2rem;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+ 
+<nav>
+  <a href="#" class="nav-logo">CIPHER<span>DOC</span></a>
+  <ul class="nav-links">
+    <li><a href="#viaje">El viaje</a></li>
+    <li><a href="#stack">Stack final</a></li>
+    <li><a href="#postura">Postura</a></li>
+    <li><a href="#principios">Principios</a></li>
+    <li><a href="#proximo">Pr&#243;ximo</a></li>
+  </ul>
+  <a href="cybersec_chapter10.html" class="nav-prev">&#8592; Cap. 10</a>
+</nav>
+ 
+<!-- HERO -->
+<section class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="epilog-tag">Ep&#237;logo &#8212; CIPHER DOC</p>
+    <h1>
+      EL STACK<br>
+      <span class="g">FINAL</span><br>
+      SECURITY<br>
+      <span class="g">A+</span>
+    </h1>
+    <p class="hero-sub">
+      Diez cap&#237;tulos. Diez capas de seguridad. Un sistema que a&#250;n puede comprometerse
+      &#8212; todos pueden &#8212; pero que tiene las capas para detectarlo, contenerlo y aprender de ello.
+      Eso es security engineering real.
+    </p>
+    <div class="hero-grade">
+      <div class="grade-letter" style="animation:glow 2.5s ease-in-out infinite">A+</div>
+      <div class="grade-info">
+        <div class="grade-title">Security Posture Rating</div>
+        <div class="grade-sub">CIPHER API &#8212; Stack completo evaluado</div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- EL VIAJE -->
+<section class="section" id="viaje">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// el recorrido completo</p>
+    <h2 class="sec-h2 fade-in">10 cap&#237;tulos.<br><em>10 capas de defensa.</em></h2>
+    <p class="sec-sub fade-in">Cada cap&#237;tulo agreg&#243; una capa. Cada capa redujo la superficie de ataque. Juntas forman un sistema que respeta la seguridad en profundidad.</p>
+    <div class="chapters-timeline fade-in">
+      <div class="chapter-row">
+      <div class="cr-num">01</div>
+      <div class="cr-color" style="background:#4cc9f0"></div>
+      <div class="cr-info">
+        <div class="cr-title">¿Qué es Ciberseguridad?</div>
+        <div class="cr-desc">Historia, OWASP, CIA Triad, actores de amenaza</div>
+      </div>
+      <span class="cr-badge cb-done">&#10003; Completado</span>
+    </div>
+<div class="chapter-row">
+      <div class="cr-num">02</div>
+      <div class="cr-color" style="background:#4fc3f7"></div>
+      <div class="cr-info">
+        <div class="cr-title">Redes &amp; Protocolos</div>
+        <div class="cr-desc">OSI model, TLS, DNS, HTTP/2, FastAPI stack</div>
+      </div>
+      <span class="cr-badge cb-done">&#10003; Completado</span>
+    </div>
+<div class="chapter-row">
+      <div class="cr-num">03</div>
+      <div class="cr-color" style="background:#b57bff"></div>
+      <div class="cr-info">
+        <div class="cr-title">Criptografía</div>
+        <div class="cr-desc">César, hash, bcrypt, JWT, HTTPS real</div>
+      </div>
+      <span class="cr-badge cb-done">&#10003; Completado</span>
+    </div>
+<div class="chapter-row">
+      <div class="cr-num">04</div>
+      <div class="cr-color" style="background:#ff3f3f"></div>
+      <div class="cr-info">
+        <div class="cr-title">Ethical Hacking</div>
+        <div class="cr-desc">Fases pentest, Kali tools, OWASP Top 10</div>
+      </div>
+      <span class="cr-badge cb-done">&#10003; Completado</span>
+    </div>
+<div class="chapter-row">
+      <div class="cr-num">05</div>
+      <div class="cr-color" style="background:#00d4aa"></div>
+      <div class="cr-info">
+        <div class="cr-title">Docker + Backend</div>
+        <div class="cr-desc">docker-compose, estructura proyecto, código real</div>
+      </div>
+      <span class="cr-badge cb-done">&#10003; Completado</span>
+    </div>
+<div class="chapter-row">
+      <div class="cr-num">06</div>
+      <div class="cr-color" style="background:#ff6b1a"></div>
+      <div class="cr-info">
+        <div class="cr-title">AppSec Profundo</div>
+        <div class="cr-desc">SQLi, XSS, IDOR, SSRF, Path Traversal, headers</div>
+      </div>
+      <span class="cr-badge cb-done">&#10003; Completado</span>
+    </div>
+<div class="chapter-row">
+      <div class="cr-num">07</div>
+      <div class="cr-color" style="background:#00cfff"></div>
+      <div class="cr-info">
+        <div class="cr-title">Monitoreo &amp; Incidentes</div>
+        <div class="cr-desc">Loguru, Sentry, runbooks, postmortem</div>
+      </div>
+      <span class="cr-badge cb-done">&#10003; Completado</span>
+    </div>
+<div class="chapter-row">
+      <div class="cr-num">08</div>
+      <div class="cr-color" style="background:#39ff14"></div>
+      <div class="cr-info">
+        <div class="cr-title">OSINT &amp; Forense</div>
+        <div class="cr-desc">theHarvester, Shodan, metadatos, cadena custodia</div>
+      </div>
+      <span class="cr-badge cb-done">&#10003; Completado</span>
+    </div>
+<div class="chapter-row">
+      <div class="cr-num">09</div>
+      <div class="cr-color" style="background:#ff2d6b"></div>
+      <div class="cr-info">
+        <div class="cr-title">Ingeniería Social</div>
+        <div class="cr-desc">Phishing, spear phishing, psicología, defensa</div>
+      </div>
+      <span class="cr-badge cb-done">&#10003; Completado</span>
+    </div>
+<div class="chapter-row">
+      <div class="cr-num">10</div>
+      <div class="cr-color" style="background:#00b4d8"></div>
+      <div class="cr-info">
+        <div class="cr-title">Seguridad en la Nube</div>
+        <div class="cr-desc">AWS IAM, VPC, S3, Terraform, GuardDuty</div>
+      </div>
+      <span class="cr-badge cb-done">&#10003; Completado</span>
+    </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- SCORECARD -->
+<section class="section" style="background:linear-gradient(to bottom,transparent,rgba(255,215,0,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// evaluaci&#243;n final</p>
+    <h2 class="sec-h2 fade-in">Security Scorecard<br><em>del stack completo</em></h2>
+    <p class="sec-sub fade-in">&#191;D&#243;nde estabas en el cap&#237;tulo 1 y d&#243;nde est&#225;s ahora?</p>
+    <div class="scorecard fade-in">
+      <div class="score-card">
+        <div class="sc-area">Autenticaci&#243;n</div>
+        <div class="sc-grade sg-aplus">A+</div>
+        <div class="sc-desc">JWT con RS256, bcrypt, MFA, brute-force lockout, scopes</div>
+      </div>
+      <div class="score-card">
+        <div class="sc-area">AppSec</div>
+        <div class="sc-grade sg-aplus">A+</div>
+        <div class="sc-desc">OWASP Top 10 cubierto, headers, Pydantic estricto, IDOR prevenido</div>
+      </div>
+      <div class="score-card">
+        <div class="sc-area">Infraestructura</div>
+        <div class="sc-grade sg-a">A</div>
+        <div class="sc-desc">Docker seguro, VPC, security groups, secrets manager, no root</div>
+      </div>
+      <div class="score-card">
+        <div class="sc-area">CI/CD</div>
+        <div class="sc-grade sg-aplus">A+</div>
+        <div class="sc-desc">5 gates, pip-audit, bandit, tests de seguridad, deploy seguro</div>
+      </div>
+      <div class="score-card">
+        <div class="sc-area">Monitoreo</div>
+        <div class="sc-grade sg-a">A</div>
+        <div class="sc-desc">Sentry, Loguru JSON, alertas, runbooks, postmortem cultura</div>
+      </div>
+      <div class="score-card">
+        <div class="sc-area">Criptograf&#237;a</div>
+        <div class="sc-grade sg-aplus">A+</div>
+        <div class="sc-desc">TLS 1.3, bcrypt cost 12, secrets manager KMS, no MD5/SHA1</div>
+      </div>
+      <div class="score-card">
+        <div class="sc-area">Resiliencia</div>
+        <div class="sc-grade sg-a">A</div>
+        <div class="sc-desc">Health checks, zero-downtime deploy, rollback autom&#225;tico, backups</div>
+      </div>
+      <div class="score-card">
+        <div class="sc-area">Conciencia Humana</div>
+        <div class="sc-grade sg-a">A</div>
+        <div class="sc-desc">Phishing awareness, OSINT de tu propia exposici&#243;n, incidente playbook</div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- STACK COMPLETO -->
+<section class="section" id="stack">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// arquitectura final</p>
+    <h2 class="sec-h2 fade-in">Todas las capas<br><em>del stack en producci&#243;n</em></h2>
+    <p class="sec-sub fade-in">Cada pieza tiene un rol de seguridad espec&#237;fico. Ninguna sola es suficiente. Juntas forman defensa en profundidad real.</p>
+ 
+    <div class="stack-layers fade-in">
+      <div class="stack-layer sl-net">
+        <div class="sl-label">
+          <div class="sl-name">Red & Perimetro</div>
+          <div class="sl-sub">Cap. 02 &#183; 10</div>
+        </div>
+        <div class="sl-items">
+          <span class="sl-item key">Cloudflare WAF</span>
+          <span class="sl-item done">TLS 1.3 only</span>
+          <span class="sl-item done">HSTS preload</span>
+          <span class="sl-item done">VPC subredes privadas</span>
+          <span class="sl-item done">Security Groups mínimos</span>
+          <span class="sl-item done">Rate limiting nginx (60r/m)</span>
+          <span class="sl-item done">DDoS protection</span>
+          <span class="sl-item done">IPv6 habilitado</span>
+        </div>
+      </div>
+      <div class="stack-layer sl-app">
+        <div class="sl-label">
+          <div class="sl-name">Aplicación</div>
+          <div class="sl-sub">Cap. 04 &#183; 06</div>
+        </div>
+        <div class="sl-items">
+          <span class="sl-item done">FastAPI + Pydantic v2</span>
+          <span class="sl-item done">OWASP Top 10 mitigado</span>
+          <span class="sl-item done">Security headers (CSP, HSTS...)</span>
+          <span class="sl-item done">Input validation estricta</span>
+          <span class="sl-item done">IDOR con verify_ownership()</span>
+          <span class="sl-item done">File upload seguro (magic bytes)</span>
+          <span class="sl-item done">Error messages genéricos</span>
+          <span class="sl-item key">AppSec Middleware</span>
+        </div>
+      </div>
+      <div class="stack-layer sl-iam">
+        <div class="sl-label">
+          <div class="sl-name">Auth & IAM</div>
+          <div class="sl-sub">Cap. 03 &#183; 10</div>
+        </div>
+        <div class="sl-items">
+          <span class="sl-item done">JWT HS256 + exp</span>
+          <span class="sl-item done">bcrypt cost=12</span>
+          <span class="sl-item done">MFA (TOTP)</span>
+          <span class="sl-item done">OAuth2 + scopes</span>
+          <span class="sl-item done">Brute force lockout (Redis)</span>
+          <span class="sl-item done">Constant-time compare</span>
+          <span class="sl-item key">AWS IAM least privilege</span>
+          <span class="sl-item done">Secrets Manager (no .env)</span>
+        </div>
+      </div>
+      <div class="stack-layer sl-data">
+        <div class="sl-label">
+          <div class="sl-name">Datos</div>
+          <div class="sl-sub">Cap. 05 &#183; 10</div>
+        </div>
+        <div class="sl-items">
+          <span class="sl-item done">PostgreSQL 16 (VPC privado)</span>
+          <span class="sl-item done">SQLAlchemy ORM (sin SQL raw)</span>
+          <span class="sl-item done">Alembic migrations</span>
+          <span class="sl-item done">Backups automáticos (RDS)</span>
+          <span class="sl-item done">Cifrado en reposo (KMS)</span>
+          <span class="sl-item done">S3 privado + URL firmadas</span>
+          <span class="sl-item done">Metadatos EXIF limpiados</span>
+          <span class="sl-item key">Least privilege DB user</span>
+        </div>
+      </div>
+      <div class="stack-layer sl-ops">
+        <div class="sl-label">
+          <div class="sl-name">CI/CD & Deploy</div>
+          <div class="sl-sub">Cap. 07</div>
+        </div>
+        <div class="sl-items">
+          <span class="sl-item done">GitHub Actions 5 gates</span>
+          <span class="sl-item done">pip-audit (bloquea CVEs)</span>
+          <span class="sl-item done">bandit SAST</span>
+          <span class="sl-item done">TruffleHog (secret scanning)</span>
+          <span class="sl-item done">Docker multi-stage</span>
+          <span class="sl-item done">Usuario non-root en container</span>
+          <span class="sl-item done">Zero-downtime deploy</span>
+          <span class="sl-item key">Branch protection rules</span>
+        </div>
+      </div>
+      <div class="stack-layer sl-mon">
+        <div class="sl-label">
+          <div class="sl-name">Monitoreo</div>
+          <div class="sl-sub">Cap. 08</div>
+        </div>
+        <div class="sl-items">
+          <span class="sl-item done">Sentry (error tracking)</span>
+          <span class="sl-item done">Loguru (logs JSON)</span>
+          <span class="sl-item done">Health checks (/health)</span>
+          <span class="sl-item done">CloudTrail (audit trail AWS)</span>
+          <span class="sl-item done">GuardDuty (threat detection)</span>
+          <span class="sl-item done">Alertas Slack (5 min SLA)</span>
+          <span class="sl-item done">Runbooks documentados</span>
+          <span class="sl-item key">Postmortem sin blame</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- SECURITY POSTURE VISUAL -->
+<section class="section" id="postura" style="background:linear-gradient(to bottom,transparent,rgba(255,215,0,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// m&#233;tricas de seguridad</p>
+    <h2 class="sec-h2 fade-in">Postura de seguridad<br><em>antes vs despu&#233;s</em></h2>
+    <p class="sec-sub fade-in">La seguridad no es un estado binario. Es un espectro que se mejora iterativamente. Esto es lo que cambi&#243; en 10 cap&#237;tulos.</p>
+ 
+    <div class="posture-wrap fade-in">
+      <div class="posture-gauge">
+        <p style="font-family:var(--mono);font-size:0.62rem;color:var(--gray);
+          letter-spacing:0.2em;text-transform:uppercase;margin-bottom:1.5rem">
+          Antes de CIPHER DOC
+        </p>
+        <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" style="width:180px;margin:0 auto 1rem;display:block">
+          <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="12" stroke-linecap="round"/>
+          <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(239,35,60,0.4)" stroke-width="12" stroke-linecap="round"
+            stroke-dasharray="251" stroke-dashoffset="200"/>
+          <text x="100" y="95" text-anchor="middle" font-family="'Bebas Neue'" font-size="32" fill="var(--red)">D</text>
+          <text x="100" y="114" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="rgba(255,255,255,0.2)">20% protegido</text>
+        </svg>
+        <div class="posture-metrics">
+          <div class="pm-row">
+            <span class="pm-label">Auth</span>
+            <div class="pm-bar-wrap"><div class="pm-bar" style="width:20%;background:var(--red)"></div></div>
+            <span class="pm-val" style="color:var(--red)">20%</span>
+          </div>
+          <div class="pm-row">
+            <span class="pm-label">AppSec</span>
+            <div class="pm-bar-wrap"><div class="pm-bar" style="width:10%;background:var(--red)"></div></div>
+            <span class="pm-val" style="color:var(--red)">10%</span>
+          </div>
+          <div class="pm-row">
+            <span class="pm-label">Infraestructura</span>
+            <div class="pm-bar-wrap"><div class="pm-bar" style="width:15%;background:var(--red)"></div></div>
+            <span class="pm-val" style="color:var(--red)">15%</span>
+          </div>
+          <div class="pm-row">
+            <span class="pm-label">Monitoreo</span>
+            <div class="pm-bar-wrap"><div class="pm-bar" style="width:5%;background:var(--red)"></div></div>
+            <span class="pm-val" style="color:var(--red)">5%</span>
+          </div>
+          <div class="pm-row">
+            <span class="pm-label">Conciencia</span>
+            <div class="pm-bar-wrap"><div class="pm-bar" style="width:10%;background:var(--red)"></div></div>
+            <span class="pm-val" style="color:var(--red)">10%</span>
+          </div>
+        </div>
+      </div>
+ 
+      <div class="posture-gauge">
+        <p style="font-family:var(--mono);font-size:0.62rem;color:var(--gray);
+          letter-spacing:0.2em;text-transform:uppercase;margin-bottom:1.5rem">
+          Despu&#233;s de CIPHER DOC
+        </p>
+        <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg" style="width:180px;margin:0 auto 1rem;display:block">
+          <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="12" stroke-linecap="round"/>
+          <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,215,0,0.7)" stroke-width="12" stroke-linecap="round"
+            stroke-dasharray="251" stroke-dashoffset="18"/>
+          <text x="100" y="95" text-anchor="middle" font-family="'Bebas Neue'" font-size="32" fill="var(--gold)" style="filter:drop-shadow(0 0 8px rgba(255,215,0,0.5))">A+</text>
+          <text x="100" y="114" text-anchor="middle" font-family="Share Tech Mono" font-size="8" fill="rgba(255,255,255,0.3)">93% protegido</text>
+        </svg>
+        <div class="posture-metrics">
+          <div class="pm-row">
+            <span class="pm-label">Auth</span>
+            <div class="pm-bar-wrap"><div class="pm-bar" style="width:97%;background:var(--gold)"></div></div>
+            <span class="pm-val" style="color:var(--gold)">97%</span>
+          </div>
+          <div class="pm-row">
+            <span class="pm-label">AppSec</span>
+            <div class="pm-bar-wrap"><div class="pm-bar" style="width:95%;background:var(--gold)"></div></div>
+            <span class="pm-val" style="color:var(--gold)">95%</span>
+          </div>
+          <div class="pm-row">
+            <span class="pm-label">Infraestructura</span>
+            <div class="pm-bar-wrap"><div class="pm-bar" style="width:90%;background:var(--green)"></div></div>
+            <span class="pm-val" style="color:var(--green)">90%</span>
+          </div>
+          <div class="pm-row">
+            <span class="pm-label">Monitoreo</span>
+            <div class="pm-bar-wrap"><div class="pm-bar" style="width:92%;background:var(--green)"></div></div>
+            <span class="pm-val" style="color:var(--green)">92%</span>
+          </div>
+          <div class="pm-row">
+            <span class="pm-label">Conciencia</span>
+            <div class="pm-bar-wrap"><div class="pm-bar" style="width:88%;background:var(--green)"></div></div>
+            <span class="pm-val" style="color:var(--green)">88%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- PRINCIPIOS -->
+<section class="section" id="principios">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// los fundamentos</p>
+    <h2 class="sec-h2 fade-in">Los 9 principios que<br><em>no cambian jam&#225;s</em></h2>
+    <p class="sec-sub fade-in">Las herramientas cambian. Los frameworks cambian. Estos principios son la base permanente de cualquier sistema seguro.</p>
+    <div class="principles-grid">
+      <div class="principle-card fade-in">
+        <div class="pc-num">01</div>
+        <div class="pc-icon">&#127919;</div>
+        <div class="pc-name">Defense in Depth</div>
+        <div class="pc-desc">Ninguna capa es perfecta. La defensa en profundidad asegura que cuando una capa falla, otra contiene el da&#241;o. Red &#8594; App &#8594; Auth &#8594; Data &#8594; Monitor.</div>
+      </div>
+      <div class="principle-card fade-in">
+        <div class="pc-num">02</div>
+        <div class="pc-icon">&#128274;</div>
+        <div class="pc-name">Least Privilege</div>
+        <div class="pc-desc">Cada componente &#8212; usuario, rol, servicio &#8212; tiene exactamente los permisos que necesita. Ni uno m&#225;s. Cuando algo se compromete, el da&#241;o est&#225; contenido.</div>
+      </div>
+      <div class="principle-card fade-in">
+        <div class="pc-num">03</div>
+        <div class="pc-icon">&#9940;</div>
+        <div class="pc-name">Deny by Default</div>
+        <div class="pc-desc">Todo est&#225; bloqueado hasta que expl&#237;citamente se permite. Los allowlists son m&#225;s seguros que los denylists. Si no sabemos que es bueno, lo bloqueamos.</div>
+      </div>
+      <div class="principle-card fade-in">
+        <div class="pc-num">04</div>
+        <div class="pc-icon">&#128270;</div>
+        <div class="pc-name">Assume Breach</div>
+        <div class="pc-desc">No es "si" nos comprometen sino "cu&#225;ndo". Dise&#241;ar para detectar, contener y recuperarse. Los logs, las alertas y los runbooks son para cuando la br&#233;cha ocurra.</div>
+      </div>
+      <div class="principle-card fade-in">
+        <div class="pc-num">05</div>
+        <div class="pc-icon">&#128200;</div>
+        <div class="pc-name">Shift Left</div>
+        <div class="pc-desc">La seguridad en el dise&#241;o cuesta 10x menos que en producci&#243;n. El pen testing que encuentra un bug en desarrollo es invaluable. El CI/CD como primera l&#237;nea de defensa.</div>
+      </div>
+      <div class="principle-card fade-in">
+        <div class="pc-num">06</div>
+        <div class="pc-icon">&#128221;</div>
+        <div class="pc-name">Fail Securely</div>
+        <div class="pc-desc">Cuando algo falla, debe fallar de forma segura. Error gen&#233;rico al cliente, log detallado internamente. Un crash nunca debe revelar stack traces, rutas, o estructura interna.</div>
+      </div>
+      <div class="principle-card fade-in">
+        <div class="pc-num">07</div>
+        <div class="pc-icon">&#128203;</div>
+        <div class="pc-name">Security as Code</div>
+        <div class="pc-desc">Terraform, GitHub Actions, Dockerfile. La infraestructura y la seguridad son c&#243;digo versionado, revisado, y auditado. Lo que no est&#225; en el repo, no existe.</div>
+      </div>
+      <div class="principle-card fade-in">
+        <div class="pc-num">08</div>
+        <div class="pc-icon">&#128100;</div>
+        <div class="pc-name">Human Factor</div>
+        <div class="pc-desc">El 95% de brechas empiezan con el factor humano. El mejor firewall no protege contra un click en un phishing. La cultura de seguridad es tan importante como el c&#243;digo.</div>
+      </div>
+      <div class="principle-card fade-in">
+        <div class="pc-num">09</div>
+        <div class="pc-icon">&#128260;</div>
+        <div class="pc-name">Continuous Learning</div>
+        <div class="pc-desc">El threat landscape cambia cada semana. CVEs nuevos, t&#233;cnicas nuevas, vectores nuevos. pip-audit semanal, OWASP updates, postmortems de la industria. Nunca terminas de aprender.</div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- SIGUIENTE PASO -->
+<section class="section" id="proximo">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// &#191;qu&#233; sigue?</p>
+    <h2 class="sec-h2 fade-in">El siguiente nivel<br><em>de especializaci&#243;n</em></h2>
+    <p class="sec-sub fade-in">CIPHER DOC te da las bases. Lo que sigue es elegir una direcci&#243;n y profundizar. El campo es vasto.</p>
+    <div class="path-cards">
+      <div class="path-card fade-in">
+        <span class="path-level pl-next">Siguiente paso</span>
+        <div class="path-title">Bug Bounty & Pentest</div>
+        <div class="path-items">
+          <div class="pi"><span class="pi-dot">&#8594;</span>HackTheBox / TryHackMe (plataformas pr&#225;cticas)</div>
+          <div class="pi"><span class="pi-dot">&#8594;</span>OWASP WebGoat y Juice Shop (apps vulnerables)</div>
+          <div class="pi"><span class="pi-dot">&#8594;</span>Burp Suite Pro para interceptar y modificar tr&#225;fico</div>
+          <div class="pi"><span class="pi-dot">&#8594;</span>HackerOne / Bugcrowd para bug bounties reales</div>
+          <div class="pi"><span class="pi-dot">&#8594;</span>Certificaci&#243;n eJPT (eLearnSecurity Junior Pentester)</div>
+          <div class="pi"><span class="pi-dot">&#8594;</span>OSCP como objetivo a largo plazo (Offensive Security)</div>
+        </div>
+      </div>
+      <div class="path-card fade-in">
+        <span class="path-level pl-adv">Avanzado</span>
+        <div class="path-title">Cloud Security Engineer</div>
+        <div class="path-items">
+          <div class="pi"><span class="pi-dot">&#8594;</span>AWS Security Specialty certification</div>
+          <div class="pi"><span class="pi-dot">&#8594;</span>Terraform avanzado con OPA (Open Policy Agent)</div>
+          <div class="pi"><span class="pi-dot">&#8594;</span>AWS Security Hub y Config Rules</div>
+          <div class="pi"><span class="pi-dot">&#8594;</span>Container security: Trivy, Falco, Snyk</div>
+          <div class="pi"><span class="pi-dot">&#8594;</span>Zero Trust architecture design</div>
+          <div class="pi"><span class="pi-dot">&#8594;</span>SOC 2 Type II compliance journey</div>
+        </div>
+      </div>
+      <div class="path-card fade-in">
+        <span class="path-level pl-expert">Experto</span>
+        <div class="path-title">Security Research</div>
+        <div class="path-items">
+          <div class="pi"><span class="pi-dot">&#8594;</span>Reverse engineering con Ghidra / IDA</div>
+          <div class="pi"><span class="pi-dot">&#8594;</span>CVE hunting en proyectos open source</div>
+          <div class="pi"><span class="pi-dot">&#8594;</span>Fuzzing con AFL++ y libFuzzer</div>
+          <div class="pi"><span class="pi-dot">&#8594;</span>Memory safety y explotaci&#243;n de binarios</div>
+          <div class="pi"><span class="pi-dot">&#8594;</span>Publicar en Black Hat / DEF CON</div>
+          <div class="pi"><span class="pi-dot">&#8594;</span>Responsible disclosure program</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+ 
+<!-- &#205;NDICE COMPLETO -->
+<section class="section" style="padding-top:2rem;background:linear-gradient(to bottom,transparent,rgba(255,215,0,0.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// navegar el documental</p>
+    <h2 class="sec-h2 fade-in">&#205;ndice completo<br><em>CIPHER DOC</em></h2>
+    <div class="index-grid fade-in">
+      <a href="cybersec_chapter1.html" class="index-card">
+      <div class="ic-num" style="color:#4cc9f0">01</div>
+      <div class="ic-title">¿Qué es Ciberseguridad?</div>
+    </a>
+<a href="cybersec_chapter2.html" class="index-card">
+      <div class="ic-num" style="color:#4fc3f7">02</div>
+      <div class="ic-title">Redes &amp; Protocolos</div>
+    </a>
+<a href="cybersec_chapter3.html" class="index-card">
+      <div class="ic-num" style="color:#b57bff">03</div>
+      <div class="ic-title">Criptografía</div>
+    </a>
+<a href="cybersec_chapter4.html" class="index-card">
+      <div class="ic-num" style="color:#ff3f3f">04</div>
+      <div class="ic-title">Ethical Hacking</div>
+    </a>
+<a href="cybersec_chapter5.html" class="index-card">
+      <div class="ic-num" style="color:#00d4aa">05</div>
+      <div class="ic-title">Docker + Backend</div>
+    </a>
+<a href="cybersec_chapter6.html" class="index-card">
+      <div class="ic-num" style="color:#ff6b1a">06</div>
+      <div class="ic-title">AppSec Profundo</div>
+    </a>
+<a href="cybersec_chapter7.html" class="index-card">
+      <div class="ic-num" style="color:#00cfff">07</div>
+      <div class="ic-title">Monitoreo &amp; Incidentes</div>
+    </a>
+<a href="cybersec_chapter8.html" class="index-card">
+      <div class="ic-num" style="color:#39ff14">08</div>
+      <div class="ic-title">OSINT &amp; Forense</div>
+    </a>
+<a href="cybersec_chapter9.html" class="index-card">
+      <div class="ic-num" style="color:#ff2d6b">09</div>
+      <div class="ic-title">Ingeniería Social</div>
+    </a>
+<a href="cybersec_chapter10.html" class="index-card">
+      <div class="ic-num" style="color:#00b4d8">10</div>
+      <div class="ic-title">Seguridad en la Nube</div>
+    </a>
+    </div>
+  </div>
+</section>
+ 
+<!-- MENSAJE FINAL -->
+<section class="final-section">
+  <div class="final-inner">
+    <div class="final-divider"></div>
+    <div class="final-quote">
+      La seguridad no es un producto que compras ni un checkbox que marcas.
+      Es una <span>pr&#225;ctica continua</span> que empieza con entender c&#243;mo funciona lo que construyes
+      y termina&#8230; bueno, no termina nunca. Pero eso es lo que lo hace
+      <span>interesante</span>.
+    </div>
+    <div class="final-divider"></div>
+    <div class="final-sig">CIPHER DOC &#8212; Fin del Documental</div>
+  </div>
+</section>
+ 
+<!-- LOG -->
+<section class="log-section">
+  <div class="log-entry">
+    <div class="log-date">ENTRADA FINAL &#8212; EP&#205;LOGO COMPLETADO</div>
+    <p>
+      Empec&#233; este documental sin saber por qu&#233; bcrypt es mejor que SHA-256 para contrase&#241;as.
+      Sin entender qu&#233; significa que un JWT "expire". Sin haber escuchado nunca "IDOR" ni "SSRF".
+      Lo que tengo ahora no es perfecto &#8212; ning&#250;n sistema lo es &#8212; pero es
+      deliberado. Cada decisi&#243;n de seguridad en el stack est&#225; ah&#237; por una raz&#243;n que puedo explicar.
+    </p>
+    <p>
+      El pr&#243;ximo cap&#237;tulo no est&#225; en este documental.
+      Estar&#225; en el primer CVE que encuentre, en el primer pentest que haga,
+      en el primer postmortem real que escriba en producci&#243;n. La teor&#237;a termin&#243;.
+      La pr&#225;ctica continua.
+    </p>
+  </div>
+</section>
+ 
+<footer>
+  <div class="footer-brand">CIPHER</div>
+  <div style="font-family:var(--mono);font-size:0.65rem;color:var(--gray);
+    letter-spacing:0.15em;text-transform:uppercase">
+    10 cap&#237;tulos &#183; Security A+ &#183; Stack completo
+  </div>
+  <a href="cybersec_chapter10.html" style="font-family:var(--mono);font-size:0.65rem;
+    color:var(--gray);text-decoration:none;transition:color 0.2s"
+    onmouseover="this.style.color='white'" onmouseout="this.style.color=''"
+    >&#8592; Cap. 10</a>
+</footer>
+<div class="footer-copy">CIPHER DOC &#8212; Ep&#237;logo: El Stack Final Security A+ &#183; 10 cap&#237;tulos &#183; Construido con Claude Pro &#183; 2025</div>
+ 
+<script>
+// Hero canvas — galaxy of security concepts
+const canvas = document.getElementById('hero-canvas');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+resize(); window.addEventListener('resize', resize);
+ 
+const CHAPTER_COLORS = [
+  '#4cc9f0','#4fc3f7','#b57bff','#ff3f3f','#00d4aa',
+  '#ff6b1a','#00cfff','#39ff14','#ff2d6b','#00b4d8'
+];
+ 
+const stars = Array.from({length: 80}, (_, i) => ({
+  x: Math.random() * 2, y: Math.random() * 2,
+  r: 0.5 + Math.random() * 2,
+  color: CHAPTER_COLORS[i % CHAPTER_COLORS.length],
+  speed: 0.0002 + Math.random() * 0.0003,
+  angle: Math.random() * Math.PI * 2,
+}));
+ 
+const orbits = Array.from({length: 10}, (_, i) => ({
+  radius: 80 + i * 55,
+  speed: 0.0003 + i * 0.0001,
+  angle: (i / 10) * Math.PI * 2,
+  color: CHAPTER_COLORS[i],
+  label: ['Auth','TLS','Crypto','AppSec','Docker',
+          'OWASP','Monitor','OSINT','Phishing','Cloud'][i],
+}));
+ 
+let t = 0;
+function draw(){
+  const cx = canvas.width / 2, cy = canvas.height / 2;
+  ctx.fillStyle = 'rgba(4,5,10,0.06)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+ 
+  // Center glow
+  const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, 200);
+  grd.addColorStop(0, 'rgba(255,215,0,0.04)');
+  grd.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd;
+  ctx.beginPath(); ctx.arc(cx, cy, 200, 0, Math.PI*2); ctx.fill();
+ 
+  // Orbiting chapter nodes
+  orbits.forEach((o, i) => {
+    const angle = o.angle + t * o.speed * 60;
+    const x = cx + Math.cos(angle) * o.radius * (canvas.width / 1400);
+    const y = cy + Math.sin(angle) * o.radius * (canvas.height / 900) * 0.5;
+    const alpha = 0.15 + 0.1 * Math.sin(t * 0.8 + i);
+ 
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2);
+    ctx.fillStyle = o.color; ctx.globalAlpha = alpha + 0.2; ctx.fill();
+ 
+    ctx.font = '9px Share Tech Mono';
+    ctx.fillStyle = o.color; ctx.globalAlpha = alpha * 0.8;
+    ctx.textAlign = 'center'; ctx.fillText(o.label, x, y - 10);
+ 
+    ctx.globalAlpha = 0.06;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, o.radius * (canvas.width/1400),
+      o.radius * (canvas.height/900) * 0.5, 0, 0, Math.PI*2);
+    ctx.strokeStyle = o.color; ctx.lineWidth = 0.5; ctx.stroke();
+  });
+ 
+  // Background stars
+  ctx.globalAlpha = 1;
+  stars.forEach(s => {
+    const x = (s.x + t * s.speed) % 1 * canvas.width;
+    const y = s.y * canvas.height;
+    ctx.beginPath(); ctx.arc(x, y, s.r * 0.4, 0, Math.PI*2);
+    ctx.fillStyle = s.color;
+    ctx.globalAlpha = 0.08 + 0.04 * Math.sin(t * 2 + s.angle);
+    ctx.fill();
+  });
+ 
+  // Center "A+" pulse
+  ctx.globalAlpha = 0.08 + 0.04 * Math.sin(t * 1.5);
+  ctx.beginPath(); ctx.arc(cx, cy, 30 + 5 * Math.sin(t), 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(255,215,0,0.5)'; ctx.lineWidth = 1; ctx.stroke();
+ 
+  ctx.globalAlpha = 1;
+  t += 0.012;
+  requestAnimationFrame(draw);
+}
+draw();
+ 
+// Animate posture bars on scroll
+const postureBars = document.querySelectorAll('.pm-bar');
+const barObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      postureBars.forEach(bar => {
+        const w = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => { bar.style.width = w; }, 100);
+      });
+      barObs.disconnect();
+    }
+  });
+}, {threshold: 0.3});
+const postureSection = document.querySelector('.posture-wrap');
+if(postureSection) barObs.observe(postureSection);
+ 
+// Scroll observer
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.07, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.fade-in').forEach((el, i) => {
+  el.style.transitionDelay = (i % 5) * 0.07 + 's';
+  obs.observe(el);
+});
+</script>
+</body>
+</html>
