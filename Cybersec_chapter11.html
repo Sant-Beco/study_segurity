@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CIPHER &#8212; Privacidad en Internet</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#04060b;--violet:#7c3aed;--violet2:rgba(124,58,237,0.07);
+  --lavender:#a78bfa;--green:#06d6a0;--red:#ef233c;--amber:#ffb347;
+  --blue:#4cc9f0;--pink:#f472b6;--white:#eceae4;--gray:#484862;
+  --mono:'Share Tech Mono',monospace;
+  --display:'Bebas Neue',sans-serif;
+  --body:'Crimson Pro',Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:var(--body);
+  font-weight:300;line-height:1.7;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,
+  rgba(124,58,237,0.007) 2px,rgba(124,58,237,0.007) 4px);
+  pointer-events:none;z-index:9999}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;
+  align-items:center;justify-content:space-between;padding:1.2rem 3rem;
+  background:linear-gradient(to bottom,rgba(4,6,11,0.98),transparent);
+  border-bottom:1px solid rgba(124,58,237,0.1)}
+.nav-logo{font-family:var(--display);font-size:1.8rem;letter-spacing:0.3em;
+  color:var(--lavender);text-decoration:none}
+.nav-logo span{color:var(--white)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{font-family:var(--mono);font-size:0.68rem;color:var(--gray);
+  text-decoration:none;letter-spacing:0.15em;text-transform:uppercase;transition:color .2s}
+.nav-links a:hover{color:var(--lavender)}
+
+/* HERO */
+.hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;
+  position:relative;overflow:hidden}
+.hero-left{display:flex;flex-direction:column;justify-content:flex-end;
+  padding:8rem 3rem 5rem;position:relative;z-index:2}
+.hero-right{position:relative;overflow:hidden}
+#hero-canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-right-overlay{position:absolute;inset:0;
+  background:linear-gradient(to right,var(--black) 0%,transparent 30%)}
+.chapter-tag{font-family:var(--mono);font-size:0.65rem;color:var(--lavender);
+  letter-spacing:0.3em;text-transform:uppercase;margin-bottom:1.5rem;
+  display:flex;align-items:center;gap:1rem}
+.chapter-tag::after{content:'';flex:0 0 40px;height:1px;background:var(--lavender)}
+.hero h1{font-family:var(--display);font-size:clamp(3.5rem,8.5vw,9rem);
+  line-height:0.88;letter-spacing:.02em;color:var(--white)}
+.hero h1 .v{color:var(--lavender)}.hero h1 .p{color:var(--pink)}
+.hero-sub{font-size:1.1rem;color:rgba(236,234,228,.45);line-height:1.85;
+  font-style:italic;margin-top:1.5rem;max-width:480px}
+.hero-tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:2rem}
+.htag{font-family:var(--mono);font-size:.6rem;padding:.25rem .7rem;
+  border:1px solid rgba(124,58,237,.25);color:rgba(167,139,250,.7);letter-spacing:.08em}
+
+/* SHARED */
+.section{padding:8rem 3rem;position:relative}
+.section-inner{max-width:1100px;margin:0 auto}
+.sec-label{font-family:var(--mono);font-size:.6rem;color:var(--lavender);
+  letter-spacing:.35em;text-transform:uppercase;margin-bottom:1rem}
+.sec-h2{font-family:var(--display);font-size:clamp(2.5rem,5vw,5rem);
+  letter-spacing:.04em;line-height:1.05;color:var(--white)}
+.sec-h2 em{font-style:normal;color:var(--lavender)}
+.sec-sub{font-size:1.05rem;color:rgba(236,234,228,.4);font-style:italic;
+  margin-top:.8rem;max-width:620px}
+.fade-in{opacity:0;transform:translateY(16px);transition:opacity .6s,transform .6s}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+
+/* DATA FLOW TRACKER */
+.tracker-wrap{margin-top:4rem;border:1px solid rgba(124,58,237,.15);overflow:hidden}
+.tracker-head{background:rgba(124,58,237,.05);border-bottom:1px solid rgba(124,58,237,.1);
+  padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.tracker-title{font-family:var(--mono);font-size:.7rem;color:var(--lavender);
+  letter-spacing:.15em;text-transform:uppercase}
+.tracker-body{padding:1.5rem 2rem;font-family:var(--mono);font-size:.74rem;
+  line-height:2;color:rgba(236,234,228,.55);max-height:340px;overflow-y:auto}
+.tracker-body::-webkit-scrollbar{width:3px}
+.tracker-body::-webkit-scrollbar-thumb{background:rgba(124,58,237,.3)}
+.tracker-line{display:flex;align-items:flex-start;gap:.8rem;animation:fadeSlide .4s ease}
+.tl-time{color:var(--gray);flex-shrink:0;min-width:58px}
+.tl-who{flex-shrink:0;font-size:.62rem;padding:.05rem .35rem;
+  letter-spacing:.06em;min-width:80px;text-align:center}
+.tw-isp{background:rgba(239,35,60,.1);border:1px solid rgba(239,35,60,.2);color:var(--red)}
+.tw-google{background:rgba(76,201,240,.08);border:1px solid rgba(76,201,240,.2);color:var(--blue)}
+.tw-fb{background:rgba(244,114,182,.08);border:1px solid rgba(244,114,182,.2);color:var(--pink)}
+.tw-ad{background:rgba(255,179,71,.08);border:1px solid rgba(255,179,71,.2);color:var(--amber)}
+.tw-app{background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.25);color:var(--lavender)}
+.tw-data{background:rgba(6,214,160,.06);border:1px solid rgba(6,214,160,.15);color:var(--green)}
+.tl-msg{flex:1}
+.tracker-controls{padding:.8rem 1.5rem;border-top:1px solid rgba(124,58,237,.08);
+  display:flex;gap:.8rem;align-items:center;background:rgba(124,58,237,.02)}
+.ctrl-btn{font-family:var(--mono);font-size:.62rem;padding:.3rem .9rem;cursor:pointer;
+  border:1px solid rgba(124,58,237,.2);color:var(--lavender);background:transparent;
+  letter-spacing:.1em;text-transform:uppercase;transition:all .2s}
+.ctrl-btn:hover{background:rgba(124,58,237,.1)}
+.ctrl-btn.active{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.4)}
+
+/* VPN COMPARISON */
+.vpn-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:4rem}
+.vpn-card{border:1px solid rgba(255,255,255,.05);padding:2rem;
+  position:relative;overflow:hidden;transition:border-color .3s}
+.vpn-card:hover{border-color:rgba(124,58,237,.2)}
+.vpn-rec{border-color:rgba(124,58,237,.25);background:rgba(124,58,237,.02)}
+.vpn-badge{position:absolute;top:1rem;right:1rem;font-family:var(--mono);
+  font-size:.5rem;padding:.15rem .4rem;letter-spacing:.1em;text-transform:uppercase}
+.vb-rec{background:rgba(6,214,160,.08);border:1px solid rgba(6,214,160,.2);color:var(--green)}
+.vb-warn{background:rgba(255,179,71,.08);border:1px solid rgba(255,179,71,.2);color:var(--amber)}
+.vb-no{background:rgba(239,35,60,.08);border:1px solid rgba(239,35,60,.2);color:var(--red)}
+.vpn-logo{font-family:var(--display);font-size:1.8rem;letter-spacing:.05em;
+  margin-bottom:.5rem}
+.vpn-type{font-family:var(--mono);font-size:.58rem;color:var(--gray);
+  letter-spacing:.15em;text-transform:uppercase;margin-bottom:1rem}
+.vpn-desc{font-size:.9rem;color:rgba(236,234,228,.45);line-height:1.65;margin-bottom:1rem}
+.vpn-pros{display:flex;flex-direction:column;gap:.3rem}
+.vp-item{font-family:var(--mono);font-size:.65rem;display:flex;gap:.5rem;
+  color:rgba(236,234,228,.4);line-height:1.4}
+.vp-ok{color:var(--green);flex-shrink:0}.vp-no{color:var(--red);flex-shrink:0}
+.vp-warn{color:var(--amber);flex-shrink:0}
+
+/* DNS EXPLAINER */
+.dns-flow{margin-top:4rem;overflow-x:auto}
+.dns-svg-wrap{min-width:700px}
+
+/* THREAT MAP */
+.threat-rows{display:flex;flex-direction:column;gap:2px;margin-top:4rem}
+.threat-row{display:grid;grid-template-columns:180px 1fr 120px;
+  align-items:stretch;gap:0;border:1px solid rgba(255,255,255,.04);
+  border-top:none;transition:background .2s}
+.threat-row:first-child{border-top:1px solid rgba(255,255,255,.04)}
+.threat-row:hover{background:rgba(124,58,237,.01)}
+.tr-who{padding:1.2rem 1.5rem;border-right:1px solid rgba(255,255,255,.04);
+  display:flex;flex-direction:column;justify-content:center}
+.tr-name{font-family:var(--mono);font-size:.7rem;color:var(--white);letter-spacing:.06em}
+.tr-sub{font-family:var(--mono);font-size:.58rem;color:var(--gray);margin-top:.2rem}
+.tr-content{padding:1.2rem 1.5rem;font-size:.9rem;color:rgba(236,234,228,.5);line-height:1.65}
+.tr-content strong{color:var(--white);font-weight:400}
+.tr-content code{font-family:var(--mono);font-size:.78rem;color:var(--lavender)}
+.tr-risk{padding:1.2rem 1rem;border-left:1px solid rgba(255,255,255,.04);
+  display:flex;align-items:center;justify-content:center}
+.risk-badge{font-family:var(--mono);font-size:.55rem;padding:.2rem .5rem;
+  letter-spacing:.1em;text-transform:uppercase;text-align:center}
+.rb-high{background:rgba(239,35,60,.08);border:1px solid rgba(239,35,60,.2);color:var(--red)}
+.rb-med{background:rgba(255,179,71,.08);border:1px solid rgba(255,179,71,.2);color:var(--amber)}
+.rb-low{background:rgba(6,214,160,.06);border:1px solid rgba(6,214,160,.15);color:var(--green)}
+
+/* ROUTER STEPS */
+.router-steps{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:4rem}
+.router-step{border:1px solid rgba(255,255,255,.05);padding:2rem;
+  position:relative;overflow:hidden;transition:border-color .3s}
+.router-step:hover{border-color:rgba(124,58,237,.2)}
+.rs-num{font-family:var(--display);font-size:3.5rem;color:rgba(124,58,237,.08);
+  position:absolute;top:.5rem;right:1rem;line-height:1}
+.rs-priority{font-family:var(--mono);font-size:.55rem;letter-spacing:.2em;
+  text-transform:uppercase;padding:.15rem .5rem;margin-bottom:.8rem;display:inline-block}
+.rp-crit{background:rgba(239,35,60,.08);border:1px solid rgba(239,35,60,.2);color:var(--red)}
+.rp-high{background:rgba(255,179,71,.08);border:1px solid rgba(255,179,71,.2);color:var(--amber)}
+.rp-med{background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);color:var(--lavender)}
+.rs-title{font-family:var(--mono);font-size:.78rem;color:var(--white);
+  letter-spacing:.08em;margin-bottom:.5rem}
+.rs-desc{font-size:.9rem;color:rgba(236,234,228,.45);line-height:1.65}
+.rs-cmd{margin-top:.8rem;font-family:var(--mono);font-size:.68rem;color:var(--lavender);
+  background:rgba(124,58,237,.04);border:1px solid rgba(124,58,237,.1);
+  padding:.5rem .8rem;line-height:1.7}
+
+/* SOCIAL MEDIA QUIZ */
+.quiz-wrap{margin-top:4rem;border:1px solid rgba(124,58,237,.15);overflow:hidden}
+.quiz-head{background:rgba(124,58,237,.05);border-bottom:1px solid rgba(124,58,237,.1);
+  padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.quiz-title{font-family:var(--mono);font-size:.7rem;color:var(--lavender);
+  letter-spacing:.15em;text-transform:uppercase}
+.quiz-body{padding:2rem}
+.quiz-question{display:none}.quiz-question.active{display:block}
+.q-text{font-size:1.1rem;color:var(--white);margin-bottom:1.5rem;line-height:1.6}
+.q-options{display:flex;flex-direction:column;gap:.6rem}
+.q-opt{font-family:var(--mono);font-size:.72rem;padding:.8rem 1.2rem;
+  background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);
+  color:rgba(236,234,228,.55);cursor:pointer;transition:all .2s;line-height:1.4}
+.q-opt:hover{border-color:rgba(124,58,237,.3);color:var(--white)}
+.q-opt.correct{background:rgba(6,214,160,.06);border-color:rgba(6,214,160,.25);
+  color:var(--green)!important}
+.q-opt.wrong{background:rgba(239,35,60,.05);border-color:rgba(239,35,60,.2);
+  color:var(--red)!important}
+.q-explanation{margin-top:1.5rem;padding:1rem 1.2rem;background:rgba(124,58,237,.05);
+  border:1px solid rgba(124,58,237,.12);font-size:.9rem;
+  color:rgba(236,234,228,.6);line-height:1.7;display:none}
+.q-explanation.show{display:block}
+.quiz-nav{display:flex;align-items:center;justify-content:space-between;
+  margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.05)}
+.q-btn{font-family:var(--mono);font-size:.65rem;padding:.5rem 1.2rem;
+  border:1px solid rgba(124,58,237,.25);color:var(--lavender);background:transparent;
+  cursor:pointer;letter-spacing:.1em;text-transform:uppercase;transition:all .2s}
+.q-btn:hover{background:rgba(124,58,237,.1)}.q-btn:disabled{opacity:.3;cursor:default}
+.q-progress{font-family:var(--mono);font-size:.62rem;color:var(--gray)}
+.q-score{font-family:var(--display);font-size:3rem;color:var(--lavender);
+  text-align:center;padding:2rem;display:none}
+
+/* BROWSER SETTINGS GRID */
+.browser-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:4rem}
+.browser-card{border:1px solid rgba(255,255,255,.05);padding:2rem;
+  transition:border-color .3s}
+.browser-card:hover{border-color:rgba(124,58,237,.15)}
+.bc-browser{font-family:var(--display);font-size:1.6rem;letter-spacing:.05em;
+  color:var(--white);margin-bottom:.4rem}
+.bc-sub{font-family:var(--mono);font-size:.58rem;color:var(--gray);
+  letter-spacing:.12em;text-transform:uppercase;margin-bottom:1rem}
+.bc-settings{display:flex;flex-direction:column;gap:.35rem}
+.bs-item{font-family:var(--mono);font-size:.65rem;color:rgba(236,234,228,.45);
+  display:flex;align-items:flex-start;gap:.5rem;line-height:1.4}
+.bs-on{color:var(--green);flex-shrink:0}.bs-off{color:var(--red);flex-shrink:0}
+
+/* CHECKLIST */
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:4rem}
+.check-group h3{font-family:var(--mono);font-size:.68rem;color:var(--lavender);
+  letter-spacing:.2em;text-transform:uppercase;margin-bottom:1rem;
+  padding-bottom:.5rem;border-bottom:1px solid rgba(124,58,237,.1)}
+.check-item{display:flex;align-items:flex-start;gap:.8rem;padding:.65rem 0;
+  border-bottom:1px solid rgba(255,255,255,.03);font-size:.9rem;
+  color:rgba(236,234,228,.5);line-height:1.4}
+.chk{flex-shrink:0;width:18px;height:18px;border:1px solid rgba(124,58,237,.3);
+  display:flex;align-items:center;justify-content:center;font-size:.6rem;
+  color:var(--lavender);cursor:pointer;transition:all .2s;margin-top:.1rem}
+.chk.done{background:rgba(124,58,237,.15);border-color:var(--lavender)}
+.chk.done::after{content:'✓'}
+
+/* LOG & FOOTER */
+.log-section{padding:5rem 3rem;border-top:1px solid rgba(255,255,255,.04)}
+.log-entry{max-width:800px;margin:3rem auto 0;background:rgba(124,58,237,.02);
+  border:1px solid rgba(124,58,237,.1);padding:3rem;position:relative}
+.log-entry::before{content:'ENTRADA DE APRENDIZAJE // PRIVACIDAD EN INTERNET';
+  font-family:var(--mono);font-size:.55rem;color:var(--lavender);letter-spacing:.25em;
+  position:absolute;top:-.5rem;left:2rem;background:var(--black);padding:0 .8rem}
+.log-date{font-family:var(--mono);font-size:.65rem;color:var(--gray);margin-bottom:1.5rem}
+.log-entry p{font-size:1.05rem;color:rgba(236,234,228,.65);line-height:1.85;font-style:italic}
+.log-entry p+p{margin-top:1rem}
+footer{padding:4rem 3rem;border-top:1px solid rgba(255,255,255,.04);
+  display:flex;justify-content:space-between;align-items:center}
+.footer-brand{font-family:var(--display);font-size:1.5rem;letter-spacing:.3em;
+  color:rgba(124,58,237,.35)}
+.footer-copy{font-family:var(--mono);font-size:.6rem;color:var(--gray);
+  letter-spacing:.1em;text-align:center;padding:1.5rem 3rem;
+  border-top:1px solid rgba(255,255,255,.03)}
+
+@keyframes fadeSlide{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+@media(max-width:900px){
+  nav{padding:1rem 1.5rem}
+  .nav-links{display:none}
+  .hero{grid-template-columns:1fr}.hero-right{display:none}
+  .hero-left{padding:6rem 1.5rem 4rem}
+  .section{padding:5rem 1.5rem}
+  .vpn-grid,.router-steps,.browser-grid,.check-grid{grid-template-columns:1fr}
+  .threat-row{grid-template-columns:1fr}
+  .tr-risk{border-left:none;border-top:1px solid rgba(255,255,255,.04)}
+  footer{flex-direction:column;gap:2rem;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">CIPHER<span>DOC</span></a>
+  <ul class="nav-links">
+    <li><a href="#huella">Huella digital</a></li>
+    <li><a href="#vpn">VPN</a></li>
+    <li><a href="#dns">DNS</a></li>
+    <li><a href="#router">Router</a></li>
+    <li><a href="#social">Redes Sociales</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <p class="chapter-tag">Cap&#237;tulo especial &#8212; Privacidad cotidiana</p>
+    <h1>
+      <span class="v">PRIVACIDAD</span><br>
+      <span class="p">EN</span><br>
+      INTERNET<br>
+      <span style="font-size:.35em;letter-spacing:.1em;color:rgba(236,234,228,.18)">&#183; VPN &#183; DNS &#183; REDES SOCIALES &#183; ROUTER &#183;</span>
+    </h1>
+    <p class="hero-sub">
+      No necesitas ser un criminal para querer privacidad.
+      La necesitas porque eres una persona, y los datos que dejas
+      cada d&#237;a construyen un perfil m&#225;s preciso de ti
+      que tu propio diario.
+    </p>
+    <div class="hero-tags">
+      <span class="htag">VPN</span>
+      <span class="htag">DNS-over-HTTPS</span>
+      <span class="htag">Tor</span>
+      <span class="htag">Metadatos</span>
+      <span class="htag">Fingerprinting</span>
+      <span class="htag">Cookies</span>
+      <span class="htag">ISP Tracking</span>
+      <span class="htag">E2E Encryption</span>
+    </div>
+  </div>
+  <div class="hero-right">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-right-overlay"></div>
+  </div>
+</section>
+
+<!-- TRACKER EN VIVO -->
+<section class="section" id="huella">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 01 &#8212; tu huella digital</p>
+    <h2 class="sec-h2 fade-in">Lo que pasa cuando<br><em>navegas normalmente</em></h2>
+    <p class="sec-sub fade-in">En un d&#237;a normal, decenas de entidades recopilan datos sobre ti. Este es un fragmento de lo que ocurre en tiempo real mientras navegas.</p>
+
+    <div class="tracker-wrap fade-in">
+      <div class="tracker-head">
+        <span class="tracker-title">&#128243; Rastro de datos &#8212; simulaci&#243;n en tiempo real</span>
+        <span style="font-family:var(--mono);font-size:.6rem;color:var(--green);
+          display:flex;align-items:center;gap:.4rem">
+          <span style="width:6px;height:6px;background:var(--green);border-radius:50%;
+            animation:pulse 1.5s infinite;display:inline-block"></span>
+          EN VIVO
+        </span>
+      </div>
+      <div class="tracker-body" id="tracker-log"></div>
+      <div class="tracker-controls">
+        <button class="ctrl-btn active" id="btn-track" onclick="toggleTracker()">&#9646;&#9646; PAUSA</button>
+        <button class="ctrl-btn" onclick="clearTracker()">&#10005; LIMPIAR</button>
+        <button class="ctrl-btn" onclick="enableVPN()">&#128274; ACTIVAR VPN</button>
+        <span style="font-family:var(--mono);font-size:.6rem;color:var(--gray);margin-left:auto"
+          id="vpn-status">Sin VPN</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUI&#201;N TE RASTREA -->
+<section class="section" style="background:linear-gradient(to bottom,transparent,rgba(124,58,237,.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 02 &#8212; los actores</p>
+    <h2 class="sec-h2 fade-in">&#191;Qui&#233;n recopila<br><em>tus datos?</em></h2>
+    <p class="sec-sub fade-in">No es paranoico &#8212; es la arquitectura real de internet. Cada actor tiene acceso a una parte diferente de tu vida digital.</p>
+
+    <div class="threat-rows fade-in">
+      <div class="threat-row">
+        <div class="tr-who"><div class="tr-name">Tu ISP</div><div class="tr-sub">Claro &#183; Tigo &#183; ETB</div></div>
+        <div class="tr-content">
+          Ve <strong>todos los dominios que visitas</strong>, cu&#225;ndo, con qu&#233; frecuencia y desde qu&#233; dispositivo.
+          En Colombia y muchos pa&#237;ses est&#225;n obligados a guardar estos registros por ley.
+          También pueden inyectar anuncios en p&#225;ginas HTTP y vender datos an&#243;nimizados a terceros.
+          Una VPN o DNS-over-HTTPS oculta los dominios de tu ISP.
+        </div>
+        <div class="tr-risk"><span class="risk-badge rb-high">ALTO</span></div>
+      </div>
+      <div class="threat-row">
+        <div class="tr-who"><div class="tr-name">Google</div><div class="tr-sub">Search &#183; Chrome &#183; Maps</div></div>
+        <div class="tr-content">
+          Construye un perfil desde tus b&#250;squedas, ubicaci&#243;n, correos (Gmail), videos (YouTube),
+          calendario y documentos. El modo incógnito no oculta tus datos de Google &#8212;
+          solo no guarda historial local. Google Analytics est&#225; en el <strong>55% de todos los sitios web</strong>.
+        </div>
+        <div class="tr-risk"><span class="risk-badge rb-high">ALTO</span></div>
+      </div>
+      <div class="threat-row">
+        <div class="tr-who"><div class="tr-name">Meta</div><div class="tr-sub">Facebook &#183; Instagram &#183; WhatsApp</div></div>
+        <div class="tr-content">
+          El Pixel de Meta est&#225; en millones de sitios. Sabe qu&#233; compras, qu&#233; buscas, con qui&#233;n hablas
+          (metadatos de WhatsApp), tu ubicaci&#243;n, tu edad, ingresos estimados e inter&#233;s pol&#237;tico.
+          Aunque nunca uses Facebook, el pixel rastrea tu actividad en otros sitios con ese c&#243;digo.
+        </div>
+        <div class="tr-risk"><span class="risk-badge rb-high">ALTO</span></div>
+      </div>
+      <div class="threat-row">
+        <div class="tr-who"><div class="tr-name">Brokers de datos</div><div class="tr-sub">Acxiom &#183; Experian &#183; LexisNexis</div></div>
+        <div class="tr-content">
+          Empresas que <strong>compran y venden perfiles de personas</strong>. Combinan datos de compras
+          con tarjeta, registros p&#250;blicos, actividad en app, historial m&#233;dico deducido y
+          comportamiento online. Crean perfiles que incluyen ingresos estimados, salud probable
+          y predicci&#243;n de comportamiento. T&#250; no eres su cliente &#8212; eres el producto.
+        </div>
+        <div class="tr-risk"><span class="risk-badge rb-high">ALTO</span></div>
+      </div>
+      <div class="threat-row">
+        <div class="tr-who"><div class="tr-name">Anunciantes</div><div class="tr-sub">Cookies &#183; Fingerprinting</div></div>
+        <div class="tr-content">
+          Las cookies de terceros te rastrean entre sitios. El browser fingerprinting
+          (<code>User-Agent</code>, fuentes instaladas, resoluci&#243;n, zona horaria) crea un identificador
+          &#250;nico sin guardar nada en tu disco. Brave y Firefox con uBlock Origin bloquean esto.
+          Chrome eventualmente eliminar&#225; las cookies de terceros, pero el fingerprinting persiste.
+        </div>
+        <div class="tr-risk"><span class="risk-badge rb-med">MEDIO</span></div>
+      </div>
+      <div class="threat-row">
+        <div class="tr-who"><div class="tr-name">Apps m&#243;viles</div><div class="tr-sub">Permisos excesivos</div></div>
+        <div class="tr-content">
+          Una app gratuita tiene, en promedio, <strong>7 SDKs de tracking</strong> de terceros.
+          Cada uno env&#237;a datos a su propio servidor: ubicaci&#243;n en segundo plano, lista de apps instaladas,
+          contactos, patrones de uso. Herramientas como <code>Exodus Privacy</code> muestran exactamente
+          qu&#233; trackers tiene cada app Android.
+        </div>
+        <div class="tr-risk"><span class="risk-badge rb-med">MEDIO</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VPN -->
+<section class="section" id="vpn">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 03 &#8212; VPN</p>
+    <h2 class="sec-h2 fade-in">VPNs: qu&#233; protegen<br><em>y qu&#233; no</em></h2>
+    <p class="sec-sub fade-in">Una VPN es una herramienta poderosa usada en el contexto correcto. No es una capa m&#225;gica de anonimato. Entiende exactamente qu&#233; hace.</p>
+
+    <div class="vpn-grid">
+      <div class="vpn-card vpn-rec fade-in">
+        <span class="vpn-badge vb-rec">RECOMENDADO</span>
+        <div class="vpn-logo" style="color:var(--green)">Mullvad</div>
+        <div class="vpn-type">Privacidad m&#225;xima &#183; Sin cuenta</div>
+        <div class="vpn-desc">No requiere email ni nombre. Pagas con efectivo o Monero. Pol&#237;tica de no-log auditada externamente. WireGuard. Sede en Suecia.</div>
+        <div class="vpn-pros">
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>Sin cuenta necesaria</div>
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>Auditado por terceros</div>
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>WireGuard (r&#225;pido)</div>
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>&#8364;5/mes precio fijo</div>
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>Kill switch incorporado</div>
+        </div>
+      </div>
+
+      <div class="vpn-card vpn-rec fade-in">
+        <span class="vpn-badge vb-rec">RECOMENDADO</span>
+        <div class="vpn-logo" style="color:var(--blue)">ProtonVPN</div>
+        <div class="vpn-type">Open source &#183; Suiza</div>
+        <div class="vpn-desc">C&#243;digo abierto, auditado, plan gratuito sin l&#237;mites de ancho de banda. Empresa suiza (sin compartir datos con EEUU/UE obligatoriamente). Tier gratis es excelente.</div>
+        <div class="vpn-pros">
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>Plan gratuito disponible</div>
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>Open source verificable</div>
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>No-log auditado</div>
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>Tor sobre VPN disponible</div>
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>Jurisdicci&#243;n Suiza</div>
+        </div>
+      </div>
+
+      <div class="vpn-card fade-in">
+        <span class="vpn-badge vb-warn">CON CUIDADO</span>
+        <div class="vpn-logo" style="color:var(--amber)">NordVPN</div>
+        <div class="vpn-type">Popular &#183; Marketing agresivo</div>
+        <div class="vpn-desc">Muy popular gracias al marketing de YouTubers. Auditado, pero tuvo un incidente de seguridad en 2018. Funcionalmente s&#243;lido, pero no la primera elecci&#243;n para m&#225;xima privacidad.</div>
+        <div class="vpn-pros">
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>Auditado externamente</div>
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>R&#225;pido (NordLynx/WireGuard)</div>
+          <div class="vp-item"><span class="vp-warn">&#9888;</span>Incidente 2018 (manejado)</div>
+          <div class="vp-item"><span class="vp-warn">&#9888;</span>Muchos influencers = ¿motivo?</div>
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>Apps para todas las plataformas</div>
+        </div>
+      </div>
+
+      <div class="vpn-card fade-in">
+        <span class="vpn-badge vb-no">EVITAR</span>
+        <div class="vpn-logo" style="color:var(--red)">VPNs gratuitas</div>
+        <div class="vpn-type">Hola VPN &#183; SuperVPN &#183; Turbo VPN</div>
+        <div class="vpn-desc">Si el producto es gratis, tú eres el producto. Muchas VPNs gratuitas venden tu tráfico, inyectan anuncios, tienen malware, o ceden datos a gobiernos. Hola VPN usa tu conexión como nodo para otros.</div>
+        <div class="vpn-pros">
+          <div class="vp-item"><span class="vp-no">&#10007;</span>Venden tus datos de navegación</div>
+          <div class="vp-item"><span class="vp-no">&#10007;</span>Sin auditorías independientes</div>
+          <div class="vp-item"><span class="vp-no">&#10007;</span>Pueden inyectar malware</div>
+          <div class="vp-item"><span class="vp-no">&#10007;</span>Jurisdicciones sin protección</div>
+        </div>
+      </div>
+
+      <div class="vpn-card fade-in">
+        <span class="vpn-badge vb-rec">AVANZADO</span>
+        <div class="vpn-logo" style="color:var(--purple)">Tor</div>
+        <div class="vpn-type">Anonimato real &#183; M&#225;s lento</div>
+        <div class="vpn-desc">Enruta tu tr&#225;fico por 3 nodos voluntarios. Ning&#250;n nodo conoce tanto el origen como el destino. Usado por periodistas, activistas y la Marina de EEUU. Tor Browser ya lo incluye.</div>
+        <div class="vpn-pros">
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>Anonimato real (no solo privacidad)</div>
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>Gratis y open source</div>
+          <div class="vp-item"><span class="vp-warn">&#9888;</span>M&#225;s lento que VPN</div>
+          <div class="vp-item"><span class="vp-warn">&#9888;</span>Algunos sitios lo bloquean</div>
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>Usado por periodistas y activistas</div>
+        </div>
+      </div>
+
+      <div class="vpn-card fade-in" style="border-color:rgba(124,58,237,.12);padding:2rem">
+        <div style="font-family:var(--mono);font-size:.65rem;color:var(--lavender);
+          letter-spacing:.15em;text-transform:uppercase;margin-bottom:1.2rem">
+          &#191;Qu&#233; NO hace una VPN?
+        </div>
+        <div class="vpn-pros">
+          <div class="vp-item"><span class="vp-no">&#10007;</span>No te hace an&#243;nimo si est&#225;s logueado en Google</div>
+          <div class="vp-item"><span class="vp-no">&#10007;</span>No bloquea cookies ni fingerprinting</div>
+          <div class="vp-item"><span class="vp-no">&#10007;</span>No protege contra malware en tu dispositivo</div>
+          <div class="vp-item"><span class="vp-no">&#10007;</span>No oculta tu actividad de la VPN misma</div>
+          <div class="vp-item"><span class="vp-no">&#10007;</span>No cifra lo que ya est&#225; cifrado (HTTPS sigue igual)</div>
+          <div class="vp-item" style="margin-top:.5rem"><span class="vp-ok">&#10003;</span>S&#205; oculta tu IP de los sitios</div>
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>S&#205; oculta los dominios que visitas de tu ISP</div>
+          <div class="vp-item"><span class="vp-ok">&#10003;</span>S&#205; protege en WiFi p&#250;blico</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DNS VISUAL -->
+<section class="section" id="dns" style="background:linear-gradient(to bottom,transparent,rgba(124,58,237,.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 04 &#8212; DNS y privacidad</p>
+    <h2 class="sec-h2 fade-in">El DNS: el directorio<br><em>que te delata</em></h2>
+    <p class="sec-sub fade-in">Cada vez que visitas un sitio, tu dispositivo hace una consulta DNS — en texto plano, visible para tu ISP y quien controle tu red. DNS-over-HTTPS lo cifra.</p>
+
+    <div class="dns-flow fade-in">
+      <div class="dns-svg-wrap">
+        <svg viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg"
+          style="width:100%;border:1px solid rgba(124,58,237,.07);
+          background:rgba(4,6,11,.9)">
+          <defs>
+            <marker id="ma1" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+              <path d="M0,0 L0,7 L7,3.5 z" fill="rgba(239,35,60,.6)"/>
+            </marker>
+            <marker id="ma2" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+              <path d="M0,0 L0,7 L7,3.5 z" fill="rgba(6,214,160,.6)"/>
+            </marker>
+          </defs>
+
+          <!-- Title -->
+          <text x="450" y="28" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="9" fill="rgba(167,139,250,.5)" letter-spacing="3">SIN DNS CIFRADO vs CON DNS-OVER-HTTPS</text>
+
+          <!-- Left: Unencrypted -->
+          <text x="220" y="55" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="9" fill="rgba(239,35,60,.6)" letter-spacing="2">SIN CIFRAR — visible para ISP</text>
+
+          <!-- Device -->
+          <rect x="20" y="70" width="100" height="60" rx="3"
+            fill="rgba(124,58,237,.05)" stroke="rgba(124,58,237,.3)" stroke-width="1.5"/>
+          <text x="70" y="98" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="10" fill="rgba(167,139,250,.8)">&#128187; T&#218;</text>
+          <text x="70" y="116" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="7.5" fill="rgba(167,139,250,.4)">192.168.1.5</text>
+
+          <!-- ISP Spy -->
+          <rect x="160" y="80" width="90" height="40" rx="2"
+            fill="rgba(239,35,60,.08)" stroke="rgba(239,35,60,.4)" stroke-width="1.5"
+            stroke-dasharray="4,3"/>
+          <text x="205" y="97" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="8" fill="rgba(239,35,60,.8)">&#128065; ISP</text>
+          <text x="205" y="112" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="7" fill="rgba(239,35,60,.5)">LO VE TODO</text>
+
+          <!-- DNS ISP -->
+          <rect x="290" y="70" width="110" height="60" rx="3"
+            fill="rgba(239,35,60,.04)" stroke="rgba(239,35,60,.2)" stroke-width="1"/>
+          <text x="345" y="98" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="8" fill="rgba(239,35,60,.7)">DNS ISP</text>
+          <text x="345" y="113" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="7" fill="rgba(239,35,60,.4)">sin cifrado</text>
+
+          <!-- Arrow left unencrypted -->
+          <line x1="120" y1="100" x2="158" y2="100" stroke="rgba(239,35,60,.5)"
+            stroke-width="1.5" marker-end="url(#ma1)"/>
+          <text x="138" y="91" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="6.5" fill="rgba(239,35,60,.5)">DNS?</text>
+
+          <line x1="252" y1="100" x2="288" y2="100" stroke="rgba(239,35,60,.5)"
+            stroke-width="1.5" marker-end="url(#ma1)"/>
+          <text x="270" y="91" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="6.5" fill="rgba(239,35,60,.5)">TEXT</text>
+
+          <!-- ISP stores query -->
+          <rect x="155" y="140" width="250" height="22" rx="2"
+            fill="rgba(239,35,60,.05)" stroke="rgba(239,35,60,.15)" stroke-width=".5"/>
+          <text x="280" y="155" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="7" fill="rgba(239,35,60,.6)">
+            &#128270; ISP registra: 10:24 → example.com → 93.184.216.34
+          </text>
+
+          <!-- Right: DoH -->
+          <text x="690" y="55" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="9" fill="rgba(6,214,160,.6)" letter-spacing="2">CON DoH — cifrado, ISP ciego</text>
+
+          <rect x="470" y="70" width="100" height="60" rx="3"
+            fill="rgba(124,58,237,.05)" stroke="rgba(124,58,237,.3)" stroke-width="1.5"/>
+          <text x="520" y="98" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="10" fill="rgba(167,139,250,.8)">&#128187; T&#218;</text>
+          <text x="520" y="116" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="7.5" fill="rgba(167,139,250,.4)">192.168.1.5</text>
+
+          <!-- ISP blind -->
+          <rect x="610" y="80" width="90" height="40" rx="2"
+            fill="rgba(72,72,98,.08)" stroke="rgba(72,72,98,.3)" stroke-width="1"
+            stroke-dasharray="4,3"/>
+          <text x="655" y="97" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="8" fill="rgba(72,72,98,.6)">&#128065; ISP</text>
+          <text x="655" y="112" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="7" fill="rgba(72,72,98,.4)">NO VE NADA</text>
+
+          <!-- DoH Server -->
+          <rect x="740" y="70" width="130" height="60" rx="3"
+            fill="rgba(6,214,160,.04)" stroke="rgba(6,214,160,.25)" stroke-width="1.5"/>
+          <text x="805" y="93" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="8" fill="rgba(6,214,160,.8)">1.1.1.1 DoH</text>
+          <text x="805" y="109" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="7" fill="rgba(6,214,160,.4)">HTTPS cifrado</text>
+          <text x="805" y="124" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="7" fill="rgba(6,214,160,.3)">no-log auditado</text>
+
+          <!-- Arrow right DoH encrypted -->
+          <path d="M570 100 L608 100" stroke="rgba(6,214,160,.5)"
+            stroke-width="1.5" marker-end="url(#ma2)"/>
+          <text x="589" y="91" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="6.5" fill="rgba(6,214,160,.6)">HTTPS</text>
+
+          <path d="M702 100 L738 100" stroke="rgba(6,214,160,.5)"
+            stroke-width="1.5" marker-end="url(#ma2)"/>
+          <text x="720" y="91" text-anchor="middle" font-family="Share Tech Mono"
+            font-size="6.5" fill="rgba(6,214,160,.6)">TLS&#128274;</text>
+
+          <!-- Divider -->
+          <line x1="445" y1="50" x2="445" y2="290" stroke="rgba(255,255,255,.05)"
+            stroke-width="1" stroke-dasharray="5,5"/>
+
+          <!-- DNS comparison table -->
+          <rect x="20" y="185" width="400" height="118" rx="3"
+            fill="rgba(255,255,255,.01)" stroke="rgba(255,255,255,.04)" stroke-width=".5"/>
+          <text x="30" y="204" font-family="Share Tech Mono" font-size="7.5"
+            fill="rgba(167,139,250,.5)" letter-spacing="2">COMPARATIVA DNS</text>
+
+          <!-- Headers -->
+          <text x="35" y="222" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(255,255,255,.25)">DNS</text>
+          <text x="140" y="222" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(255,255,255,.25)">IP</text>
+          <text x="220" y="222" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(255,255,255,.25)">Privacidad</text>
+          <text x="340" y="222" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(255,255,255,.25)">Velocidad</text>
+
+          <line x1="30" y1="227" x2="410" y2="227" stroke="rgba(255,255,255,.06)" stroke-width=".5"/>
+
+          <!-- Rows -->
+          <text x="35" y="242" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(239,35,60,.6)">Tu ISP (defecto)</text>
+          <text x="140" y="242" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(255,255,255,.4)">varía</text>
+          <text x="220" y="242" font-family="Share Tech Mono" font-size="7"
+            fill="var(--red)">&#10007; vende datos</text>
+          <text x="340" y="242" font-family="Share Tech Mono" font-size="7"
+            fill="var(--green)">r&#225;pido</text>
+
+          <text x="35" y="258" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(76,201,240,.6)">Google 8.8.8.8</text>
+          <text x="140" y="258" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(255,255,255,.4)">8.8.8.8</text>
+          <text x="220" y="258" font-family="Share Tech Mono" font-size="7"
+            fill="var(--amber)">&#9888; perfila usuarios</text>
+          <text x="340" y="258" font-family="Share Tech Mono" font-size="7"
+            fill="var(--green)">muy r&#225;pido</text>
+
+          <text x="35" y="274" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(6,214,160,.7)">Cloudflare 1.1.1.1</text>
+          <text x="140" y="274" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(255,255,255,.4)">1.1.1.1</text>
+          <text x="220" y="274" font-family="Share Tech Mono" font-size="7"
+            fill="var(--green)">&#10003; no-log auditado</text>
+          <text x="340" y="274" font-family="Share Tech Mono" font-size="7"
+            fill="var(--green)">muy r&#225;pido</text>
+
+          <text x="35" y="290" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(167,139,250,.7)">Quad9 9.9.9.9</text>
+          <text x="140" y="290" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(255,255,255,.4)">9.9.9.9</text>
+          <text x="220" y="290" font-family="Share Tech Mono" font-size="7"
+            fill="var(--green)">&#10003; no-log + malware block</text>
+          <text x="340" y="290" font-family="Share Tech Mono" font-size="7"
+            fill="var(--green)">r&#225;pido</text>
+
+          <!-- DoH setup box -->
+          <rect x="470" y="185" width="400" height="118" rx="3"
+            fill="rgba(6,214,160,.02)" stroke="rgba(6,214,160,.1)" stroke-width=".5"/>
+          <text x="480" y="204" font-family="Share Tech Mono" font-size="7.5"
+            fill="rgba(6,214,160,.5)" letter-spacing="2">C&#211;MO ACTIVAR DNS-OVER-HTTPS</text>
+
+          <text x="480" y="225" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(255,179,71,.7)">Firefox:</text>
+          <text x="545" y="225" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(255,255,255,.4)">about:preferences#privacy → DoH → Cloudflare</text>
+
+          <text x="480" y="243" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(76,201,240,.7)">Chrome:</text>
+          <text x="545" y="243" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(255,255,255,.4)">chrome://settings/security → DNS Seguro</text>
+
+          <text x="480" y="261" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(255,107,53,.7)">Android:</text>
+          <text x="545" y="261" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(255,255,255,.4)">Ajustes → Red → DNS Privado → one.one.one.one</text>
+
+          <text x="480" y="279" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(167,139,250,.7)">Router:</text>
+          <text x="545" y="279" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(255,255,255,.4)">DNS primario 1.1.1.1 / secundario 1.0.0.1</text>
+
+          <text x="480" y="297" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(6,214,160,.6)">&#10003;</text>
+          <text x="495" y="297" font-family="Share Tech Mono" font-size="7"
+            fill="rgba(6,214,160,.5)">Verificar: https://1.1.1.1/help</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROUTER HARDENING -->
+<section class="section" id="router">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 05 &#8212; tu router</p>
+    <h2 class="sec-h2 fade-in">Tu router:<br><em>la puerta de entrada</em></h2>
+    <p class="sec-sub fade-in">El router doméstico es el dispositivo con más acceso a tu vida digital y el que menos gente configura correctamente. Estos cambios toman 10 minutos.</p>
+
+    <div class="router-steps">
+      <div class="router-step fade-in">
+        <div class="rs-num">01</div>
+        <span class="rs-priority rp-crit">CRÍTICO</span>
+        <div class="rs-title">Cambiar credenciales por defecto</div>
+        <div class="rs-desc">admin/admin o admin/password son las credenciales de fábrica de la mayoría de routers. Son públicas en internet. Cualquier dispositivo en tu red puede acceder al panel del router si no las cambias.</div>
+        <div class="rs-cmd">Acceso: 192.168.1.1 o 192.168.0.1<br>Cambiar usuario y contraseña de 16+ caracteres<br>Contraseña diferente a la del WiFi</div>
+      </div>
+
+      <div class="router-step fade-in">
+        <div class="rs-num">02</div>
+        <span class="rs-priority rp-crit">CRÍTICO</span>
+        <div class="rs-title">WiFi: WPA3 o mínimo WPA2 con contraseña fuerte</div>
+        <div class="rs-desc">WEP y WPA son crackeables en minutos con herramientas de Kali. WPA2 con contraseña débil también. WPA3 es el estándar actual. La contraseña del WiFi debe tener 16+ caracteres aleatorios.</div>
+        <div class="rs-cmd">Wireless → Security → WPA3 Personal (o WPA2 si no disponible)<br>Contraseña: 20+ chars, mezcla de todo<br>SSID: no usar tu nombre ni dirección</div>
+      </div>
+
+      <div class="router-step fade-in">
+        <div class="rs-num">03</div>
+        <span class="rs-priority rp-high">IMPORTANTE</span>
+        <div class="rs-title">Desactivar WPS (WiFi Protected Setup)</div>
+        <div class="rs-desc">WPS fue creado para conectar dispositivos fácilmente con un botón o PIN de 8 dígitos. Ese PIN es crackeable por fuerza bruta en horas (solo 11,000 combinaciones reales por el diseño). Desactivarlo siempre.</div>
+        <div class="rs-cmd">Wireless → WPS → Disabled<br>Si no puedes desactivarlo, es momento de cambiar el router</div>
+      </div>
+
+      <div class="router-step fade-in">
+        <div class="rs-num">04</div>
+        <span class="rs-priority rp-high">IMPORTANTE</span>
+        <div class="rs-title">Cambiar el DNS del router a 1.1.1.1</div>
+        <div class="rs-desc">Si cambias el DNS en el router, todos los dispositivos de la casa lo usan automáticamente — teléfonos, TVs, consolas, todo. Más eficiente que configurarlo en cada dispositivo.</div>
+        <div class="rs-cmd">WAN Settings → DNS: 1.1.1.1 (primario) / 1.0.0.1 (secundario)<br>O para bloquear malware: 9.9.9.9 / 149.112.112.112</div>
+      </div>
+
+      <div class="router-step fade-in">
+        <div class="rs-num">05</div>
+        <span class="rs-priority rp-high">IMPORTANTE</span>
+        <div class="rs-title">Actualizar el firmware del router</div>
+        <div class="rs-desc">Los routers tienen CVEs como cualquier software. Los fabricantes lanzan parches de seguridad que nadie instala porque nadie sabe que existen. Verificar cada 3-6 meses. Algunos routers tienen actualización automática.</div>
+        <div class="rs-cmd">Administration → Firmware Update → Check for Updates<br>Marcas con buen soporte: ASUS, TP-Link, Netgear<br>Firmware alternativo: OpenWRT para control total</div>
+      </div>
+
+      <div class="router-step fade-in">
+        <div class="rs-num">06</div>
+        <span class="rs-priority rp-med">RECOMENDADO</span>
+        <div class="rs-title">Red de invitados (Guest Network) para IoT</div>
+        <div class="rs-desc">Tu SmartTV, aspiradora robótica y foco inteligente no deben estar en la misma red que tu laptop. Si un dispositivo IoT se compromete, el atacante no llega a tus archivos. Aislamiento de red básico.</div>
+        <div class="rs-cmd">Wireless → Guest Network → Enable<br>SSID separado, contraseña diferente<br>Activar "Client Isolation" para que no se vean entre sí</div>
+      </div>
+
+      <div class="router-step fade-in">
+        <div class="rs-num">07</div>
+        <span class="rs-priority rp-med">RECOMENDADO</span>
+        <div class="rs-title">Desactivar acceso remoto y UPnP</div>
+        <div class="rs-desc">El acceso remoto expone el panel del router a internet. UPnP permite a apps abrir puertos automáticamente sin que tú lo sepas — muchos malwares lo explotan. Desactivar ambos a menos que los necesites conscientemente.</div>
+        <div class="rs-cmd">Administration → Remote Management → Disabled<br>Advanced → UPnP → Disabled</div>
+      </div>
+
+      <div class="router-step fade-in">
+        <div class="rs-num">08</div>
+        <span class="rs-priority rp-med">AVANZADO</span>
+        <div class="rs-title">Considera un router con OpenWRT o Pi-hole</div>
+        <div class="rs-desc">OpenWRT es firmware Linux de código abierto para routers — control total, sin backdoors del fabricante. Pi-hole es un DNS sinkhole que bloquea anuncios y trackers a nivel de red para TODOS los dispositivos de la casa.</div>
+        <div class="rs-cmd">Pi-hole: Raspberry Pi + docker run pihole/pihole<br>DNS del router → IP de la Raspberry Pi<br>Bloquea ~20% del tráfico de tracking típico</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REDES SOCIALES -->
+<section class="section" id="social" style="background:linear-gradient(to bottom,transparent,rgba(124,58,237,.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 06 &#8212; redes sociales</p>
+    <h2 class="sec-h2 fade-in">Privacidad en<br><em>redes sociales</em></h2>
+    <p class="sec-sub fade-in">No se trata de dejar de usarlas. Se trata de entender qué compartes, con quién, y qué pasa con esos datos.</p>
+
+    <div class="threat-rows fade-in">
+      <div class="threat-row">
+        <div class="tr-who"><div class="tr-name">Instagram</div><div class="tr-sub">Meta</div></div>
+        <div class="tr-content">
+          Rastreo de ubicación en segundo plano (si lo permites), análisis del <strong>tiempo que pasas en cada post</strong>, micrófonos activados ocasionalmente (debatido), y sincronización con Facebook aunque no tengas cuenta. Las "Stories" que ves revelan tus intereses con más precisión que lo que publicas.
+          <br><br>&#10003; Ajustes de privacidad: Cuenta privada, desactivar ubicación, limitar qué apps pueden compartir contigo.
+        </div>
+        <div class="tr-risk"><span class="risk-badge rb-high">ALTO</span></div>
+      </div>
+      <div class="threat-row">
+        <div class="tr-who"><div class="tr-name">TikTok</div><div class="tr-sub">ByteDance</div></div>
+        <div class="tr-content">
+          Recopila: <strong>contenido del portapapeles</strong> (lo que copias), patrones de escritura, información del dispositivo, lista de apps instaladas, y datos biométricos del rostro/voz para los filtros. ByteDance tiene sede en China, con obligación legal de compartir datos con el gobierno chino si se requiere.
+          <br><br>&#10003; Límite de privacidad real: cuenta privada, desactivar personalizaci&#243;n, usar en un dispositivo secundario si lo usas mucho.
+        </div>
+        <div class="tr-risk"><span class="risk-badge rb-high">ALTO</span></div>
+      </div>
+      <div class="threat-row">
+        <div class="tr-who"><div class="tr-name">LinkedIn</div><div class="tr-sub">Microsoft</div></div>
+        <div class="tr-content">
+          Tu perfil es OSINT puro: empleador, cargo, tecnologías, colegas, historial laboral. Esto se usa para <strong>spear phishing dirigido</strong> (cap. 09). LinkedIn vende acceso a tus datos a reclutadores y también a data brokers. Limitar qué información es pública reduce drásticamente tu superficie de ataque social.
+          <br><br>&#10003; Configurar: Visibilidad del perfil → Solo conexiones. No mostrar empleador actual si no es necesario.
+        </div>
+        <div class="tr-risk"><span class="risk-badge rb-med">MEDIO</span></div>
+      </div>
+      <div class="threat-row">
+        <div class="tr-who"><div class="tr-name">WhatsApp</div><div class="tr-sub">Meta</div></div>
+        <div class="tr-content">
+          Los mensajes tienen cifrado E2E real. Pero Meta recopila <strong>metadatos</strong>: con quién hablas, cuándo, con qué frecuencia, por cuánto tiempo, tu número, tu dispositivo, tu IP, y la de las personas con quienes hablas. Si privacidad de metadatos importa, considera <strong>Signal</strong> (open source, sin metadatos, sin publicidad).
+        </div>
+        <div class="tr-risk"><span class="risk-badge rb-med">MEDIO</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section class="section" id="quiz">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 07 &#8212; &#191;cu&#225;nto sabes?</p>
+    <h2 class="sec-h2 fade-in">Quiz de privacidad:<br><em>pon a prueba lo aprendido</em></h2>
+    <p class="sec-sub fade-in">Escenarios reales. Respuestas que aplicas ma&#241;ana mismo.</p>
+
+    <div class="quiz-wrap fade-in">
+      <div class="quiz-head">
+        <span class="quiz-title">&#128187; 6 preguntas &#183; Situaciones cotidianas</span>
+        <span id="q-score-label" style="font-family:var(--mono);font-size:.62rem;
+          color:var(--gray)">0 / 6 correctas</span>
+      </div>
+      <div class="quiz-body">
+        <div class="quiz-question  active" id="q0">
+          <div class="q-text">Usas WhatsApp para hablar con tu familia. ¿Quién puede leer tus mensajes?</div>
+          <div class="q-options"><div class="q-opt" data-idx="0" onclick="answerQ(0,0)">Meta (Facebook), porque es su app</div><div class="q-opt" data-idx="1" onclick="answerQ(0,1)">Nadie excepto tú y el destinatario — tiene cifrado E2E</div><div class="q-opt" data-idx="2" onclick="answerQ(0,2)">Tu ISP (proveedor de internet)</div><div class="q-opt" data-idx="3" onclick="answerQ(0,3)">El gobierno, si lo solicita</div></div>
+          <div class="q-explanation" id="exp0">WhatsApp usa cifrado de extremo a extremo (E2E) con el protocolo Signal. Ni Meta puede leer el contenido de los mensajes. Sin embargo, sí recopila metadatos: con quién hablas, cuándo, con qué frecuencia, tu número, dispositivo y ubicación aproximada.</div>
+        </div>
+<div class="quiz-question" id="q1">
+          <div class="q-text">Buscas síntomas de una enfermedad en Google. ¿Qué pasa con esa información?</div>
+          <div class="q-options"><div class="q-opt" data-idx="0" onclick="answerQ(1,0)">Se elimina automáticamente después de 24 horas</div><div class="q-opt" data-idx="1" onclick="answerQ(1,1)">Google la guarda y puede influir en anuncios de salud que ves</div><div class="q-opt" data-idx="2" onclick="answerQ(1,2)">Solo Google la ve, nadie más</div><div class="q-opt" data-idx="3" onclick="answerQ(1,3)">Nada — Google no guarda búsquedas de salud por privacidad</div></div>
+          <div class="q-explanation" id="exp1">Google almacena tu historial de búsqueda vinculado a tu cuenta y lo usa para personalizar anuncios. Las búsquedas de salud son especialmente sensibles. Para evitarlo: usa DuckDuckGo o Brave Search, activa el modo incógnito, o pausa el historial de actividad en myaccount.google.com.</div>
+        </div>
+<div class="quiz-question" id="q2">
+          <div class="q-text">Conectas tu teléfono al WiFi gratuito de un café sin contraseña. ¿Cuál es el riesgo principal?</div>
+          <div class="q-options"><div class="q-opt" data-idx="0" onclick="answerQ(2,0)">Que te cobren el internet</div><div class="q-opt" data-idx="1" onclick="answerQ(2,1)">Que alguien en la misma red intercepte tu tráfico HTTP</div><div class="q-opt" data-idx="2" onclick="answerQ(2,2)">Que el café vea tus fotos</div><div class="q-opt" data-idx="3" onclick="answerQ(2,3)">Ninguno — el HTTPS protege todo</div></div>
+          <div class="q-explanation" id="exp2">En WiFi público sin cifrado, cualquier persona en la red puede hacer un ataque Man-in-the-Middle (MITM). El HTTPS protege el contenido, pero en HTTP todo es visible. Además, el operador del WiFi puede ver qué dominios visitas. Solución: usar VPN en redes públicas.</div>
+        </div>
+<div class="quiz-question" id="q3">
+          <div class="q-text">Instalas una app de linterna gratuita que pide acceso a tus contactos, micrófono y ubicación. ¿Qué haces?</div>
+          <div class="q-options"><div class="q-opt" data-idx="0" onclick="answerQ(3,0)">Acepto — es gratis, es normal</div><div class="q-opt" data-idx="1" onclick="answerQ(3,1)">Rechazo los permisos que no necesita y busco alternativa sin ads</div><div class="q-opt" data-idx="2" onclick="answerQ(3,2)">La instalo pero nunca la uso</div><div class="q-opt" data-idx="3" onclick="answerQ(3,3)">Reviso las reviews primero y luego acepto todos</div></div>
+          <div class="q-explanation" id="exp3">Una linterna necesita solo el flash de la cámara. Pedir contactos, micrófono y ubicación es una señal de que el modelo de negocio es vender tus datos. Regla: si el permiso no tiene sentido para la función de la app, recházalo o busca alternativa de código abierto.</div>
+        </div>
+<div class="quiz-question" id="q4">
+          <div class="q-text">¿Cuál de estos es el DNS más privado para usar en tu router?</div>
+          <div class="q-options"><div class="q-opt" data-idx="0" onclick="answerQ(4,0)">8.8.8.8 — el de Google</div><div class="q-opt" data-idx="1" onclick="answerQ(4,1)">1.1.1.1 — el de Cloudflare (con política no-log)</div><div class="q-opt" data-idx="2" onclick="answerQ(4,2)">El DNS que viene con tu ISP por defecto</div><div class="q-opt" data-idx="3" onclick="answerQ(4,3)">No importa, el DNS no afecta la privacidad</div></div>
+          <div class="q-explanation" id="exp4">El DNS revela qué dominios visitas a quien lo opera. El DNS de tu ISP es el más peligroso — lo monitorean, venden los datos y pueden censurar. Cloudflare 1.1.1.1 tiene política de no-log auditada externamente. Aún mejor: usar DNS-over-HTTPS (DoH) o DNS-over-TLS para que el tráfico DNS también esté cifrado.</div>
+        </div>
+<div class="quiz-question" id="q5">
+          <div class="q-text">Una VPN te hace completamente anónimo en internet. ¿Verdadero o falso?</div>
+          <div class="q-options"><div class="q-opt" data-idx="0" onclick="answerQ(5,0)">Verdadero — la VPN oculta todo</div><div class="q-opt" data-idx="1" onclick="answerQ(5,1)">Falso — la VPN oculta tu IP pero no tu identidad si estás logueado</div><div class="q-opt" data-idx="2" onclick="answerQ(5,2)">Verdadero, si usas una VPN de pago</div><div class="q-opt" data-idx="3" onclick="answerQ(5,3)">Depende del país donde estés</div></div>
+          <div class="q-explanation" id="exp5">Una VPN oculta tu IP de los sitios web y tu tráfico de tu ISP. Pero si estás logueado en Google, Facebook o cualquier cuenta, esos servicios te identifican perfectamente. La VPN tampoco protege contra cookies, fingerprinting de navegador o malware. Es una herramienta, no una solución mágica.</div>
+        </div>
+        <div class="q-score" id="final-score"></div>
+        <div class="quiz-nav">
+          <button class="q-btn" id="btn-prev" onclick="prevQ()" disabled>&#8592; Anterior</button>
+          <span class="q-progress" id="q-progress">1 / 6</span>
+          <button class="q-btn" id="btn-next" onclick="nextQ()">Siguiente &#8594;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NAVEGADOR SETTINGS -->
+<section class="section">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// secci&#243;n 08 &#8212; navegador</p>
+    <h2 class="sec-h2 fade-in">Configuraci&#243;n de<br><em>navegador para privacidad</em></h2>
+    <div class="browser-grid">
+      <div class="browser-card fade-in" style="border-color:rgba(255,107,53,.15)">
+        <div class="bc-browser" style="color:#f97316">Brave</div>
+        <div class="bc-sub">M&#225;xima privacidad por defecto</div>
+        <div class="bc-settings">
+          <div class="bs-item"><span class="bs-on">&#10003;</span>Bloqueo de ads y trackers integrado</div>
+          <div class="bs-item"><span class="bs-on">&#10003;</span>Fingerprinting randomization activado</div>
+          <div class="bs-item"><span class="bs-on">&#10003;</span>Tor integrado para ventanas privadas</div>
+          <div class="bs-item"><span class="bs-on">&#10003;</span>HTTPS-only por defecto</div>
+          <div class="bs-item"><span class="bs-on">&#10003;</span>Sin telemetría hacia Google</div>
+          <div class="bs-item"><span class="bs-on">&#10003;</span>Basado en Chromium — compatibilidad total</div>
+        </div>
+      </div>
+      <div class="browser-card fade-in" style="border-color:rgba(255,149,0,.15)">
+        <div class="bc-browser" style="color:#ff9500">Firefox</div>
+        <div class="bc-sub">Open source + extensiones</div>
+        <div class="bc-settings">
+          <div class="bs-item"><span class="bs-on">&#10003;</span>uBlock Origin (mejor bloqueador)</div>
+          <div class="bs-item"><span class="bs-on">&#10003;</span>Privacy Badger (EFF)</div>
+          <div class="bs-item"><span class="bs-on">&#10003;</span>Activar DNS-over-HTTPS en about:config</div>
+          <div class="bs-item"><span class="bs-on">&#10003;</span>Desactivar telemetría en about:preferences</div>
+          <div class="bs-item"><span class="bs-off">&#10007;</span>Requiere configuración manual</div>
+          <div class="bs-item"><span class="bs-on">&#10003;</span>Mejor ecosistema de extensiones</div>
+        </div>
+      </div>
+      <div class="browser-card fade-in" style="border-color:rgba(76,201,240,.1)">
+        <div class="bc-browser" style="color:var(--blue)">Chrome</div>
+        <div class="bc-sub">Evitar para privacidad</div>
+        <div class="bc-settings">
+          <div class="bs-item"><span class="bs-off">&#10007;</span>Telemetría extensa hacia Google</div>
+          <div class="bs-item"><span class="bs-off">&#10007;</span>Google te identifica aunque uses incógnito</div>
+          <div class="bs-item"><span class="bs-off">&#10007;</span>Elimina Manifest V3 — limita uBlock</div>
+          <div class="bs-item"><span class="bs-on">&#10003;</span>Si lo usas: instalar uBlock Origin</div>
+          <div class="bs-item"><span class="bs-on">&#10003;</span>Activar DNS Seguro en configuración</div>
+          <div class="bs-item"><span class="bs-on">&#10003;</span>Desactivar sincronización con cuenta Google</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHECKLIST PERSONAL -->
+<section class="section" style="background:linear-gradient(to bottom,transparent,rgba(124,58,237,.01),transparent)">
+  <div class="section-inner">
+    <p class="sec-label fade-in">// checklist personal</p>
+    <h2 class="sec-h2 fade-in">Tu plan de acci&#243;n<br><em>de esta semana</em></h2>
+    <div class="check-grid fade-in">
+      <div class="check-group">
+        <h3>Acci&#243;n immediata (hoy)</h3>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Cambiar contrase&#241;a del router si es admin/admin o viene de f&#225;brica</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Cambiar DNS a 1.1.1.1 en el router o dispositivos principales</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Instalar uBlock Origin en el navegador que uses</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Revisar permisos de apps en el tel&#233;fono — revocar los innecesarios</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Desactivar WPS en el router si lo tienes activado</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Activar DNS-over-HTTPS en Firefox o Chrome</div>
+      </div>
+      <div class="check-group">
+        <h3>Esta semana</h3>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Revisar configuraci&#243;n de privacidad en Instagram, Facebook y TikTok</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Instalar ProtonVPN (gratuito) para WiFi p&#250;blico</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Cambiar b&#250;squedas a DuckDuckGo o Brave Search como prueba</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Activar 2FA en correo, redes sociales y banco</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Actualizar firmware del router</div>
+        <div class="check-item"><div class="chk" onclick="this.classList.toggle('done')"></div>Crear una red de invitados para dispositivos IoT (TV, consola, focos)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOG -->
+<section class="log-section">
+  <div class="log-entry">
+    <div class="log-date">ENTRADA &#8212; CAP&#205;TULO PRIVACIDAD EN INTERNET</div>
+    <p>
+      Cambi&#233; el DNS del router a 1.1.1.1 y lo verifiqu&#233; con la herramienta de Cloudflare.
+      Mi ISP ya no ve los dominios que visito. Instal&#233; uBlock Origin y en 24 horas bloqu&#233; 
+      m&#225;s de 400 trackers. Cuatrocientos. En un solo d&#237;a de navegaci&#243;n normal.
+    </p>
+    <p>
+      La parte m&#225;s reveladora fue revisar los permisos de las apps del tel&#233;fono.
+      Una app de recetas ten&#237;a acceso a mi ubicaci&#243;n en segundo plano, mis contactos
+      y el micr&#243;fono. Una app de recetas. Los revoqu&#233; todos menos los que ten&#237;an sentido.
+      Privacidad no es paranoica &#8212; es saber exactamente qui&#233;n tiene acceso a qu&#233; parte de tu vida.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-brand">CIPHER</div>
+  <div style="font-family:var(--mono);font-size:.65rem;color:var(--gray);
+    letter-spacing:.15em;text-transform:uppercase">
+    VPN &#183; DNS &#183; Router &#183; Redes Sociales &#183; Privacidad cotidiana
+  </div>
+</footer>
+<div class="footer-copy">CIPHER DOC &#8212; Privacidad en Internet &#183; VPN &#183; DNS &#183; Router &#183; Redes Sociales &#183; Construido con Claude Pro</div>
+
+<script>
+// Hero canvas — data packets flowing
+const canvas = document.getElementById('hero-canvas');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
+resize(); new ResizeObserver(resize).observe(canvas);
+
+const labels = [
+  'DNS query: netflix.com','GPS: 4.624,-74.063',
+  'Cookie: _fbp=xxx','User-Agent: Chrome/120',
+  'IP: 181.52.xxx.xxx','HTTPS: bank.com',
+  'Search: síntomas fiebre','Location: Casa',
+  'Ad click: zapatos','ISP log: 22:41'
+];
+const pkts = Array.from({length:18}, (_,i) => ({
+  x: Math.random()*100, y: Math.random()*100,
+  speed: 0.03+Math.random()*0.04,
+  text: labels[i%labels.length],
+  alpha: 0.04+Math.random()*0.08,
+  size: 8+Math.random()*3
+}));
+
+function drawHero(){
+  if(!canvas.width) return requestAnimationFrame(drawHero);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='rgba(124,58,237,0.025)'; ctx.lineWidth=0.5;
+  for(let x=0;x<canvas.width;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();}
+  for(let y=0;y<canvas.height;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();}
+  pkts.forEach(p => {
+    const x=(p.x/100)*canvas.width, y=(p.y/100)*canvas.height;
+    ctx.font=`${p.size}px 'Share Tech Mono'`;
+    ctx.fillStyle=`rgba(167,139,250,${p.alpha})`;
+    ctx.fillText(p.text,x,y);
+    p.y+=p.speed; if(p.y>105) p.y=-5;
+  });
+  requestAnimationFrame(drawHero);
+}
+drawHero();
+
+// Data tracker
+const trackLog = document.getElementById('tracker-log');
+let tracking=true, vpnOn=false, trackInterval;
+
+const TRACK_EVENTS_NORMAL = [
+  ['ISP','tw-isp','Registra consulta DNS: whatsapp.com → 157.240.x.x'],
+  ['Google','tw-google','Analytics detectado en 3 de las últimas 5 páginas visitadas'],
+  ['Ad Network','tw-ad','Cookie _ga sincronizada — perfil de intereses actualizado'],
+  ['ISP','tw-isp','Registra dominio: instagram.com — 14:23:07'],
+  ['Meta Pixel','tw-fb','Pixel disparado en tienda online — añadiste algo al carrito'],
+  ['App','tw-app','App de clima solicita ubicación (2a vez esta hora)'],
+  ['ISP','tw-isp','DPI detecta: YouTube — calidad 1080p — 8 minutos de reproducción'],
+  ['Data Broker','tw-data','IP vinculada con perfil: Masculino 25-34, interés en tecnología'],
+  ['Google','tw-google','Búsqueda sincronizada con cuenta: "síntomas gripa"'],
+  ['Ad Network','tw-ad','Retargeting activado: viste precio de vuelo a Bogotá'],
+];
+
+const TRACK_EVENTS_VPN = [
+  ['VPN','tw-app','Tráfico cifrado — ISP solo ve: VPN_SERVER:443'],
+  ['ISP','tw-isp','Intento de registro DNS: BLOQUEADO por VPN'],
+  ['VPN','tw-app','IP real ocultada — sitios ven: 185.xxx.xxx.xxx (servidor VPN)'],
+  ['VPN','tw-app','Kill switch activo — sin filtración de datos si VPN cae'],
+  ['Google','tw-google','ADVERTENCIA: aún te rastrea si estás logueado en cuenta Google'],
+  ['Cookie','tw-ad','Cookie de sesión persiste — VPN no elimina tracking en sitio'],
+];
+
+function addTrackLine(who, cls, msg){
+  const now = new Date();
+  const time = now.toLocaleTimeString('es',{hour12:false});
+  const div = document.createElement('div');
+  div.className='tracker-line';
+  div.innerHTML=`<span class="tl-time">${time}</span>`
+    +`<span class="tl-who ${cls}">${who}</span>`
+    +`<span class="tl-msg">${msg}</span>`;
+  trackLog.appendChild(div);
+  trackLog.scrollTop=trackLog.scrollHeight;
+  while(trackLog.children.length>60) trackLog.removeChild(trackLog.firstChild);
+}
+
+function startTracking(){
+  let i=0;
+  trackInterval=setInterval(()=>{
+    const events = vpnOn ? TRACK_EVENTS_VPN : TRACK_EVENTS_NORMAL;
+    const ev=events[i%events.length];
+    addTrackLine(ev[0],ev[1],ev[2]); i++;
+  },900);
+}
+
+function toggleTracker(){
+  tracking=!tracking;
+  const btn=document.getElementById('btn-track');
+  if(tracking){startTracking();btn.textContent='⏸ PAUSA';btn.classList.add('active');}
+  else{clearInterval(trackInterval);btn.textContent='▶ PLAY';btn.classList.remove('active');}
+}
+
+function clearTracker(){ trackLog.innerHTML=''; }
+
+function enableVPN(){
+  vpnOn=!vpnOn;
+  const st=document.getElementById('vpn-status');
+  const btn=document.querySelector('[onclick="enableVPN()"]');
+  if(vpnOn){
+    st.textContent='🔒 VPN Activa — ProtonVPN Amsterdam';
+    st.style.color='var(--green)';
+    btn.textContent='🔓 DESACTIVAR VPN';
+    clearTracker();
+    addTrackLine('VPN','tw-app','Conectando a ProtonVPN — Amsterdam NL1...');
+    setTimeout(()=>addTrackLine('VPN','tw-app','Conexión establecida. IP: 185.159.xxx.xxx — Tu IP real está oculta'),800);
+  } else {
+    st.textContent='Sin VPN';
+    st.style.color='';
+    btn.textContent='🔒 ACTIVAR VPN';
+    clearTracker();
+    addTrackLine('Sistema','tw-isp','VPN desconectada — tráfico sin cifrar');
+  }
+}
+
+startTracking();
+addTrackLine('Sistema','tw-app','Iniciando monitoreo de datos — navegación normal simulada');
+
+// Quiz
+const CORRECT = [1,1,1,1,1,1];
+let currentQ=0, score=0, answered=Array(6).fill(false);
+
+function answerQ(qIdx, optIdx){
+  if(answered[qIdx]) return;
+  answered[qIdx]=true;
+  const opts=document.querySelectorAll(`#q${qIdx} .q-opt`);
+  const exp=document.getElementById(`exp${qIdx}`);
+  opts.forEach((o,i)=>{
+    if(i===CORRECT[qIdx]) o.classList.add('correct');
+    else if(i===optIdx) o.classList.add('wrong');
+    o.style.pointerEvents='none';
+  });
+  exp.classList.add('show');
+  if(optIdx===CORRECT[qIdx]){
+    score++;
+    document.getElementById('q-score-label').textContent=`${score} / 6 correctas`;
+  }
+}
+
+function showQ(idx){
+  document.querySelectorAll('.quiz-question').forEach(q=>q.classList.remove('active'));
+  document.getElementById(`q${idx}`).classList.add('active');
+  document.getElementById('q-progress').textContent=`${idx+1} / 6`;
+  document.getElementById('btn-prev').disabled=(idx===0);
+  const btnNext=document.getElementById('btn-next');
+  if(idx===5){btnNext.textContent='Ver resultado';}
+  else{btnNext.textContent='Siguiente →';}
+  currentQ=idx;
+}
+
+function nextQ(){
+  if(currentQ<5) showQ(currentQ+1);
+  else{
+    document.querySelectorAll('.quiz-question').forEach(q=>q.classList.remove('active'));
+    const fs=document.getElementById('final-score');
+    const msgs=['Empieza revisando la sección de router y VPN','¡Buen comienzo! Repasa la sección de redes sociales','¡Bien! Ya tienes bases sólidas de privacidad','Excelente — nivel avanzado de conciencia de privacidad'];
+    const tier=score<=1?0:score<=3?1:score<=5?2:3;
+    fs.innerHTML=`${score}<span style="font-size:1.5rem;color:var(--gray)">/6</span><br>
+      <span style="font-family:var(--body);font-size:1rem;color:rgba(236,234,228,.5);font-style:italic">${msgs[tier]}</span>`;
+    fs.style.display='block';
+    document.getElementById('btn-next').disabled=true;
+  }
+}
+function prevQ(){ if(currentQ>0) showQ(currentQ-1); }
+
+// Scroll
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
+},{threshold:.07,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.fade-in').forEach((el,i)=>{
+  el.style.transitionDelay=(i%5)*0.07+'s'; obs.observe(el);
+});
+</script>
+</body>
+</html>
